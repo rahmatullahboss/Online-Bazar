@@ -7,6 +7,7 @@ import Image from 'next/image'
 
 import { useCart, type CartItem } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
+import { ShinyButton } from '@/components/ui/shiny-button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'

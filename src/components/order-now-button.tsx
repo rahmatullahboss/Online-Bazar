@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { ShinyButton } from '@/components/ui/shiny-button' // Changed from Button to ShinyButton
 import { cn } from '@/lib/utils'
 
 type Item = {
@@ -48,18 +48,18 @@ export function OrderNowButton({
 
   return (
     <div className={cn('flex flex-col gap-2', wrapperClassName)}>
-      <Button
+      <ShinyButton // Changed from Button to ShinyButton
         type="button"
         onClick={handleOrder}
         disabled={loading}
-        size="sm"
         className={cn(
           'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 border-0 text-white rounded-full shadow-lg hover:shadow-amber-500/25 transition-all duration-300 hover:scale-105 h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
           className,
         )}
       >
         {loading ? 'Ordering.' : 'Order Now'}
-      </Button>
+      </ShinyButton>{' '}
+      // Changed from Button to ShinyButton
       {error ? (
         <span className="text-xs text-red-600" role="alert">
           {error}

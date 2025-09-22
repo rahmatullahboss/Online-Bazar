@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Plus, Check } from 'lucide-react'
 
 import { useCart } from '@/lib/cart-context'
-import { Button } from '@/components/ui/button'
+import { ShinyButton } from '@/components/ui/shiny-button' // Changed from Button to ShinyButton
 import type { CartItem } from '@/lib/cart-context'
 import { cn } from '@/lib/utils'
 import { track } from '@/lib/tracking'
@@ -63,10 +63,9 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
   }
 
   return (
-    <Button
+    <ShinyButton // Changed from Button to ShinyButton
       onClick={handleAddToCart}
       disabled={isAdded || isAdding}
-      size="sm"
       className={cn(
         'h-9 px-2 text-xs',
         'sm:h-10 sm:px-3 sm:text-sm',
@@ -86,6 +85,6 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
           <span>Add to Cart</span>
         </>
       )}
-    </Button>
+    </ShinyButton> // Changed from Button to ShinyButton
   )
 }

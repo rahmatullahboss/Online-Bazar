@@ -323,13 +323,13 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
       </p>
     </div>
 
-    <ShinyButton
+    <Button
       type="submit"
       disabled={isSubmitting}
       className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
     >
       {isSubmitting ? 'Placing Order…' : 'Confirm order'}
-    </ShinyButton>
+    </Button>
   </div>
 )
 

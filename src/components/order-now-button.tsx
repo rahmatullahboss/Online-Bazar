@@ -58,8 +58,8 @@ export function OrderNowButton({
         )}
       >
         {loading ? 'Ordering.' : 'Order Now'}
-      </ShinyButton>{' '}
-      // Changed from Button to ShinyButton
+      </ShinyButton>
+      {/* Changed from Button to ShinyButton */}
       {error ? (
         <span className="text-xs text-red-600" role="alert">
           {error}

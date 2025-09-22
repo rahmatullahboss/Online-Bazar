@@ -1,0 +1,213 @@
+{
+  "name": "Abandoned Cart Management",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "17dd94a0-5e1a-4a8d-9b1f-2c8e0f2d8e1a",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "abandoned-cart-cleanup",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "2a3b4c5d-6e7f-8g9h-0i1j-2k3l4m5n6o7p",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        450
+      ],
+      "webhookId": "abandoned-cart-cleanup"
+    },
+    {
+      "parameters": {
+        "resource": "request",
+        "method": "POST",
+        "url": "={{$parameter[\"domain\"]}}/api/abandoned-carts/cleanup?ttlMinutes={{$parameter[\"ttlMinutes\"]}}&secret={{$parameter[\"cronSecret\"]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-cron-secret",
+              "value": "={{$parameter[\"cronSecret\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3b4c5d6e-7f8g-9h0i-1j2k-3l4m5n6o7p8q",
+      "name": "Cleanup Abandoned Carts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "request",
+        "method": "GET",
+        "url": "={{$parameter[\"domain\"]}}/api/abandoned-carts/status?secret={{$parameter[\"cronSecret\"]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-cron-secret",
+              "value": "={{$parameter[\"cronSecret\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4c5d6e7f-8g9h-0i1j-2k3l-4m5n6o7p8q9r",
+      "name": "Check Cart Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "request",
+        "method": "POST",
+        "url": "={{$parameter[\"domain\"]}}/api/abandoned-carts/reminders?secret={{$parameter[\"cronSecret\"]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-cron-secret",
+              "value": "={{$parameter[\"cronSecret\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5d6e7f8g-9h0i-1j2k-3l4m-5n6o7p8q9r0s",
+      "name": "Send Cart Reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "request",
+        "method": "POST",
+        "url": "={{$parameter[\"domain\"]}}/api/logs/cron-execution?secret={{$parameter[\"cronSecret\"]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-cron-secret",
+              "value": "={{$parameter[\"cronSecret\"]}}"
+            }
+          ]
+        },
+        "jsonParameters": true,
+        "options": {},
+        "bodyContentType": "raw",
+        "rawContentType": "application/json",
+        "payloadType": "defined",
+        "payload": "={\n  \"timestamp\": \"{{ new Date().toISOString() }}\",\n  \"workflow\": \"Abandoned Cart Management\",\n  \"status\": \"completed\",\n  \"cleanupResult\": {{ $json[\"Cleanup Abandoned Carts\"].json }},\n  \"statusResult\": {{ $json[\"Check Cart Status\"].json }},\n  \"remindersResult\": {{ $json[\"Send Cart Reminders\"].json }}\n}"
+      },
+      "id": "6e7f8g9h-0i1j-2k3l-4m5n-6o7p8q9r0s1t",
+      "name": "Log Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Abandoned Carts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Cart Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Abandoned Carts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Cart Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Abandoned Carts": {
+      "main": [
+        [
+          {
+            "node": "Send Cart Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Cart Status": {
+      "main": [
+        [
+          {
+            "node": "Send Cart Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Cart Reminders": {
+      "main": [
+        [
+          {
+            "node": "Log Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "abandoned-cart-management",
+  "meta": {
+    "instanceId": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"
+  }
+}

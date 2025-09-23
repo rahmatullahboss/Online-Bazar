@@ -151,6 +151,18 @@
   }
 }
 
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  20% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
 .motion-safe\:animate-caret-blink {
   animation-name: caret-blink;
   animation-duration: 1s;
@@ -164,6 +176,10 @@
 
 .motion-safe\:animate-fade-in {
   animation: fade-in 1s ease-out;
+}
+
+.animate-shine {
+  animation: shine 3s ease-in-out infinite;
 }
 
 .animation-delay-1000 {
@@ -218,4 +234,3 @@
     animation-duration: 1.25s;
   }
 }
-

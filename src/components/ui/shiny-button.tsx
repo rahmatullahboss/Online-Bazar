@@ -52,8 +52,8 @@ const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
         {children}
         {variant !== 'outline' && variant !== 'ghost' && variant !== 'link' && (
           <>
-            <span className="absolute inset-0 block h-full w-full bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
-            <span className="absolute inset-0 block h-full w-1/3 bg-gradient-to-r from-white/40 via-white/20 to-transparent -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-in-out"></span>
+            <span className="absolute inset-0 block h-full w-full bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300"></span>
+            <span className="absolute inset-0 block h-full w-1/3 bg-gradient-to-r from-white/40 via-white/20 to-transparent -translate-x-full animate-shine"></span>
           </>
         )}
       </Comp>

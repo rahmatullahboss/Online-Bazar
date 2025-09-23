@@ -40,7 +40,7 @@ interface ShinyButtonProps
 }
 
 const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
     return (
       <Comp
@@ -48,7 +48,15 @@ const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
         data-slot="button"
         className={cn(shinyButtonVariants({ variant, size, className }))}
         {...props}
-      />
+      >
+        {children}
+        {variant !== 'outline' && variant !== 'ghost' && variant !== 'link' && (
+          <>
+            <span className="absolute inset-0 block h-full w-full bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+            <span className="absolute inset-0 block h-full w-1/3 bg-gradient-to-r from-white/40 via-white/20 to-transparent -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-in-out"></span>
+          </>
+        )}
+      </Comp>
     )
   },
 )

@@ -50,7 +50,8 @@ const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>(
         {...props}
       >
         {children}
-        {variant !== 'outline' && variant !== 'ghost' && variant !== 'link' && (
+        {/* Only add additional elements when NOT using asChild to avoid React.Children.only error */}
+        {!asChild && variant !== 'outline' && variant !== 'ghost' && variant !== 'link' && (
           <React.Fragment>
             <span className="absolute inset-0 block h-full w-full bg-gradient-to-r from-white/15 via-white/10 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100"></span>
             <span className="absolute inset-0 block h-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full animate-shine"></span>

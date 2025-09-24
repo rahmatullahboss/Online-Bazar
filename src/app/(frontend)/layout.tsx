@@ -1,6 +1,8 @@
 import React from 'react'
 import type { Metadata } from 'next'
 
+// We're importing globals.css in the root layout for proper loading order
+// The actual CSS is loaded asynchronously for performance
 import { CartProvider } from '@/lib/cart-context'
 // All components are now lazy-loaded through lazy-client-components
 // This reduces initial bundle size for mobile
@@ -75,29 +77,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         {/* Performance hints for mobile */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         
-        {/* Inline critical CSS for faster first paint */}
-        <style jsx>{`
-          /* Critical styles needed for above-the-fold content */
-          body {
-            margin: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            line-height: 1.5;
-          }
-          main {
-            min-height: calc(100vh - var(--footer-height, 200px));
-          }
-          .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-          }
-          @media (min-width: 768px) {
-            .container {
-              padding: 0 2rem;
-            }
-          }
-        `}</style>
+        {/* Add data attribute to identify the document as loading */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            document.documentElement.setAttribute('data-mode', 'loading');
+          `
+        }} />
         
         {/* Preload critical fonts and stylesheet */}
         <link rel="preload" href="/css/0f4358139da52c82.css" as="style" />

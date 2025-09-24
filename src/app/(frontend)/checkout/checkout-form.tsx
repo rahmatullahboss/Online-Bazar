@@ -269,11 +269,13 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
             {digitalPaymentInstructions?.length ? (
               <Alert className="border-transparent bg-transparent p-0 text-amber-900">
                 <AlertDescription>
-                  <ul className="list-disc space-y-1 pl-5 text-sm">
-                    {digitalPaymentInstructions.map((instruction, index) => (
-                      <li key={`instruction-${index}`}>{instruction}</li>
-                    ))}
-                  </ul>
+                  <div>
+                    <ul className="list-disc space-y-1 pl-5 text-sm">
+                      {digitalPaymentInstructions.map((instruction, index) => (
+                        <li key={`instruction-${index}`}>{instruction}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </AlertDescription>
               </Alert>
             ) : null}

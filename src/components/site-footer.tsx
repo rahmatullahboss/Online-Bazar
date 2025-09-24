@@ -6,7 +6,7 @@ import { ContactEmailLink } from '@/components/contact-email-link'
 export function SiteFooter() {
   return (
     <footer className="border-t border-gray-200/60 bg-gray-50/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
             <Link href="/" className="text-2xl font-semibold brand-text">
@@ -54,7 +54,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-16 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-600">Copyright {new Date().getFullYear()} © Online Bazar — All rights reserved.</p>
           <div className="flex items-center gap-5 text-sm">
             <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer" className="text-gray-600 hover:text-emerald-600">Facebook</a>

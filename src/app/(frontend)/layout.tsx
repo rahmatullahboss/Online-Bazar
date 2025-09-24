@@ -20,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <CartProvider>
-      <main className="pt-20 pb-16 min-h-screen">
+      <main className="pt-24 pb-20 min-h-screen">
         {children}
       </main>
       <SiteFooter />

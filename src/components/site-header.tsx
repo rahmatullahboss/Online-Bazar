@@ -33,7 +33,7 @@ export function SiteHeader({
         <header
           className={`fixed inset-x-0 top-0 z-50 w-full border-b border-gray-200/60 bg-white/95 sm:bg-white/80 backdrop-blur-none sm:backdrop-blur-2xl ${className}`}
         >
-          <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="container mx-auto flex h-24 items-center justify-between px-4 sm:px-6 lg:px-8">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
@@ -172,7 +172,7 @@ export function SiteHeader({
             </div>
           </div>
         </header>
-        <div aria-hidden="true" className="h-20 w-full" />
+        <div aria-hidden="true" className="h-24 w-full" />
       </>
     )
   }

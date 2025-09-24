@@ -16,15 +16,32 @@ export const revalidate = 3600
 
 const getItemsCached = unstableCache(
   async () => {
-    const payloadConfig = await config
-    const payload = await getPayload({ config: payloadConfig })
+    try {
+      const payloadConfig = await config
+      const payload = await getPayload({ config: payloadConfig })
 
-    return payload.find({
-      collection: 'items',
-      where: { available: { equals: true } },
-      depth: 1,
-      limit: 12,
-    })
+      return await payload.find({
+        collection: 'items',
+        where: { available: { equals: true } },
+        depth: 1,
+        limit: 12,
+      })
+    } catch (error) {
+      console.error('Error fetching items for cache:', error)
+      // Return empty result set instead of throwing
+      return {
+        docs: [],
+        totalDocs: 0,
+        limit: 12,
+        totalPages: 1,
+        page: 1,
+        pagingCounter: 1,
+        hasPrevPage: false,
+        hasNextPage: false,
+        prevPage: null,
+        nextPage: null,
+      }
+    }
   },
   ['items:list:v1'],
   { revalidate: 300 },

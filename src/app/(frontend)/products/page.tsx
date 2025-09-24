@@ -53,15 +53,32 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const getItemsCached = unstableCache(
   async () => {
-    const payloadConfig = await config
-    const payload = await getPayload({ config: payloadConfig })
+    try {
+      const payloadConfig = await config
+      const payload = await getPayload({ config: payloadConfig })
 
-    return payload.find({
-      collection: 'items',
-      where: { available: { equals: true } },
-      depth: 1,
-      limit: 100, // Show all available products
-    })
+      return await payload.find({
+        collection: 'items',
+        where: { available: { equals: true } },
+        depth: 1,
+        limit: 100, // Show all available products
+      })
+    } catch (error) {
+      console.error('Error fetching items for cache:', error)
+      // Return empty result set instead of throwing
+      return {
+        docs: [],
+        totalDocs: 0,
+        limit: 100,
+        totalPages: 1,
+        page: 1,
+        pagingCounter: 1,
+        hasPrevPage: false,
+        hasNextPage: false,
+        prevPage: null,
+        nextPage: null,
+      }
+    }
   },
   ['items:list:all'],
   { revalidate: 300 },

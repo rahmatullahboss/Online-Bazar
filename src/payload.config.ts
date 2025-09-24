@@ -122,6 +122,10 @@ export default buildConfig({
     pool: {
       // Prefer POSTGRES_URL, fallback to DATABASE_URL for hosts that provide that
       connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || '',
+      // Add connection pool configuration for better resilience
+      max: 20, // Maximum number of connections in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 5000, // Return an error after 5 seconds if connection could not be established
     },
     // When set to undefined or true, Payload will automatically push DB
     // changes in dev environment.

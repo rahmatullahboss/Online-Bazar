@@ -13,4 +13,3 @@ export function ReviewStars({ value, count = 5, className = '' }: { value: numbe
     </div>
   )
 }
-

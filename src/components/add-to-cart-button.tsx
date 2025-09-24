@@ -76,15 +76,15 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       )}
     >
       {isAdded ? (
-        <>
+        <React.Fragment>
           <Check className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
           <span>Added!</span>
-        </>
+        </React.Fragment>
       ) : (
-        <>
+        <React.Fragment>
           <Plus className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
           <span>Add to Cart</span>
-        </>
+        </React.Fragment>
       )}
     </Button>
   )

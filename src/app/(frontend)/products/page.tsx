@@ -103,8 +103,8 @@ export default async function ProductsPage() {
         </Suspense>
       </div>
 
-      <div className="relative z-10 pt-8 pb-16">
-        <section className="relative py-12">
+      <div className="relative z-10">
+        <section className="relative py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <div className="space-y-8 motion-safe:animate-fade-in motion-reduce:fade-in-reset">
               <div className="space-y-4">

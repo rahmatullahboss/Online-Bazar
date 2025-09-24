@@ -66,7 +66,7 @@ export default async function HomePage() {
         </Suspense>
       </div>
 
-      <div className="relative z-10 pt-8 pb-16">
+      <div className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           {/* Floating Elements */}

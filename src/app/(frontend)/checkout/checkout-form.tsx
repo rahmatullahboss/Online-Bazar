@@ -188,9 +188,9 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           placeholder="Enter promo code"
           className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
         />
-        <Button type="button" variant="secondary" size="sm" className="rounded-xl">
+        <ShinyButton type="button" variant="secondary" size="sm" className="rounded-xl">
           Apply
-        </Button>
+        </ShinyButton>
       </div>
       <p className="text-xs text-stone-500">
         Promotions are applied before taxes and shipping charges.

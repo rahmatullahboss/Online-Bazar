@@ -16,7 +16,18 @@ import {
 } from '@/components/lazy-client-components'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+  const blobHost = (() => {
+    const match = blobToken?.match(/^vercel_blob_rw_([a-z\d]+)_[a-z\d]+$/i)
+    const id = match?.[1]?.toLowerCase()
+    return id ? `${id}.public.blob.vercel-storage.com` : undefined
+  })()
   const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false'
+  const measurementId =
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ||
+    process.env.NEXT_PUBLIC_GTM_MEASUREMENT_ID ||
+    process.env.GA_MEASUREMENT_ID ||
+    process.env.GTM_MEASUREMENT_ID
 
   return (
     <CartProvider>

@@ -23,7 +23,9 @@ export default async function CheckoutPage() {
   const deliverySettingsResult = await payload
     .find({ collection: 'delivery-settings', limit: 1 })
     .catch(() => null)
-  const deliverySettings = normalizeDeliverySettings((deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS)
+  const deliverySettings = normalizeDeliverySettings(
+    (deliverySettingsResult as any)?.docs?.[0] || DEFAULT_DELIVERY_SETTINGS,
+  )
 
   const steps = [
     { label: 'Cart', status: 'done' as const },
@@ -36,13 +38,12 @@ export default async function CheckoutPage() {
       <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-10 lg:px-8 lg:pt-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <Button
-            asChild
-            variant="ghost"
-            className="h-11 rounded-full border border-transparent bg-white/80 px-4 text-sm font-semibold text-stone-600 shadow-sm backdrop-blur transition hover:border-amber-200 hover:bg-white hover:text-amber-600"
+          <Link
+            href="/"
+            className="h-11 rounded-full border border-transparent bg-white/80 px-4 text-sm font-semibold text-stone-600 shadow-sm backdrop-blur transition hover:border-amber-200 hover:bg-white hover:text-amber-600 inline-flex items-center"
           >
-            <Link href="/">← Back to shopping</Link>
-          </Button>
+            ← Back to shopping
+          </Link>
           <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-stone-500">
             {steps.map((step, index) => (
               <React.Fragment key={step.label}>
@@ -65,13 +66,18 @@ export default async function CheckoutPage() {
                   </span>
                   {step.label}
                 </span>
-                {index < steps.length - 1 ? <span className="hidden h-px w-8 bg-stone-300 sm:block" aria-hidden /> : null}
+                {index < steps.length - 1 ? (
+                  <span className="hidden h-px w-8 bg-stone-300 sm:block" aria-hidden />
+                ) : null}
               </React.Fragment>
             ))}
           </div>
         </div>
 
-        <CheckoutForm user={(fullUser as any) || (user as any)} deliverySettings={deliverySettings} />
+        <CheckoutForm
+          user={(fullUser as any) || (user as any)}
+          deliverySettings={deliverySettings}
+        />
       </div>
     </div>
   )

@@ -267,17 +267,13 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         {requiresDigitalPaymentDetails ? (
           <div className="space-y-5 rounded-2xl border border-amber-100 bg-amber-50/70 p-5 text-amber-900 shadow-sm shadow-amber-100">
             {digitalPaymentInstructions?.length ? (
-              <Alert className="border-transparent bg-transparent p-0 text-amber-900">
-                <AlertDescription>
-                  <div>
-                    <ul className="list-disc space-y-1 pl-5 text-sm">
-                      {digitalPaymentInstructions.map((instruction, index) => (
-                        <li key={`instruction-${index}`}>{instruction}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </AlertDescription>
-              </Alert>
+              <div className="mb-4">
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {digitalPaymentInstructions.map((instruction, index) => (
+                    <li key={`instruction-${index}`}>{instruction}</li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -612,7 +608,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 mb-4">Your cart is empty</p>
-        <ShinyButton asChild>
+        <ShinyButton>
           <Link href="/">Continue Shopping</Link>
         </ShinyButton>
       </div>

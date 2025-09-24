@@ -2,11 +2,17 @@ import React from 'react'
 import type { Metadata } from 'next'
 
 import { CartProvider } from '@/lib/cart-context'
-import { SiteFooter } from '@/components/site-footer'
-import { FloatingContactButtons } from '@/components/floating-contact-buttons'
-import '../globals.css'
-import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
-import { SplashCursor } from '@/components/splash-cursor'
+// All components are now lazy-loaded through lazy-client-components
+// This reduces initial bundle size for mobile
+import { 
+  CartSidebar, 
+  Analytics, 
+  SpeedInsights, 
+  Toaster,
+  FloatingContactButtons,
+  SiteFooter,
+  SplashCursor
+} from '@/components/lazy-client-components'
 
 export const metadata: Metadata = {
   description:
@@ -68,6 +74,37 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <head>
         {/* Performance hints for mobile */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        
+        {/* Inline critical CSS for faster first paint */}
+        <style jsx>{`
+          /* Critical styles needed for above-the-fold content */
+          body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+          }
+          main {
+            min-height: calc(100vh - var(--footer-height, 200px));
+          }
+          .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+          }
+          @media (min-width: 768px) {
+            .container {
+              padding: 0 2rem;
+            }
+          }
+        `}</style>
+        
+        {/* Preload critical fonts and stylesheet */}
+        <link rel="preload" href="/css/0f4358139da52c82.css" as="style" />
+        
+        {/* Load non-critical CSS asynchronously */}
+        <link rel="stylesheet" href="/css/0f4358139da52c82.css" media="print" onLoad={(e) => { (e.target as HTMLLinkElement).media = 'all'; }} />
+        <noscript><link rel="stylesheet" href="/css/0f4358139da52c82.css" /></noscript>
         {/* Preconnects to speed up first requests on mobile */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         {blobHost ? (

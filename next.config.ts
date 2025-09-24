@@ -42,6 +42,7 @@ for (const host of vercelHosts) {
 }
 
 const nextConfig: NextConfig = {
+
   webpack: (config) => {
     if (process.env.NODE_ENV === 'development') {
       config.module.rules.push({
@@ -75,6 +76,8 @@ const nextConfig: NextConfig = {
       'recharts',
       'react-day-picker',
     ],
+    // Enable modern browser compilation
+    esmExternals: true,
   },
 }
 

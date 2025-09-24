@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Minus, Plus, ShieldCheck, Truck } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { ShinyButton } from '@/components/ui/shiny-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -323,13 +324,14 @@ const SummaryPanel: React.FC<SummaryPanelProps> = ({
       </p>
     </div>
 
-    <Button
+    <ShinyButton
       type="submit"
       disabled={isSubmitting}
-      className="mt-6 w-full rounded-full bg-[linear-gradient(135deg,#F97316_0%,#F43F5E_100%)] px-6 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f97316] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-80"
+      size="lg"
+      className="mt-6 w-full rounded-full"
     >
       {isSubmitting ? 'Placing Order…' : 'Confirm order'}
-    </Button>
+    </ShinyButton>
   </div>
 )
 

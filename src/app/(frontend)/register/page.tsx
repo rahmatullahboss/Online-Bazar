@@ -8,26 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
+import { OTPVerification } from '@/components/ui/otp-verification'
+import { Loader2, ArrowLeft } from 'lucide-react'
+
+type RegistrationStep = 'form' | 'otp-verification' | 'success'
 
 export default function RegisterPage() {
+  const [currentStep, setCurrentStep] = useState<RegistrationStep>('form')
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     address_line1: '',
     address_line2: '',
     address_city: '',
     address_state: '',
     address_postalCode: '',
-    address_country: '',
+    address_country: 'Bangladesh',
+    deliveryZone: 'inside_dhaka',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const router = useRouter()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -35,21 +43,47 @@ export default function RegisterPage() {
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const sendOTP = async () => {
+    setIsSubmitting(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/otp/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          phone: formData.phone || undefined,
+          type: 'registration',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setCurrentStep('otp-verification')
+        setSuccess('OTP sent successfully! Please check your email.')
+      } else {
+        setError(data.error || 'Failed to send OTP. Please try again.')
+      }
+    } catch (error) {
+      console.error('Send OTP error:', error)
+      setError('Network error. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
 
-    // Basic validation
+    // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError('All fields are required')
-      setIsSubmitting(false)
-      return
-    }
-
-    // Optional: basic address validation (require at least line1, city, postalCode, country)
-    if (!formData.address_line1 || !formData.address_city || !formData.address_postalCode || !formData.address_country) {
-      setError('Please provide your shipping address (line 1, city, postal code, country)')
+      setError('Please fill in all required fields')
       setIsSubmitting(false)
       return
     }
@@ -66,8 +100,35 @@ export default function RegisterPage() {
       return
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Please enter a valid email address')
+      setIsSubmitting(false)
+      return
+    }
+
+    // Optional phone validation
+    if (formData.phone && !/^01[3-9]\d{8}$/.test(formData.phone)) {
+      setError('Please enter a valid Bangladeshi phone number (01XXXXXXXXX)')
+      setIsSubmitting(false)
+      return
+    }
+
+    // Send OTP
+    await sendOTP()
+  }
+
+  const handleOTPVerified = async (success: boolean, data?: any) => {
+    if (!success) {
+      setError(data?.error || 'OTP verification failed')
+      return
+    }
+
+    // Proceed with user registration
+    setIsSubmitting(true)
+    setError('')
+
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,249 +138,297 @@ export default function RegisterPage() {
           lastName: formData.lastName,
           email: formData.email,
           password: formData.password,
-          role: 'user',
+          phone: formData.phone || undefined,
           address: {
-            line1: formData.address_line1,
+            line1: formData.address_line1 || undefined,
             line2: formData.address_line2 || undefined,
-            city: formData.address_city,
+            city: formData.address_city || undefined,
             state: formData.address_state || undefined,
-            postalCode: formData.address_postalCode,
+            postalCode: formData.address_postalCode || undefined,
             country: formData.address_country,
           },
+          deliveryZone: formData.deliveryZone,
+          otpCode: data?.otpCode || '', // This will be handled by the verification
         }),
       })
 
+      const result = await response.json()
+
       if (response.ok) {
-        // Registration successful, redirect to login
-        router.push('/login?message=Registration successful! Please log in.')
+        setCurrentStep('success')
+        setSuccess('Account created successfully!')
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          router.push('/login?message=Account created successfully! Please log in.')
+        }, 2000)
       } else {
-        const errorData = await response.json()
-        console.error('Registration error:', response.status, errorData)
-        setError(
-          errorData.message ||
-            errorData.errors?.[0]?.message ||
-            'Registration failed. Please try again.',
-        )
+        setError(result.error || 'Registration failed. Please try again.')
+        setCurrentStep('form') // Go back to form
       }
-    } catch (err) {
-      console.error('Registration fetch error:', err)
-      setError('Registration failed. Please try again.')
+    } catch (error) {
+      console.error('Registration error:', error)
+      setError('Network error. Please try again.')
+      setCurrentStep('form') // Go back to form
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" />
-      <div className="container mx-auto px-4 py-12 flex items-center justify-center">
-        <div className="max-w-md w-full space-y-6">
-          <div className="text-center space-y-1">
-            <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="font-medium text-red-600 hover:text-red-500">
-                Sign in
-              </Link>
-            </p>
+  const handleBackToForm = () => {
+    setCurrentStep('form')
+    setError('')
+    setSuccess('')
+  }
+
+  const renderForm = () => (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+        <CardDescription className="text-center">
+          Join Online Bazar and start shopping today
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert className="border-green-200 bg-green-50 text-green-800">
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                First Name *
+              </label>
+              <Input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                required
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name *
+              </label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                required
+                className="w-full"
+              />
+            </div>
           </div>
 
-        {/* Registration Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign up</CardTitle>
-            <CardDescription>Enter your information to create an account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address *
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                    First Name
-                  </label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="John"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                    Last Name
-                  </label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number (Optional)
+            </label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="01XXXXXXXXX"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="john@example.com"
-                />
-              </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password *
+            </label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
 
-              {/* Address */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-800">Shipping address</h4>
-                <div className="space-y-2">
-                  <label htmlFor="address_line1" className="text-sm font-medium text-gray-700">
-                    Address line 1
-                  </label>
-                  <Input
-                    id="address_line1"
-                    name="address_line1"
-                    type="text"
-                    required
-                    value={formData.address_line1}
-                    onChange={handleInputChange}
-                    placeholder="House, street, area"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="address_line2" className="text-sm font-medium text-gray-700">
-                    Address line 2 (optional)
-                  </label>
-                  <Input
-                    id="address_line2"
-                    name="address_line2"
-                    type="text"
-                    value={formData.address_line2}
-                    onChange={handleInputChange}
-                    placeholder="Apartment, suite, etc."
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="address_city" className="text-sm font-medium text-gray-700">
-                      City
-                    </label>
-                    <Input
-                      id="address_city"
-                      name="address_city"
-                      type="text"
-                      required
-                      value={formData.address_city}
-                      onChange={handleInputChange}
-                      placeholder="City"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="address_state" className="text-sm font-medium text-gray-700">
-                      State / Region
-                    </label>
-                    <Input
-                      id="address_state"
-                      name="address_state"
-                      type="text"
-                      value={formData.address_state}
-                      onChange={handleInputChange}
-                      placeholder="State or region"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="address_postalCode" className="text-sm font-medium text-gray-700">
-                      Postal code
-                    </label>
-                    <Input
-                      id="address_postalCode"
-                      name="address_postalCode"
-                      type="text"
-                      required
-                      value={formData.address_postalCode}
-                      onChange={handleInputChange}
-                      placeholder="Postal code"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="address_country" className="text-sm font-medium text-gray-700">
-                      Country
-                    </label>
-                    <Input
-                      id="address_country"
-                      name="address_country"
-                      type="text"
-                      required
-                      value={formData.address_country}
-                      onChange={handleInputChange}
-                      placeholder="Country"
-                    />
-                  </div>
-                </div>
-              </div>
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Confirm Password *
+            </label>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              className="w-full"
+            />
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                />
-              </div>
+          <div>
+            <label htmlFor="deliveryZone" className="block text-sm font-medium text-gray-700 mb-1">
+              Delivery Zone *
+            </label>
+            <select
+              id="deliveryZone"
+              name="deliveryZone"
+              value={formData.deliveryZone}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="inside_dhaka">Inside Dhaka</option>
+              <option value="outside_dhaka">Outside Dhaka</option>
+            </select>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  Confirm Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                />
-              </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Address (Optional)</label>
+            <Input
+              name="address_line1"
+              placeholder="Address Line 1"
+              value={formData.address_line1}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+            <Input
+              name="address_line2"
+              placeholder="Address Line 2"
+              value={formData.address_line2}
+              onChange={handleInputChange}
+              className="w-full"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                name="address_city"
+                placeholder="City"
+                value={formData.address_city}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+              <Input
+                name="address_postalCode"
+                placeholder="Postal Code"
+                value={formData.address_postalCode}
+                onChange={handleInputChange}
+                className="w-full"
+              />
+            </div>
+          </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating account...' : 'Create account'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending OTP...
+              </>
+            ) : (
+              'Send Verification Code'
+            )}
+          </Button>
 
-        {/* Back to Home */}
-        <div className="text-center">
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to home
-          </Link>
+          <div className="text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 hover:underline">
+              Sign in
+            </Link>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  )
+
+  const renderOTPVerification = () => (
+    <div className="w-full max-w-md mx-auto">
+      <Button variant="outline" onClick={handleBackToForm} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Form
+      </Button>
+
+      <OTPVerification
+        email={formData.email}
+        phone={formData.phone || undefined}
+        type="registration"
+        onVerified={handleOTPVerified}
+        title="Verify Your Email"
+        description="We've sent a 6-digit verification code to your email address"
+      />
+    </div>
+  )
+
+  const renderSuccess = () => (
+    <Card className="w-full max-w-md mx-auto text-center">
+      <CardContent className="pt-6">
+        <div className="mb-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-green-800 mb-2">Account Created!</h2>
+          <p className="text-gray-600">
+            Your account has been successfully created. Redirecting to login...
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          {currentStep === 'form' && renderForm()}
+          {currentStep === 'otp-verification' && renderOTPVerification()}
+          {currentStep === 'success' && renderSuccess()}
         </div>
       </div>
-    </div>
     </div>
   )
 }

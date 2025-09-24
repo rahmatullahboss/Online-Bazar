@@ -20,6 +20,7 @@ import { AbandonedCarts } from './collections/AbandonedCarts'
 import { Reviews } from './collections/Reviews'
 import Posts from './collections/Posts'
 import ProgramParticipants from './collections/ProgramParticipants'
+import { OTPs } from './collections/OTPs'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -112,6 +113,7 @@ export default buildConfig({
     DeliverySettings,
     Posts,
     ProgramParticipants,
+    OTPs,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

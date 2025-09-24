@@ -59,14 +59,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Performance hints for mobile */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        
+
         {/* Add data attribute to identify the document as loading */}
-        <script dangerouslySetInnerHTML={{
-          __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
             document.documentElement.setAttribute('data-mode', 'loading');
-          `
-        }} />
-        
+          `,
+          }}
+        />
+
         {/* Preconnects to speed up first requests on mobile */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         {blobHost ? (
@@ -97,9 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         ) : null}
       </head>
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

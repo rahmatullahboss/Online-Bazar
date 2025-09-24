@@ -1,5 +1,4 @@
 import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
 import { getPayload } from 'payload'
 import React from 'react'
 import config from '@/payload.config'
@@ -12,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
-import { ReviewStars } from '@/components/review-stars'
+import { DynamicReviewStars, ProductImage } from '@/components/dynamic-product-components'
 import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 import type { Metadata } from 'next'
 
@@ -235,7 +234,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
               {((item.image && typeof item.image === 'object') || item.imageUrl) && (
                 <div className="group relative overflow-hidden rounded-[2.75rem] border border-white/60 bg-white shadow-xl shadow-amber-100/80">
                   <div className="relative aspect-square">
-                    <Image
+                    <ProductImage
                       src={
                         item.image && typeof item.image === 'object'
                           ? item.image.url
@@ -246,7 +245,6 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                           ? item.image.alt
                           : undefined) || item.name
                       }
-                      fill
                       className="object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:saturate-125"
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-gray-900/10 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
@@ -288,7 +286,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      <ReviewStars value={ratingAvg} />
+                      <DynamicReviewStars value={ratingAvg} />
                       <span>{reviews.length} Reviews</span>
                     </div>
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">

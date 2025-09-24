@@ -42,7 +42,6 @@ for (const host of vercelHosts) {
 }
 
 const nextConfig: NextConfig = {
-
   webpack: (config) => {
     if (process.env.NODE_ENV === 'development') {
       config.module.rules.push({

@@ -20,7 +20,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <CartProvider>
-      <main>{children}</main>
+      <main className="pt-20 pb-16 min-h-screen">
+        {children}
+      </main>
       <SiteFooter />
       <FloatingContactButtons />
       {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}

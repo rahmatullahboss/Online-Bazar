@@ -5,14 +5,14 @@ import React from 'react'
 import { CartProvider } from '@/lib/cart-context'
 // All components are now lazy-loaded through lazy-client-components
 // This reduces initial bundle size for mobile
-import {
-  CartSidebar,
-  Analytics,
-  SpeedInsights,
+import { 
+  CartSidebar, 
+  Analytics, 
+  SpeedInsights, 
   Toaster,
   FloatingContactButtons,
   SiteFooter,
-  SplashCursor,
+  SplashCursor
 } from '@/components/lazy-client-components'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

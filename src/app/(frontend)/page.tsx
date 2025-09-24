@@ -1,4 +1,5 @@
 import { headers as getHeaders } from 'next/headers.js'
+import Image from 'next/image'
 import { getPayload } from 'payload'
 import { unstable_cache as unstableCache } from 'next/cache'
 import { Suspense } from 'react'
@@ -10,7 +11,6 @@ import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
 import { SiteHeader } from '@/components/site-header'
-import { ProductImage } from '@/components/dynamic-product-components'
 
 export const revalidate = 3600
 
@@ -165,7 +165,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                   <Link href={`/item/${item.id}`} className="block">
                     {((item.image && typeof item.image === 'object') || item.imageUrl) && (
                       <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
-                        <ProductImage
+                        <Image
                           src={
                             item.image && typeof item.image === 'object'
                               ? item.image.url
@@ -176,6 +176,8 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                               ? item.image.alt
                               : undefined) || item.name
                           }
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                           className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
                         />
                         {/* Image Overlay */}
@@ -234,13 +236,25 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
   )
 }
 
-import { DynamicMobileHeader } from '@/components/mobile-loading-states'
-
 function HeaderFallback() {
-  return <DynamicMobileHeader />
+  return (
+    <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-gray-200/60 bg-white/80 backdrop-blur-none sm:backdrop-blur-2xl">
+      <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-rose-200 animate-pulse" />
+          <div className="h-6 w-32 rounded-full bg-gray-200 animate-pulse" />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="h-8 w-24 rounded-full bg-gray-200 animate-pulse" />
+            <div className="h-8 w-24 rounded-full bg-gray-200 animate-pulse" />
+          </div>
+          <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+        </div>
+      </div>
+    </header>
+  )
 }
-
-import { DynamicMobileProductCard } from '@/components/mobile-loading-states'
 
 function ProductGridFallback() {
   return (
@@ -254,7 +268,36 @@ function ProductGridFallback() {
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <DynamicMobileProductCard key={`skeleton-${index}`} />
+            <div
+              key={`skeleton-${index}`}
+              className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl"
+            >
+              <div className="flex h-full flex-col">
+                <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl bg-gray-100">
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
+                </div>
+                <div className="space-y-3 p-4">
+                  <div className="space-y-2">
+                    <div className="h-6 w-3/4 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="h-3 w-12 rounded-full bg-gradient-to-r from-amber-200 to-rose-200 opacity-80" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 w-full rounded-full bg-gray-200 animate-pulse" />
+                    <div className="h-3 w-5/6 rounded-full bg-gray-200 animate-pulse" />
+                  </div>
+                </div>
+                <div className="mt-auto flex items-center justify-between border-t border-gray-200/60 bg-white p-4 rounded-b-3xl">
+                  <div className="space-y-2">
+                    <div className="h-6 w-24 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="h-3 w-20 rounded-full bg-gray-100 animate-pulse" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-9 w-20 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="h-9 w-20 rounded-full bg-gray-200 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </section>

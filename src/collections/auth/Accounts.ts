@@ -6,7 +6,7 @@ export const Accounts: CollectionConfig = withAccountCollection(
     slug: 'accounts',
     admin: {
       defaultColumns: ['provider', 'providerAccountId'],
-      useAsTitle: 'providerAccountId', // Now that we've added the field, we can use it as title
+      useAsTitle: 'providerAccountId', // Restore this now that the server is running
     },
     fields: [
       // Add the missing provider fields

@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
-  // Redirect to the OAuth authorization endpoint provided by payload-auth-plugin
-  // The plugin creates endpoints at /:pluginType/oauth/:resource/:provider
-  // Since we named our plugin "admin", the endpoint is /admin/oauth/authorization/google
-  // Use the current host to avoid port mismatch issues
-  const url = new URL(request.url)
-  const redirectUrl = `${url.origin}/admin/oauth/authorization/google`
+export async function GET() {
+  // Redirect to the OAuth endpoint
+  const redirectUrl = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/oauth/callback/google`
   return NextResponse.redirect(redirectUrl)
 }

@@ -1,23 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
 
 export const GoogleSignInButton = () => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  
-  // Handle the OAuth callback
-  useEffect(() => {
-    const error = searchParams.get('error')
-    if (error) {
-      console.error('OAuth error:', error)
-      // Handle error display to user
-    }
-  }, [searchParams])
-
   const handleGoogleSignIn = () => {
     // Redirect to the OAuth endpoint
     const redirectUrl = `/api/auth/google`

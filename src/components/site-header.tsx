@@ -1,5 +1,8 @@
+'use client'
+
 import React from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { CartButton } from '@/components/cart-button'
 import { LogoutButton } from '@/components/logout-button'
@@ -14,7 +17,6 @@ import { Menu as MenuIcon } from 'lucide-react'
 
 export interface SiteHeaderProps {
   variant?: 'full' | 'simple'
-  user?: any
   title?: string
   subtitle?: string | React.ReactNode
   className?: string
@@ -22,11 +24,12 @@ export interface SiteHeaderProps {
 
 export function SiteHeader({
   variant = 'simple',
-  user,
   title,
   subtitle,
   className = '',
 }: SiteHeaderProps) {
+  const { user } = useAuth()
+
   if (variant === 'full') {
     return (
       <>

@@ -1,26 +1,17 @@
 'use client'
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { frontendAuthClient } from '@/lib/auth'
 
 export function LogoutButton() {
-  const router = useRouter()
-
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/users/logout', {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('dyad-auth-changed'))
-        }
-        router.push('/')
-        router.refresh()
-      } else {
-        console.error('Logout failed')
+      await frontendAuthClient.signout({ returnTo: '/' })
+      // The signout function will handle redirection.
+      // We can still dispatch an event if other parts of the app need to react instantly.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('dyad-auth-changed'))
       }
     } catch (error) {
       console.error('An error occurred during logout', error)

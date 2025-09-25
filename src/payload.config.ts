@@ -40,6 +40,13 @@ export const getServerSideURL = () => {
   if (vercelURL) return `https://${vercelURL}`
   if (vercelProdURL) return `https://${vercelProdURL}`
 
+  // For development, use the current host
+  if (process.env.NODE_ENV === 'development') {
+    // Check if we're running on port 3000 or 3003
+    const port = process.env.PORT || '3000'
+    return `http://localhost:${port}`
+  }
+
   return undefined as unknown as string
 }
 
@@ -102,9 +109,22 @@ export default buildConfig({
   },
   serverURL: getServerSideURL(),
   // Allow current deployment URL, production domain, and localhost for dev
-  cors: [getServerSideURL(), 'https://online-bazar.top', 'http://localhost:3000'].filter(
-    Boolean,
-  ) as string[],
+  cors: [
+    getServerSideURL(), 
+    'https://online-bazar.top', 
+    'http://localhost:3000', 
+    'http://localhost:3003',
+    // Add the specific OAuth callback URL
+    `${getServerSideURL()}/admin/oauth/callback/google`
+  ].filter(Boolean) as string[],
+  csrf: [
+    getServerSideURL(),
+    'https://online-bazar.top',
+    'http://localhost:3000',
+    'http://localhost:3003',
+    // Add the specific OAuth callback URL
+    `${getServerSideURL()}/admin/oauth/callback/google`
+  ].filter(Boolean) as string[],
   plugins: [
     ...storagePlugins,
     authPlugin({

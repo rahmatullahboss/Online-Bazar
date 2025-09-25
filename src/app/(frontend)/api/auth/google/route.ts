@@ -7,6 +7,5 @@ export async function GET(request: Request) {
   // Use the current host to avoid port mismatch issues
   const url = new URL(request.url)
   const redirectUrl = `${url.origin}/admin/oauth/authorization/google`
-  console.log('Redirecting to Google OAuth:', redirectUrl)
   return NextResponse.redirect(redirectUrl)
 }

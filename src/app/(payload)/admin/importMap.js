@@ -1,7 +1,6 @@
 import { default as default_e2b96ce7c8cfe0d28f27a60ca49568aa } from '@/components/admin/OrderStatusDropdown'
 import { default as default_dbc3571da1650a567c6f588dc2fc947a } from '@/components/admin/OrderStatusSelect'
 import { default as default_b1afa974380bc4f253dc43ae94a50f05 } from '@/components/admin/AbandonedCartStatusCell'
-import { AbandonedCartsList as AbandonedCartsList_ea19143b03ddadc1142ee86d3d921106 } from '@/components/admin/AbandonedCartsList'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -32,7 +31,6 @@ export const importMap = {
   "@/components/admin/OrderStatusDropdown#default": default_e2b96ce7c8cfe0d28f27a60ca49568aa,
   "@/components/admin/OrderStatusSelect#default": default_dbc3571da1650a567c6f588dc2fc947a,
   "@/components/admin/AbandonedCartStatusCell#default": default_b1afa974380bc4f253dc43ae94a50f05,
-  "@/components/admin/AbandonedCartsList#AbandonedCartsList": AbandonedCartsList_ea19143b03ddadc1142ee86d3d921106,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

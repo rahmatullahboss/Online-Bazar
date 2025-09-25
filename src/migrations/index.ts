@@ -30,6 +30,7 @@ import * as migration_20250920_fix_abandoned_carts_items_constraint from './2025
 import * as migration_20250925_add_coupons_collection from './20250925_add_coupons_collection'
 import * as migration_20250925_add_coupon_id_to_orders from './20250925_add_coupon_id_to_orders'
 import * as migration_20250925_add_coupon_fk_constraints from './20250925_add_coupon_fk_constraints'
+import * as migration_20250925_add_discount_amount_to_orders from './20250925_add_discount_amount_to_orders'
 
 export const migrations = [
   {
@@ -191,5 +192,10 @@ export const migrations = [
     up: migration_20250925_add_coupon_fk_constraints.up,
     down: migration_20250925_add_coupon_fk_constraints.down,
     name: '20250925_add_coupon_fk_constraints',
+  },
+  {
+    up: migration_20250925_add_discount_amount_to_orders.up,
+    down: migration_20250925_add_discount_amount_to_orders.down,
+    name: '20250925_add_discount_amount_to_orders',
   },
 ]

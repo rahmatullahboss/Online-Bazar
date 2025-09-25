@@ -3,6 +3,12 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postg
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   // Add the foreign key constraints that were skipped earlier
   await db.execute(sql`
+    -- Add coupon_id column to orders table if it doesn't exist
+    ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "coupon_id" integer;
+
+    -- Add coupon_id to payload_locked_documents_rels if it doesn't exist
+    ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "coupons_id" integer;
+
     -- Add foreign key constraint for orders
     DO $$
     BEGIN

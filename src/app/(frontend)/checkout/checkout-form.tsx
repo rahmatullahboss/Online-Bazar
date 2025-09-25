@@ -893,7 +893,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               </div>
               <div className="space-y-2">
                 <label htmlFor="address_state" className="text-sm font-medium text-stone-600">
-                  State / region
+                  State / region <span className="text-stone-400">(optional)</span>
                 </label>
                 <input
                   id="address_state"
@@ -918,7 +918,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
               </div>
               <div className="space-y-2">
                 <label htmlFor="address_country" className="text-sm font-medium text-stone-600">
-                  Country
+                  Country <span className="text-stone-400">(optional)</span>
                 </label>
                 <input
                   id="address_country"

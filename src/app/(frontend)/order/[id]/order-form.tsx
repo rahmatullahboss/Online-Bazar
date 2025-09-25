@@ -830,7 +830,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="address_state" className={labelClasses}>
-                    State / Region
+                    State / Region <span className="text-stone-400">(optional)</span>
                   </label>
                   <input
                     id="address_state"
@@ -857,7 +857,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="address_country" className={labelClasses}>
-                    Country
+                    Country <span className="text-stone-400">(optional)</span>
                   </label>
                   <input
                     id="address_country"

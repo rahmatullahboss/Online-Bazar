@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import SendRemindersButton from './SendRemindersButton'
 
 // Status configuration with color coding
 const statusConfig = {
@@ -21,16 +22,20 @@ const statusConfig = {
   }
 }
 
-const AbandonedCartsList: React.FC<{ collection: any; data: any[] }> = ({ collection, data }) => {
+const AbandonedCartsList: React.FC<any> = (props) => {
+  const { collection, data } = props
   const [showRecovered, setShowRecovered] = useState(false)
+  
   const [filteredData, setFilteredData] = useState<any[]>([])
 
   // Filter data based on showRecovered state
   useEffect(() => {
-    if (showRecovered) {
-      setFilteredData(data)
-    } else {
-      setFilteredData(data.filter((item: any) => item.status !== 'recovered'))
+    if (data?.docs) {
+      if (showRecovered) {
+        setFilteredData(data.docs)
+      } else {
+        setFilteredData(data.docs.filter((item: any) => item.status !== 'recovered'))
+      }
     }
   }, [data, showRecovered])
 
@@ -62,8 +67,17 @@ const AbandonedCartsList: React.FC<{ collection: any; data: any[] }> = ({ collec
     )
   }
 
+  if (!data) {
+    return <div>Loading...</div>
+  }
+
   return (
-    <div style={{ padding: '20px 0' }}>
+    <div style={{ padding: '20px' }}>
+      {/* Send Reminders Button */}
+      <div style={{ marginBottom: '20px' }}>
+        <SendRemindersButton />
+      </div>
+      
       {/* Control bar */}
       <div 
         style={{ 
@@ -137,7 +151,7 @@ const AbandonedCartsList: React.FC<{ collection: any; data: any[] }> = ({ collec
             Active Carts
           </div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', color: statusConfig.active.color }}>
-            {data.filter((item: any) => item.status === 'active').length}
+            {data?.docs?.filter((item: any) => item.status === 'active').length || 0}
           </div>
         </div>
         
@@ -153,7 +167,7 @@ const AbandonedCartsList: React.FC<{ collection: any; data: any[] }> = ({ collec
             Abandoned Carts
           </div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', color: statusConfig.abandoned.color }}>
-            {data.filter((item: any) => item.status === 'abandoned').length}
+            {data?.docs?.filter((item: any) => item.status === 'abandoned').length || 0}
           </div>
         </div>
         
@@ -169,7 +183,7 @@ const AbandonedCartsList: React.FC<{ collection: any; data: any[] }> = ({ collec
             Recovered Carts
           </div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', color: statusConfig.recovered.color }}>
-            {data.filter((item: any) => item.status === 'recovered').length}
+            {data?.docs?.filter((item: any) => item.status === 'recovered').length || 0}
           </div>
         </div>
       </div>

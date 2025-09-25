@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
 import { admins, adminsOnly } from './access'
 
 export const AbandonedCarts: CollectionConfig = {
@@ -13,7 +13,18 @@ export const AbandonedCarts: CollectionConfig = {
   },
   access: {
     // Allow public write via API for tracking; restrict reads to admins
-    read: adminsOnly,
+    read: ({ req }) => {
+      if (!req.user || req.user.role !== 'admin') return false
+      const { showRecovered } = req.query as { showRecovered?: string }
+      if (showRecovered !== 'true') {
+        return {
+          status: {
+            not_equals: 'recovered',
+          },
+        }
+      }
+      return true
+    },
     create: () => true,
     update: () => true,
     delete: admins,
@@ -86,6 +97,11 @@ export const AbandonedCarts: CollectionConfig = {
       ],
       defaultValue: 'active',
       required: true,
+      admin: {
+        components: {
+          Cell: '@/components/admin/AbandonedCartStatusCell',
+        },
+      },
     },
     {
       name: 'reminderStage',

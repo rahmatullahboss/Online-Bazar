@@ -704,6 +704,80 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             title="Delivery address"
             description="Tell us where to deliver your order so we can estimate shipping charges."
           >
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-stone-700">Delivery area</p>
+              <p className="text-sm text-stone-500">
+                Choose whether this address is inside or outside Dhaka to calculate delivery charges
+                accurately.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
+                    deliveryZone === 'inside_dhaka'
+                      ? 'border-amber-400 ring-2 ring-amber-200/70'
+                      : 'border-stone-200',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="deliveryZone"
+                    value="inside_dhaka"
+                    checked={deliveryZone === 'inside_dhaka'}
+                    onChange={() => setDeliveryZone('inside_dhaka')}
+                    className="sr-only"
+                  />
+                  <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                    <Truck className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="space-y-1">
+                    <span className="block text-sm font-semibold text-stone-900">Inside Dhaka</span>
+                    <span className="block text-xs text-stone-500">
+                      Delivery charge {formatCurrency(settings.insideDhakaCharge)}
+                    </span>
+                  </span>
+                </label>
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
+                    deliveryZone === 'outside_dhaka'
+                      ? 'border-amber-400 ring-2 ring-amber-200/70'
+                      : 'border-stone-200',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="deliveryZone"
+                    value="outside_dhaka"
+                    checked={deliveryZone === 'outside_dhaka'}
+                    onChange={() => setDeliveryZone('outside_dhaka')}
+                    className="sr-only"
+                  />
+                  <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                    <Truck className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span className="space-y-1">
+                    <span className="block text-sm font-semibold text-stone-900">
+                      Outside Dhaka
+                    </span>
+                    <span className="block text-xs text-stone-500">
+                      Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
+                    </span>
+                  </span>
+                </label>
+              </div>
+              {freeDelivery ? (
+                <p className="text-xs font-semibold text-emerald-600">
+                  Free delivery applied for this order.
+                </p>
+              ) : (
+                <p className="text-xs text-stone-500">
+                  Free delivery applies automatically when your subtotal reaches{' '}
+                  {formatCurrency(settings.freeDeliveryThreshold)}.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="address_line1" className={labelClasses}>
@@ -790,85 +864,10 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
                     name="address_country"
                     value={address_country}
                     onChange={(e) => setAddressCountry(e.target.value)}
-                    required={!user}
                     className={inputClasses}
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-stone-700">Delivery area</p>
-              <p className="text-sm text-stone-500">
-                Choose whether this address is inside or outside Dhaka to calculate delivery charges
-                accurately.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
-                    deliveryZone === 'inside_dhaka'
-                      ? 'border-amber-400 ring-2 ring-amber-200/70'
-                      : 'border-stone-200',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="deliveryZone"
-                    value="inside_dhaka"
-                    checked={deliveryZone === 'inside_dhaka'}
-                    onChange={() => setDeliveryZone('inside_dhaka')}
-                    className="sr-only"
-                  />
-                  <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                    <Truck className="h-5 w-5" aria-hidden />
-                  </span>
-                  <span className="space-y-1">
-                    <span className="block text-sm font-semibold text-stone-900">Inside Dhaka</span>
-                    <span className="block text-xs text-stone-500">
-                      Delivery charge {formatCurrency(settings.insideDhakaCharge)}
-                    </span>
-                  </span>
-                </label>
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-start gap-3 rounded-2xl border bg-white/85 px-4 py-3 shadow-sm transition focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-2',
-                    deliveryZone === 'outside_dhaka'
-                      ? 'border-amber-400 ring-2 ring-amber-200/70'
-                      : 'border-stone-200',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="deliveryZone"
-                    value="outside_dhaka"
-                    checked={deliveryZone === 'outside_dhaka'}
-                    onChange={() => setDeliveryZone('outside_dhaka')}
-                    className="sr-only"
-                  />
-                  <span className="mt-1 flex size-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                    <Truck className="h-5 w-5" aria-hidden />
-                  </span>
-                  <span className="space-y-1">
-                    <span className="block text-sm font-semibold text-stone-900">
-                      Outside Dhaka
-                    </span>
-                    <span className="block text-xs text-stone-500">
-                      Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
-                    </span>
-                  </span>
-                </label>
-              </div>
-              {freeDelivery ? (
-                <p className="text-xs font-semibold text-emerald-600">
-                  Free delivery applied for this order.
-                </p>
-              ) : (
-                <p className="text-xs text-stone-500">
-                  Free delivery applies automatically when your subtotal reaches{' '}
-                  {formatCurrency(settings.freeDeliveryThreshold)}.
-                </p>
-              )}
             </div>
           </SectionCard>
 

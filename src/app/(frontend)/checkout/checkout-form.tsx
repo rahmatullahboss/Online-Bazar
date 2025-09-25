@@ -755,8 +755,93 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           </SectionCard>
 
           <SectionCard
+            title="Delivery preferences"
+            description="Select the delivery zone so we can calculate the correct shipping fee."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label
+                className={cn(
+                  'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                  deliveryZone === 'inside_dhaka'
+                    ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80'
+                    : '',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="deliveryZone"
+                  value="inside_dhaka"
+                  checked={deliveryZone === 'inside_dhaka'}
+                  onChange={() => {
+                    setDeliveryZone('inside_dhaka')
+                    setAddressCity('Dhaka')
+                  }}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-stone-900">Inside Dhaka</span>
+                  {deliveryZone === 'inside_dhaka' ? (
+                    <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                      Selected
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="text-xs text-stone-500">
+                  Delivery charge {formatCurrency(settings.insideDhakaCharge)}
+                </p>
+              </label>
+              <label
+                className={cn(
+                  'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
+                  deliveryZone === 'outside_dhaka'
+                    ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80'
+                    : '',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="deliveryZone"
+                  value="outside_dhaka"
+                  checked={deliveryZone === 'outside_dhaka'}
+                  onChange={() => {
+                    setDeliveryZone('outside_dhaka')
+                    if (address_city === 'Dhaka') {
+                      setAddressCity('')
+                    }
+                  }}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-stone-900">Outside Dhaka</span>
+                  {deliveryZone === 'outside_dhaka' ? (
+                    <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                      Selected
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="text-xs text-stone-500">
+                  Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
+                </p>
+              </label>
+            </div>
+            <div className="grid gap-3">
+              {freeDelivery ? (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm">
+                  <Truck className="h-4 w-4" />
+                  Free delivery is applied to this order.
+                </div>
+              ) : (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-4 py-3 text-xs font-medium text-amber-700 shadow-sm">
+                  Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary
+                  delivery.
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard
             title="Shipping address"
-            description="Enter the address where you’d like your order delivered."
+            description="Enter the address where you'd like your order delivered."
           >
             <div className="space-y-2">
               <label htmlFor="address_line1" className="text-sm font-medium text-stone-600">
@@ -839,95 +924,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                   id="address_country"
                   value={address_country}
                   onChange={(e) => setAddressCountry(e.target.value)}
-                  required={!user}
                   className={inputClasses}
                 />
               </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Delivery preferences"
-            description="Select the delivery zone so we can calculate the correct shipping fee."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label
-                className={cn(
-                  'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
-                  deliveryZone === 'inside_dhaka'
-                    ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80'
-                    : '',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="deliveryZone"
-                  value="inside_dhaka"
-                  checked={deliveryZone === 'inside_dhaka'}
-                  onChange={() => {
-                    setDeliveryZone('inside_dhaka')
-                    setAddressCity('Dhaka')
-                  }}
-                  className="sr-only"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-stone-900">Inside Dhaka</span>
-                  {deliveryZone === 'inside_dhaka' ? (
-                    <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-                      Selected
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-xs text-stone-500">
-                  Delivery charge {formatCurrency(settings.insideDhakaCharge)}
-                </p>
-              </label>
-              <label
-                className={cn(
-                  'flex cursor-pointer flex-col gap-2 rounded-2xl border border-stone-200 bg-white/85 p-4 shadow-sm transition hover:border-amber-200 hover:shadow-amber-100 focus-within:ring-2 focus-within:ring-amber-400/70 focus-within:ring-offset-0',
-                  deliveryZone === 'outside_dhaka'
-                    ? 'border-amber-400 shadow-amber-100 ring-2 ring-amber-200/80'
-                    : '',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="deliveryZone"
-                  value="outside_dhaka"
-                  checked={deliveryZone === 'outside_dhaka'}
-                  onChange={() => {
-                    setDeliveryZone('outside_dhaka')
-                    if (address_city === 'Dhaka') {
-                      setAddressCity('')
-                    }
-                  }}
-                  className="sr-only"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-stone-900">Outside Dhaka</span>
-                  {deliveryZone === 'outside_dhaka' ? (
-                    <Badge className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-                      Selected
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-xs text-stone-500">
-                  Delivery charge {formatCurrency(settings.outsideDhakaCharge)}
-                </p>
-              </label>
-            </div>
-            <div className="grid gap-3">
-              {freeDelivery ? (
-                <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm">
-                  <Truck className="h-4 w-4" />
-                  Free delivery is applied to this order.
-                </div>
-              ) : (
-                <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-4 py-3 text-xs font-medium text-amber-700 shadow-sm">
-                  Spend {formatCurrency(settings.freeDeliveryThreshold)} to unlock complimentary
-                  delivery.
-                </div>
-              )}
             </div>
           </SectionCard>
 

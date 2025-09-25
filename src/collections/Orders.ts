@@ -33,6 +33,25 @@ export const Orders: CollectionConfig = {
       relationTo: 'users',
       required: false,
     },
+    {
+      name: 'coupon',
+      type: 'relationship',
+      relationTo: 'coupons',
+      required: false,
+      admin: {
+        description: 'Coupon applied to this order, if any',
+      },
+    },
+    {
+      name: 'discountAmount',
+      type: 'number',
+      required: false,
+      min: 0,
+      defaultValue: 0,
+      admin: {
+        description: 'Discount amount applied from coupon',
+      },
+    },
     // Client/device metadata for analytics
     {
       name: 'userAgent',
@@ -166,9 +185,9 @@ export const Orders: CollectionConfig = {
         description: 'Current status of the order - updates customer via email notifications',
         components: {
           Field: '@/components/admin/OrderStatusSelect',
-          Cell: '@/components/admin/OrderStatusDropdown'
-        }
-      }
+          Cell: '@/components/admin/OrderStatusDropdown',
+        },
+      },
     },
     {
       name: 'totalAmount',
@@ -261,9 +280,12 @@ export const Orders: CollectionConfig = {
 
         try {
           const payload = req?.payload
-          const serverURL = (payload?.config as any)?.serverURL || process.env.NEXT_PUBLIC_SERVER_URL || ''
+          const serverURL =
+            (payload?.config as any)?.serverURL || process.env.NEXT_PUBLIC_SERVER_URL || ''
 
-          const items: any[] = Array.isArray((doc as any).items) ? ((doc as any).items as any[]) : []
+          const items: any[] = Array.isArray((doc as any).items)
+            ? ((doc as any).items as any[])
+            : []
           const detailed: { name: string; quantity: number; price?: number }[] = []
           for (const it of items) {
             let name = 'Item'
@@ -277,7 +299,10 @@ export const Orders: CollectionConfig = {
               if (typeof (rel as any).price === 'number') price = Number((rel as any).price)
               if (typeof (rel as any).id === 'string' || typeof (rel as any).id === 'number') {
                 snackId = String((rel as any).id)
-              } else if (typeof (rel as any).value === 'string' || typeof (rel as any).value === 'number') {
+              } else if (
+                typeof (rel as any).value === 'string' ||
+                typeof (rel as any).value === 'number'
+              ) {
                 snackId = String((rel as any).value)
               }
             } else if (rel != null && (typeof rel === 'string' || typeof rel === 'number')) {
@@ -290,7 +315,8 @@ export const Orders: CollectionConfig = {
               try {
                 const itemDoc = await payload?.findByID({ collection: 'items', id: snackId })
                 if (itemDoc) {
-                  if ((itemDoc as any).name && (!name || name === 'Item')) name = (itemDoc as any).name
+                  if ((itemDoc as any).name && (!name || name === 'Item'))
+                    name = (itemDoc as any).name
                   if (typeof (itemDoc as any).price === 'number' && typeof price !== 'number') {
                     price = Number((itemDoc as any).price)
                   }
@@ -298,7 +324,11 @@ export const Orders: CollectionConfig = {
               } catch {}
             }
 
-            detailed.push({ name: name || 'Item', quantity: Number((it as any)?.quantity ?? 1), price })
+            detailed.push({
+              name: name || 'Item',
+              quantity: Number((it as any)?.quantity ?? 1),
+              price,
+            })
           }
 
           const orderId = (doc as any).id
@@ -331,10 +361,16 @@ export const Orders: CollectionConfig = {
           // Build customer email (Bangla)
           const subjectCustomer = `আপনার অর্ডার #${orderId} কনফার্ম করা হয়েছে!`
           const rowsHTML = detailed
-            .map((d) => `<tr><td style="padding:6px 8px;border:1px solid #e5e7eb;">${d.name}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:center;\">${d.quantity}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:right;\">${typeof d.price === 'number' ? fmt(d.price) : '-'}</td></tr>`) 
+            .map(
+              (d) =>
+                `<tr><td style="padding:6px 8px;border:1px solid #e5e7eb;">${d.name}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:center;\">${d.quantity}</td><td style=\"padding:6px 8px;border:1px solid #e5e7eb;text-align:right;\">${typeof d.price === 'number' ? fmt(d.price) : '-'}</td></tr>`,
+            )
             .join('')
           const rowsText = detailed
-            .map((d) => `${d.name}\t${d.quantity}\t${typeof d.price === 'number' ? d.price.toFixed(2) : '-'}`)
+            .map(
+              (d) =>
+                `${d.name}\t${d.quantity}\t${typeof d.price === 'number' ? d.price.toFixed(2) : '-'}`,
+            )
             .join('\n')
 
           const address = (doc as any).shippingAddress || {}
@@ -407,7 +443,9 @@ export const Orders: CollectionConfig = {
             '',
             `শুভেচ্ছান্তে,\n${companyName} টিম`,
             `© ${year} ${companyName}. সর্বস্বত্ব সংরক্ষিত।`,
-          ].filter(Boolean).join('\n')
+          ]
+            .filter(Boolean)
+            .join('\n')
 
           // Send to customer (Bangla template)
           if (customerEmail) {
@@ -423,20 +461,22 @@ export const Orders: CollectionConfig = {
           const adminEmail = process.env.ORDER_NOTIFICATIONS_EMAIL || process.env.GMAIL_USER
           if (adminEmail) {
             const adminLines = detailed.map((d) => `- ${d.name} x ${d.quantity}`).join('\n')
-          const adminText = [
-            `New order #${orderId} from ${customerName} <${customerEmail}>`,
-            '',
-            'Order summary:',
-            adminLines,
-            '',
-            `Total: ${total.toFixed(2)}`,
-            `Payment: ${paymentLabel}`,
-            paymentSenderNumber ? `Sender: ${paymentSenderNumber}` : '',
-            paymentTransactionId ? `Txn: ${paymentTransactionId}` : '',
-            orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
-          ].filter(Boolean).join('\n')
+            const adminText = [
+              `New order #${orderId} from ${customerName} <${customerEmail}>`,
+              '',
+              'Order summary:',
+              adminLines,
+              '',
+              `Total: ${total.toFixed(2)}`,
+              `Payment: ${paymentLabel}`,
+              paymentSenderNumber ? `Sender: ${paymentSenderNumber}` : '',
+              paymentTransactionId ? `Txn: ${paymentTransactionId}` : '',
+              orderAdminURL ? `\nAdmin link: ${orderAdminURL}` : '',
+            ]
+              .filter(Boolean)
+              .join('\n')
 
-          const adminHTML = `
+            const adminHTML = `
             <div>
               <p><strong>New order #${orderId}</strong></p>
               <p>Customer: ${customerName} &lt;${customerEmail}&gt;</p>

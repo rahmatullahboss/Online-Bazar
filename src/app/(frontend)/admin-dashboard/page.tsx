@@ -31,7 +31,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; start?: string; end?: string }>
+  searchParams: Promise<{ date?: string; start?: string; end?: string; showRecovered?: string }>
 }) {
   const headers = await getHeaders()
   const payloadConfig = await config
@@ -62,7 +62,9 @@ export default async function AdminDashboardPage({
   const isDigitalPayment = (method?: string | null) => method === 'bkash' || method === 'nagad'
 
   // Determine selected date or date range and compute [start, endExclusive)
-  const { date: paramDate, start: startParam, end: endParam } = await searchParams
+  const params = await searchParams
+  const { date: paramDate, start: startParam, end: endParam, showRecovered } = params
+  const showAllCarts = showRecovered === 'true'
   const toDateOnly = (d: Date) => {
     const year = d.getUTCFullYear()
     const month = String(d.getUTCMonth() + 1).padStart(2, '0')
@@ -95,6 +97,14 @@ export default async function AdminDashboardPage({
     endExclusive = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0))
   }
 
+  const currentSearchParams = new URLSearchParams(params as any)
+  const showParams = new URLSearchParams(currentSearchParams)
+  showParams.set('showRecovered', 'true')
+  const hideParams = new URLSearchParams(currentSearchParams)
+  hideParams.delete('showRecovered')
+  const showHref = `/admin-dashboard?${showParams.toString()}`
+  const hideHref = `/admin-dashboard?${hideParams.toString()}`
+
   // Fetch orders for the selected day or range
   const orders = await payload.find({
     collection: 'orders',
@@ -109,16 +119,19 @@ export default async function AdminDashboardPage({
     },
   })
 
-  // Removed abandoned carts fetching
-  // const carts = await payload.find({
-  //   collection: 'abandoned-carts',
-  //   depth: 2,
-  //   sort: '-lastActivityAt',
-  //   limit: 50,
-  //   where: {
-  //     status: { not_equals: 'recovered' },
-  //   },
-  // })
+  const carts = await payload.find({
+    collection: 'abandoned-carts',
+    depth: 2,
+    sort: '-lastActivityAt',
+    limit: 50,
+    where: showAllCarts ? {} : { status: { not_equals: 'recovered' } },
+  })
+
+  const activeCarts = (carts.docs as any[]).filter((c: any) => c.status === 'active')
+  const abandonedCarts = (carts.docs as any[]).filter((c: any) => c.status === 'abandoned')
+  const recoveredCarts = showAllCarts
+    ? (carts.docs as any[]).filter((c: any) => c.status === 'recovered')
+    : []
 
   // Get order statistics for all 6 statuses
   const pendingOrders = orders.docs.filter((order: any) => order.status === 'pending')
@@ -362,11 +375,21 @@ export default async function AdminDashboardPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center">
-                <div className="text-sm text-gray-600 font-medium">Cart tracking disabled</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Abandoned cart functionality has been removed
+              <div className="grid grid-cols-2 gap-6 p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{activeCarts.length}</div>
+                  <div className="text-sm text-gray-600 font-medium">Active Carts</div>
                 </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{abandonedCarts.length}</div>
+                  <div className="text-sm text-gray-600 font-medium">Abandoned Carts</div>
+                </div>
+                {showAllCarts && recoveredCarts.length > 0 && (
+                  <div className="col-span-2 text-center border-t pt-2">
+                    <div className="text-xl font-bold text-blue-600">{recoveredCarts.length}</div>
+                    <div className="text-sm text-gray-600">Recovered Carts</div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -600,8 +623,6 @@ export default async function AdminDashboardPage({
           )}
         </div>
 
-        {/* Removed the entire Abandoned Carts Section */}
-        {/* 
         <Separator className="my-8" />
 
         <div>
@@ -612,23 +633,41 @@ export default async function AdminDashboardPage({
               </div>
               Abandoned Carts
             </h2>
-            <div className="flex gap-3">
-              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                Active: {activeCarts.length}
-              </Badge>
-              <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
-                Abandoned: {abandonedCarts.length}
-              </Badge>
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
-                Total: {carts.docs.length}
-              </Badge>
+            <div className="flex items-center gap-4">
+              <div className={!showAllCarts ? 'order-1' : 'order-last'}>
+                {!showAllCarts ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={showHref}>Show Recovered Carts</Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={hideHref}>Hide Recovered Carts</Link>
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                  Active: {activeCarts.length}
+                </Badge>
+                <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                  Abandoned: {abandonedCarts.length}
+                </Badge>
+                {showAllCarts && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                    Recovered: {recoveredCarts.length}
+                  </Badge>
+                )}
+                <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                  Total: {carts.docs.length}
+                </Badge>
+              </div>
             </div>
           </div>
 
           {carts.docs.length === 0 ? (
             <Card>
               <CardContent className="py-6 text-center text-gray-500">
-                No active or abandoned carts.
+                No {showAllCarts ? 'carts' : 'active or abandoned carts'}.
               </CardContent>
             </Card>
           ) : (
@@ -639,7 +678,9 @@ export default async function AdminDashboardPage({
                   className={
                     cart.status === 'abandoned'
                       ? 'border-red-200 bg-red-50'
-                      : 'border-green-200 bg-green-50'
+                      : cart.status === 'recovered'
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-green-200 bg-green-50'
                   }
                 >
                   <CardHeader>
@@ -750,7 +791,6 @@ export default async function AdminDashboardPage({
             </div>
           )}
         </div>
-        */}
       </div>
     </div>
   )

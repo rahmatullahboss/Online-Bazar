@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       shippingAddress = (fullUser as any)?.address
     }
 
-    const requiredAddressFields = ['line1', 'city', 'postalCode', 'country']
+    const requiredAddressFields = ['line1', 'city', 'postalCode']
     const hasAddress =
       shippingAddress &&
       requiredAddressFields.every(
@@ -420,7 +420,7 @@ export async function POST(request: NextRequest) {
           city: shippingAddress.city,
           state: shippingAddress.state || undefined,
           postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country,
+          country: shippingAddress.country || undefined,
         },
       } as any,
     })

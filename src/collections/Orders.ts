@@ -267,7 +267,6 @@ export const Orders: CollectionConfig = {
         {
           name: 'country',
           type: 'text',
-          required: true,
         },
       ],
     },

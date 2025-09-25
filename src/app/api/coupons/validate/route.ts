@@ -23,17 +23,11 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date()
-    console.log(
-      'Searching for coupon with code:',
-      code.toUpperCase(),
-      'expiry after:',
-      now.toISOString(),
-    )
-    const coupon = await payload.find({
+    console.log('Searching for coupon with code:', code, 'expiry after:', now.toISOString())
+    const allActiveCoupons = await payload.find({
       collection: 'coupons' as any,
       where: {
         and: [
-          { code: { equals: code.toUpperCase() } },
           { isActive: { equals: true } },
           {
             or: [
@@ -44,14 +38,18 @@ export async function POST(req: NextRequest) {
         ],
       },
     })
-    console.log('Coupon query result docs length:', coupon.docs.length)
+    console.log('Active coupons found:', allActiveCoupons.docs.length)
+    const matchingCoupon = allActiveCoupons.docs.find(
+      (doc) => doc.code.toLowerCase() === code.toLowerCase(),
+    )
+    console.log('Case-insensitive match found:', !!matchingCoupon)
 
-    if (coupon.docs.length === 0) {
+    if (!matchingCoupon) {
       console.log('No coupon found')
       return NextResponse.json({ error: 'Invalid or expired coupon code' }, { status: 400 })
     }
 
-    const couponDoc = coupon.docs[0]
+    const couponDoc = matchingCoupon
     console.log(
       'Found coupon:',
       couponDoc.id,

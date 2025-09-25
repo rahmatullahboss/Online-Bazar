@@ -1,10 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { adminsOrSelf, anyone, checkRole } from './access'
-import { withUsersCollection } from 'payload-auth-plugin/collection'
-import { deleteLinkedAccounts } from 'payload-auth-plugin/collection/hooks'
-import { Accounts } from '@/collections/auth/Accounts'
 
-export const Users: CollectionConfig = withUsersCollection({
+export const Users: CollectionConfig = {
   slug: 'users',
   admin: {
     useAsTitle: 'email',
@@ -31,9 +28,6 @@ export const Users: CollectionConfig = withUsersCollection({
     read: adminsOrSelf, // Allow users to read their own profile, admins can read all
     update: adminsOrSelf, // Allow users to update their own profile, admins can update all
     admin: ({ req: { user } }) => checkRole(['admin'], user),
-  },
-  hooks: {
-    afterDelete: [deleteLinkedAccounts(Accounts.slug)],
   },
   fields: [
     {
@@ -129,4 +123,5 @@ export const Users: CollectionConfig = withUsersCollection({
       ],
     },
   ],
-})
+}
+

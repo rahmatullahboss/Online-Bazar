@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
 import { Eye, EyeOff } from 'lucide-react'
-import { GoogleSignInButton } from '@/components/google-signin-button'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -339,8 +338,6 @@ export default function RegisterPage() {
                 {isSubmitting ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
-            
-            <GoogleSignInButton />
           </CardContent>
         </Card>
 

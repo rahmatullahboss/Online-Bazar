@@ -2,58 +2,29 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postg
 
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    -- Create coupons table
+    -- Add coupon_id column to orders table
     DO $$
     BEGIN
       IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = 'coupons'
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'coupon_id'
       ) THEN
-        CREATE TABLE "coupons" (
-          "id" serial PRIMARY KEY NOT NULL,
-          "code" varchar NOT NULL UNIQUE,
-          "discount_type" varchar NOT NULL DEFAULT 'percent',
-          "discount_value" numeric NOT NULL DEFAULT 0,
-          "expiry_date" timestamp(3) with time zone,
-          "is_active" boolean NOT NULL DEFAULT true,
-          "usage_limit" integer DEFAULT 0,
-          "used_count" integer NOT NULL DEFAULT 0,
-          "applicable_to" varchar NOT NULL DEFAULT 'all',
-          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
-        );
+        ALTER TABLE "orders" ADD COLUMN "coupon_id" integer;
       END IF;
     END $$;
 
-    -- Indexes for coupons
-    DO $$ BEGIN
+    -- Add index for better query performance
+    DO $$
+    BEGIN
       IF NOT EXISTS (
         SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_code_idx' AND n.nspname = 'public'
+        WHERE c.relkind = 'i' AND c.relname = 'orders_coupon_id_idx' AND n.nspname = 'public'
       ) THEN
-        CREATE INDEX "coupons_code_idx" ON "coupons" USING btree ("code");
+        CREATE INDEX "orders_coupon_id_idx" ON "orders" USING btree ("coupon_id");
       END IF;
     END $$;
 
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_is_active_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "coupons_is_active_idx" ON "coupons" USING btree ("is_active");
-      END IF;
-    END $$;
-
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_expiry_date_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "coupons_expiry_date_idx" ON "coupons" USING btree ("expiry_date");
-      END IF;
-    END $$;
-
-    -- Add coupons_id to payload_locked_documents_rels
+    -- Add coupon_id to payload_locked_documents_rels
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -64,6 +35,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
       END IF;
     END $$;
 
+    -- Add index for payload_locked_documents_rels
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -75,8 +47,21 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     END $$;
   `)
   
-  // Add the foreign key constraint in a separate statement to ensure the table exists
+  // Add foreign key constraints in a separate statement to ensure the tables exist
   await db.execute(sql`
+    -- Add foreign key constraint for orders
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE constraint_schema = 'public' AND table_name = 'orders' AND constraint_name = 'orders_coupon_id_fk'
+      ) THEN
+        ALTER TABLE "orders" ADD CONSTRAINT "orders_coupon_id_fk"
+          FOREIGN KEY ("coupon_id") REFERENCES "public"."coupons"("id") ON DELETE set null ON UPDATE no action;
+      END IF;
+    END $$;
+
+    -- Add foreign key constraint for payload_locked_documents_rels
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -92,7 +77,18 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
 
 export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-    -- Remove rel column, FK, and index
+    -- Remove foreign key constraint from orders
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE constraint_schema = 'public' AND table_name = 'orders' AND constraint_name = 'orders_coupon_id_fk'
+      ) THEN
+        ALTER TABLE "orders" DROP CONSTRAINT "orders_coupon_id_fk";
+      END IF;
+    END $$;
+
+    -- Remove foreign key constraint
     DO $$
     BEGIN
       IF EXISTS (
@@ -103,8 +99,24 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
       END IF;
     END $$;
 
+    -- Remove index from orders
+    DROP INDEX IF EXISTS "orders_coupon_id_idx";
+
+    -- Remove index
     DROP INDEX IF EXISTS "payload_locked_documents_rels_coupons_id_idx";
 
+    -- Remove coupon_id column from orders
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'coupon_id'
+      ) THEN
+        ALTER TABLE "orders" DROP COLUMN "coupon_id";
+      END IF;
+    END $$;
+
+    -- Remove column
     DO $$
     BEGIN
       IF EXISTS (
@@ -114,8 +126,5 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
         ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "coupons_id";
       END IF;
     END $$;
-
-    -- Drop main table
-    DROP TABLE IF EXISTS "coupons" CASCADE;
   `)
 }

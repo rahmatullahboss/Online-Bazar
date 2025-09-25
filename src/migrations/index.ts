@@ -27,6 +27,8 @@ import * as migration_20250920_update_locked_documents_rels from './20250920_upd
 import * as migration_20250920_fix_program_participants_rel from './20250920_fix_program_participants_rel'
 import * as migration_20250920_fix_item_category_constraint from './20250920_fix_item_category_constraint'
 import * as migration_20250920_fix_abandoned_carts_items_constraint from './20250920_fix_abandoned_carts_items_constraint'
+import * as migration_20250925_add_coupons_collection from './20250925_add_coupons_collection'
+import * as migration_20250925_add_coupon_id_to_orders from './20250925_add_coupon_id_to_orders'
 
 export const migrations = [
   {
@@ -173,5 +175,15 @@ export const migrations = [
     up: migration_20250920_fix_abandoned_carts_items_constraint.up,
     down: migration_20250920_fix_abandoned_carts_items_constraint.down,
     name: '20250920_fix_abandoned_carts_items_constraint',
+  },
+  {
+    up: migration_20250925_add_coupons_collection.up,
+    down: migration_20250925_add_coupons_collection.down,
+    name: '20250925_add_coupons_collection',
+  },
+  {
+    up: migration_20250925_add_coupon_id_to_orders.up,
+    down: migration_20250925_add_coupon_id_to_orders.down,
+    name: '20250925_add_coupon_id_to_orders',
   },
 ]

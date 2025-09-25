@@ -10,13 +10,6 @@ export const AbandonedCarts: CollectionConfig = {
   admin: {
     useAsTitle: 'sessionId',
     defaultColumns: ['status', 'customerEmail', 'cartTotal', 'lastActivityAt', 'updatedAt'],
-    components: {
-      views: {
-        list: {
-          Component: '@/components/admin/AbandonedCartsList#AbandonedCartsList',
-        },
-      },
-    },
   },
   access: {
     // Allow public write via API for tracking; restrict reads to admins
@@ -93,6 +86,11 @@ export const AbandonedCarts: CollectionConfig = {
       ],
       defaultValue: 'active',
       required: true,
+      admin: {
+        components: {
+          Cell: '@/components/admin/AbandonedCartStatusCell#AbandonedCartStatusCell',
+        },
+      },
     },
     {
       name: 'reminderStage',

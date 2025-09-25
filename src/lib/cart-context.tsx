@@ -99,7 +99,7 @@ const normalizeCartItem = (value: unknown): CartItem | null => {
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
-      // Normalize the item ID for comparison
+      // Normalize the item ID for comparison and ensure string ID
       const normalizedId = normalizeItemId(action.payload.id)
 
       if (!normalizedId) {
@@ -119,7 +119,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           items: state.items.map((item) => {
             const itemNormalizedId = normalizeItemId(item.id)
             if (itemNormalizedId === normalizedId) {
-              return { ...item, quantity: item.quantity + 1 }
+              return { ...item, id: normalizedId, quantity: item.quantity + 1 }
             }
             return item
           }),
@@ -127,26 +127,39 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
       return {
         ...state,
-        items: [...state.items, { ...action.payload, quantity: 1 }],
+        items: [...state.items, { ...action.payload, id: normalizedId, quantity: 1 }],
       }
     }
     case 'REMOVE_ITEM':
+      if (!action.payload) {
+        console.warn('Invalid item ID provided to REMOVE_ITEM:', action.payload)
+        return state
+      }
       return {
         ...state,
-        items: state.items.filter((item) => item.id !== action.payload),
+        items: state.items.filter((item) => normalizeItemId(item.id) !== action.payload),
       }
     case 'UPDATE_QUANTITY':
+      const updateNormalizedId = normalizeItemId(action.payload.id)
+      if (!updateNormalizedId) {
+        console.warn('Invalid item ID provided to UPDATE_QUANTITY:', action.payload.id)
+        return state
+      }
       if (action.payload.quantity <= 0) {
         return {
           ...state,
-          items: state.items.filter((item) => item.id !== action.payload.id),
+          items: state.items.filter((item) => normalizeItemId(item.id) !== updateNormalizedId),
         }
       }
       return {
         ...state,
-        items: state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item,
-        ),
+        items: state.items.map((item) => {
+          const itemNormalizedId = normalizeItemId(item.id)
+          if (itemNormalizedId === updateNormalizedId) {
+            return { ...item, id: updateNormalizedId, quantity: action.payload.quantity }
+          }
+          return item
+        }),
       }
     case 'CLEAR_CART':
       return {

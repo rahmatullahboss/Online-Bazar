@@ -16,7 +16,7 @@ export const revalidate = 3600
 
 const getItemsCached = unstableCache(
   async () => {
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       try {
         const payloadConfig = await config
         const payload = await getPayload({ config: payloadConfig })
@@ -29,9 +29,10 @@ const getItemsCached = unstableCache(
         })
       } catch (error) {
         console.error(`Attempt ${attempt + 1} failed fetching items:`, error)
-        if (attempt < 2) {
-          // Shorter exponential backoff: 300ms, 600ms
-          await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)))
+        if (attempt < 4) {
+          // Exponential backoff: 500ms, 1s, 1.5s, 2s
+          const delay = Math.min(500 * Math.pow(2, attempt), 2000)
+          await new Promise((resolve) => setTimeout(resolve, delay))
         } else {
           // Final attempt failed, return empty to avoid page crash
           return {

@@ -5,7 +5,9 @@ export async function POST(req: NextRequest) {
   try {
     const payload = await getPayload({ config: (await import('@/payload.config')).default })
     const body = await req.json()
+    console.log('Coupon validate request body:', body)
     const { code, subtotal } = body
+    console.log('Extracted code:', code, 'subtotal:', subtotal)
 
     if (!code || typeof code !== 'string') {
       return NextResponse.json({ error: 'Coupon code is required' }, { status: 400 })
@@ -13,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     // নতুন চেক: subtotal ঠিক আছে কিনা তা যাচাই করুন
     if (typeof subtotal !== 'number' || subtotal < 0) {
+      console.log('Subtotal validation failed')
       return NextResponse.json(
         { error: 'Subtotal is required to validate coupon' },
         { status: 400 },
@@ -20,6 +23,12 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date()
+    console.log(
+      'Searching for coupon with code:',
+      code.toUpperCase(),
+      'expiry after:',
+      now.toISOString(),
+    )
     const coupon = await payload.find({
       collection: 'coupons' as any,
       where: {
@@ -35,15 +44,27 @@ export async function POST(req: NextRequest) {
         ],
       },
     })
+    console.log('Coupon query result docs length:', coupon.docs.length)
 
     if (coupon.docs.length === 0) {
+      console.log('No coupon found')
       return NextResponse.json({ error: 'Invalid or expired coupon code' }, { status: 400 })
     }
 
     const couponDoc = coupon.docs[0]
+    console.log(
+      'Found coupon:',
+      couponDoc.id,
+      'isActive:',
+      couponDoc.isActive,
+      'expiry:',
+      couponDoc.expiryDate,
+    )
     const usageLimit = (couponDoc as any).usageLimit || 0
     const usedCount = (couponDoc as any).usedCount || 0
+    console.log('Usage limit:', usageLimit, 'used:', usedCount)
     if (usageLimit > 0 && usedCount >= usageLimit) {
+      console.log('Usage limit exceeded')
       return NextResponse.json({ error: 'Coupon usage limit reached' }, { status: 400 })
     }
 

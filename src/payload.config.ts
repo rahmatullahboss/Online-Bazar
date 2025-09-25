@@ -21,6 +21,9 @@ import { Reviews } from './collections/Reviews'
 import Posts from './collections/Posts'
 import ProgramParticipants from './collections/ProgramParticipants'
 import { Coupons } from './collections/Coupons'
+import { Accounts } from './collections/auth/Accounts'
+import { authPlugin } from 'payload-auth-plugin'
+import { GoogleAuthProvider } from 'payload-auth-plugin/providers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -94,6 +97,7 @@ export default buildConfig({
     },
     components: {
       beforeDashboard: ['@/components/before-dashboard'],
+      afterLogin: ['@/components/AfterLogin/index#AdminLogin'],
     },
   },
   serverURL: getServerSideURL(),
@@ -101,7 +105,24 @@ export default buildConfig({
   cors: [getServerSideURL(), 'https://online-bazar.top', 'http://localhost:3000'].filter(
     Boolean,
   ) as string[],
-  plugins: storagePlugins,
+  plugins: [
+    ...storagePlugins,
+    authPlugin({
+      name: 'admin',
+      useAdmin: true,
+      allowOAuthAutoSignUp: true,
+      usersCollectionSlug: Users.slug,
+      accountsCollectionSlug: Accounts.slug,
+      successRedirectPath: '/admin',
+      errorRedirectPath: '/admin/auth/signin',
+      providers: [
+        GoogleAuthProvider({
+          client_id: process.env.GOOGLE_CLIENT_ID as string,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }),
+      ],
+    }),
+  ],
   collections: [
     Users,
     Media,
@@ -114,6 +135,7 @@ export default buildConfig({
     Posts,
     ProgramParticipants,
     Coupons,
+    Accounts,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

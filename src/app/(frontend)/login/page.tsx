@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
 import { Eye, EyeOff } from 'lucide-react'
+import { GoogleSignInButton } from '@/components/google-signin-button'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
@@ -246,6 +247,8 @@ function LoginForm() {
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
+            
+            <GoogleSignInButton />
           </CardContent>
         </Card>
 

@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Coupon code is required' }, { status: 400 })
     }
 
+    // নতুন চেক: subtotal ঠিক আছে কিনা তা যাচাই করুন
+    if (typeof subtotal !== 'number' || subtotal < 0) {
+      return NextResponse.json({ error: 'Subtotal is required to validate coupon' }, { status: 400 })
+    }
+
     const now = new Date()
     const coupon = await payload.find({
       collection: 'coupons' as any,

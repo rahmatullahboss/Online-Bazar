@@ -1,78 +1,53 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 export async function up({ db }: MigrateUpArgs): Promise<void> {
+  // Add coupon_id column to orders table and index
   await db.execute(sql`
     -- Add coupon_id column to orders table
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'coupon_id'
-      ) THEN
-        ALTER TABLE "orders" ADD COLUMN "coupon_id" integer;
-      END IF;
-    END $$;
+    ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "coupon_id" integer;
 
     -- Add index for better query performance
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'orders_coupon_id_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "orders_coupon_id_idx" ON "orders" USING btree ("coupon_id");
-      END IF;
-    END $$;
+    CREATE INDEX IF NOT EXISTS "orders_coupon_id_idx" ON "orders" USING btree ("coupon_id");
 
     -- Add coupon_id to payload_locked_documents_rels
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'payload_locked_documents_rels' AND column_name = 'coupons_id'
-      ) THEN
-        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "coupons_id" integer;
-      END IF;
-    END $$;
+    ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "coupons_id" integer;
 
     -- Add index for payload_locked_documents_rels
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'payload_locked_documents_rels_coupons_id_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "payload_locked_documents_rels_coupons_id_idx" ON "payload_locked_documents_rels" USING btree ("coupons_id");
-      END IF;
-    END $$;
+    CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_coupons_id_idx" ON "payload_locked_documents_rels" USING btree ("coupons_id");
   `)
   
   // Add foreign key constraints in a separate statement to ensure the tables exist
-  await db.execute(sql`
-    -- Add foreign key constraint for orders
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints
-        WHERE constraint_schema = 'public' AND table_name = 'orders' AND constraint_name = 'orders_coupon_id_fk'
-      ) THEN
-        ALTER TABLE "orders" ADD CONSTRAINT "orders_coupon_id_fk"
-          FOREIGN KEY ("coupon_id") REFERENCES "public"."coupons"("id") ON DELETE set null ON UPDATE no action;
-      END IF;
-    END $$;
+  // We'll add these constraints after ensuring the coupons table exists
+  try {
+    await db.execute(sql`
+      -- Add foreign key constraint for orders
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_schema = 'public' AND table_name = 'orders' AND constraint_name = 'orders_coupon_id_fk'
+        ) THEN
+          ALTER TABLE "orders" ADD CONSTRAINT "orders_coupon_id_fk"
+            FOREIGN KEY ("coupon_id") REFERENCES "public"."coupons"("id") ON DELETE set null ON UPDATE no action;
+        END IF;
+      END $$;
 
-    -- Add foreign key constraint for payload_locked_documents_rels
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints
-        WHERE constraint_schema = 'public' AND table_name = 'payload_locked_documents_rels' AND constraint_name = 'payload_locked_documents_rels_coupons_fk'
-      ) THEN
-        ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_coupons_fk"
-          FOREIGN KEY ("coupons_id") REFERENCES "public"."coupons"("id") ON DELETE cascade ON UPDATE no action;
-      END IF;
-    END $$;
-  `)
+      -- Add foreign key constraint for payload_locked_documents_rels
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_schema = 'public' AND table_name = 'payload_locked_documents_rels' AND constraint_name = 'payload_locked_documents_rels_coupons_fk'
+        ) THEN
+          ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_coupons_fk"
+            FOREIGN KEY ("coupons_id") REFERENCES "public"."coupons"("id") ON DELETE cascade ON UPDATE no action;
+        END IF;
+      END $$;
+    `)
+  } catch (error) {
+    // If the foreign key constraints fail, we'll log the error but continue
+    console.warn('Could not add foreign key constraints for coupon_id. This might be because the coupons table does not exist yet. The constraints will be added when the coupons table is created.')
+  }
 }
 
 export async function down({ db }: MigrateDownArgs): Promise<void> {

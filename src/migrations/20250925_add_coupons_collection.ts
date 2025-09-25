@@ -1,82 +1,35 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 export async function up({ db }: MigrateUpArgs): Promise<void> {
+  // Create coupons table and all related constraints in one transaction
   await db.execute(sql`
     -- Create coupons table
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = 'coupons'
-      ) THEN
-        CREATE TABLE "coupons" (
-          "id" serial PRIMARY KEY NOT NULL,
-          "code" varchar NOT NULL UNIQUE,
-          "discount_type" varchar NOT NULL DEFAULT 'percent',
-          "discount_value" numeric NOT NULL DEFAULT 0,
-          "expiry_date" timestamp(3) with time zone,
-          "is_active" boolean NOT NULL DEFAULT true,
-          "usage_limit" integer DEFAULT 0,
-          "used_count" integer NOT NULL DEFAULT 0,
-          "applicable_to" varchar NOT NULL DEFAULT 'all',
-          "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-          "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
-        );
-      END IF;
-    END $$;
+    CREATE TABLE IF NOT EXISTS "coupons" (
+      "id" serial PRIMARY KEY NOT NULL,
+      "code" varchar NOT NULL UNIQUE,
+      "discount_type" varchar NOT NULL DEFAULT 'percent',
+      "discount_value" numeric NOT NULL DEFAULT 0,
+      "expiry_date" timestamp(3) with time zone,
+      "is_active" boolean NOT NULL DEFAULT true,
+      "usage_limit" integer DEFAULT 0,
+      "used_count" integer NOT NULL DEFAULT 0,
+      "applicable_to" varchar NOT NULL DEFAULT 'all',
+      "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+      "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+    );
 
     -- Indexes for coupons
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_code_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "coupons_code_idx" ON "coupons" USING btree ("code");
-      END IF;
-    END $$;
-
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_is_active_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "coupons_is_active_idx" ON "coupons" USING btree ("is_active");
-      END IF;
-    END $$;
-
-    DO $$ BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'coupons_expiry_date_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "coupons_expiry_date_idx" ON "coupons" USING btree ("expiry_date");
-      END IF;
-    END $$;
+    CREATE INDEX IF NOT EXISTS "coupons_code_idx" ON "coupons" USING btree ("code");
+    CREATE INDEX IF NOT EXISTS "coupons_is_active_idx" ON "coupons" USING btree ("is_active");
+    CREATE INDEX IF NOT EXISTS "coupons_expiry_date_idx" ON "coupons" USING btree ("expiry_date");
 
     -- Add coupons_id to payload_locked_documents_rels
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'payload_locked_documents_rels' AND column_name = 'coupons_id'
-      ) THEN
-        ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "coupons_id" integer;
-      END IF;
-    END $$;
+    ALTER TABLE "payload_locked_documents_rels" ADD COLUMN IF NOT EXISTS "coupons_id" integer;
 
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE c.relkind = 'i' AND c.relname = 'payload_locked_documents_rels_coupons_id_idx' AND n.nspname = 'public'
-      ) THEN
-        CREATE INDEX "payload_locked_documents_rels_coupons_id_idx" ON "payload_locked_documents_rels" USING btree ("coupons_id");
-      END IF;
-    END $$;
-  `)
-  
-  // Add the foreign key constraint in a separate statement to ensure the table exists
-  await db.execute(sql`
+    -- Add index for payload_locked_documents_rels
+    CREATE INDEX IF NOT EXISTS "payload_locked_documents_rels_coupons_id_idx" ON "payload_locked_documents_rels" USING btree ("coupons_id");
+
+    -- Add foreign key constraint for payload_locked_documents_rels
     DO $$
     BEGIN
       IF NOT EXISTS (

@@ -62,10 +62,83 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Deduplicate abandoned carts by email, keeping the most recent
+    let duplicatesDeleted = 0
+    const abandonedRes = await payload.find({
+      collection: 'abandoned-carts',
+      where: { status: { equals: 'abandoned' } },
+      limit: 100,
+    })
+
+    const groups = new Map()
+    for (const doc of abandonedRes.docs || []) {
+      const email = (doc as any).customerEmail?.trim()
+      if (email && email.length > 0) {
+        if (!groups.has(email)) groups.set(email, [])
+        groups.get(email)!.push(doc)
+      }
+    }
+
+    for (const [email, carts] of groups) {
+      if (carts.length > 1) {
+        // Sort by lastActivityAt descending (most recent first)
+        carts.sort(
+          (a: any, b: any) =>
+            new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime(),
+        )
+        // Delete all except the first (latest)
+        for (let i = 1; i < carts.length; i++) {
+          try {
+            await payload.delete({
+              collection: 'abandoned-carts',
+              id: (carts[i] as any).id,
+            })
+            duplicatesDeleted++
+          } catch (error) {
+            console.error(`Failed to delete duplicate cart ${(carts[i] as any).id}:`, error)
+            errors.push(`Failed to delete duplicate cart ${(carts[i] as any).id}`)
+          }
+        }
+      }
+    }
+
+    // Delete abandoned carts without email or phone
+    let noContactDeleted = 0
+    const noContactRes = await payload.find({
+      collection: 'abandoned-carts',
+      where: {
+        status: { equals: 'abandoned' },
+        and: [
+          {
+            or: [{ customerEmail: { equals: null } }, { customerEmail: { equals: '' } }],
+          },
+          {
+            or: [{ customerNumber: { equals: null } }, { customerNumber: { equals: '' } }],
+          },
+        ],
+      },
+      limit: 50,
+    })
+
+    for (const doc of noContactRes.docs || []) {
+      try {
+        await payload.delete({
+          collection: 'abandoned-carts',
+          id: (doc as any).id,
+        })
+        noContactDeleted++
+      } catch (error) {
+        console.error(`Failed to delete no-contact cart ${doc.id}:`, error)
+        errors.push(`Failed to delete no-contact cart ${(doc as any).id}`)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       updated,
       totalChecked: res.docs?.length || 0,
+      duplicatesDeleted,
+      noContactDeleted,
       cutoff,
       ttlMinutes: clampedTtl,
       errors: errors.length > 0 ? errors : undefined,

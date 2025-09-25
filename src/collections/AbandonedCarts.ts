@@ -10,6 +10,7 @@ export const AbandonedCarts: CollectionConfig = {
   admin: {
     useAsTitle: 'sessionId',
     defaultColumns: ['status', 'customerEmail', 'cartTotal', 'lastActivityAt', 'updatedAt'],
+    list: () => import('@/components/admin/AbandonedCartsList'),
   },
   access: {
     // Allow public write via API for tracking; restrict reads to admins
@@ -122,4 +123,3 @@ export const AbandonedCarts: CollectionConfig = {
     },
   ],
 }
-

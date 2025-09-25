@@ -24,6 +24,7 @@ export const Users: CollectionConfig = withUsersCollection({
         `
       },
     },
+    // The auth plugin will handle authentication fields
   },
   access: {
     create: anyone, // Allow anyone to create a user account (for registration)

@@ -77,6 +77,7 @@ export interface Config {
     'delivery-settings': DeliverySetting;
     posts: Post;
     'program-participants': ProgramParticipant;
+    coupons: Coupon;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -93,6 +94,7 @@ export interface Config {
     'delivery-settings': DeliverySettingsSelect<false> | DeliverySettingsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'program-participants': ProgramParticipantsSelect<false> | ProgramParticipantsSelect<true>;
+    coupons: CouponsSelect<false> | CouponsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -243,6 +245,14 @@ export interface Order {
   id: number;
   user?: (number | null) | User;
   /**
+   * Coupon applied to this order, if any
+   */
+  coupon?: (number | null) | Coupon;
+  /**
+   * Discount amount applied from coupon
+   */
+  discountAmount?: number | null;
+  /**
    * Captured at order time
    */
   userAgent?: string | null;
@@ -291,6 +301,41 @@ export interface Order {
     postalCode: string;
     country: string;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons".
+ */
+export interface Coupon {
+  id: number;
+  /**
+   * Unique coupon code (e.g., SAVE10)
+   */
+  code: string;
+  discountType: 'percent' | 'fixed';
+  /**
+   * Discount percentage (0-100 for percent) or fixed amount
+   */
+  discountValue: number;
+  /**
+   * Optional expiry date
+   */
+  expiryDate?: string | null;
+  /**
+   * Whether the coupon is currently active
+   */
+  isActive: boolean;
+  /**
+   * Maximum number of uses (0 for unlimited)
+   */
+  usageLimit?: number | null;
+  /**
+   * Number of times used (auto-updated)
+   */
+  usedCount?: number | null;
+  applicableTo: 'all' | 'first_order';
   updatedAt: string;
   createdAt: string;
 }
@@ -466,6 +511,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'program-participants';
         value: number | ProgramParticipant;
+      } | null)
+    | ({
+        relationTo: 'coupons';
+        value: number | Coupon;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -597,6 +646,8 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface OrdersSelect<T extends boolean = true> {
   user?: T;
+  coupon?: T;
+  discountAmount?: T;
   userAgent?: T;
   deviceType?: T;
   customerName?: T;
@@ -713,6 +764,22 @@ export interface PostsSelect<T extends boolean = true> {
 export interface ProgramParticipantsSelect<T extends boolean = true> {
   name?: T;
   phone?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons_select".
+ */
+export interface CouponsSelect<T extends boolean = true> {
+  code?: T;
+  discountType?: T;
+  discountValue?: T;
+  expiryDate?: T;
+  isActive?: T;
+  usageLimit?: T;
+  usedCount?: T;
+  applicableTo?: T;
   updatedAt?: T;
   createdAt?: T;
 }

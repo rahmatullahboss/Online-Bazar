@@ -95,7 +95,7 @@ export const AbandonedCarts: CollectionConfig = {
       required: true,
       admin: {
         components: {
-          Cell: '@/components/admin/AbandonedCartStatusCell#AbandonedCartStatusCell',
+          Cell: '@/components/admin/AbandonedCartStatusCell',
         },
       },
     },

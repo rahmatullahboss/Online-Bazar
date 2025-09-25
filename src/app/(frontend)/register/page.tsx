@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
+import { GoogleSignInButton } from '@/components/google-signin-button'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -311,6 +312,17 @@ export default function RegisterPage() {
             </form>
           </CardContent>
         </Card>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          </div>
+        </div>
+
+        <GoogleSignInButton />
 
         {/* Back to Home */}
         <div className="text-center">

@@ -7,6 +7,7 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
+import oauth from 'payload-plugin-oauth'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
@@ -101,7 +102,22 @@ export default buildConfig({
   cors: [getServerSideURL(), 'https://online-bazar.top', 'http://localhost:3000'].filter(
     Boolean,
   ) as string[],
-  plugins: storagePlugins,
+  plugins: [
+    ...storagePlugins,
+    oauth({
+      enabled: true,
+      providers: [
+        {
+          name: 'google',
+          strategy: 'google',
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          redirectURL: 'https://online-bazar.top/api/oauth2/callback/google',
+          userCollection: 'users',
+        },
+      ],
+    }),
+  ],
   collections: [
     Users,
     Media,

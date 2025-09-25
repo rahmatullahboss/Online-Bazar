@@ -49,6 +49,8 @@ interface OrderSummaryCardProps {
   items: CartItem[]
   discountCode: string
   onDiscountCodeChange: (value: string) => void
+  onApplyDiscount: () => void
+  discountAmount: number
   subtotal: number
   shippingCharge: number
   total: number
@@ -70,6 +72,8 @@ interface OrderSummaryCardProps {
   senderNumberId: string
   transactionId: string
   isSubmitting: boolean
+  isDiscountValidating: boolean
+  discountError: string | null
 }
 
 const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
@@ -77,6 +81,8 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   items,
   discountCode,
   onDiscountCodeChange,
+  onApplyDiscount,
+  discountAmount,
   subtotal,
   shippingCharge,
   total,
@@ -98,6 +104,8 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   senderNumberId,
   transactionId,
   isSubmitting,
+  isDiscountValidating,
+  discountError,
 }) => (
   <div
     className={cn(
@@ -188,10 +196,25 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           placeholder="Enter promo code"
           className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
         />
-        <ShinyButton type="button" variant="secondary" size="sm" className="rounded-xl">
-          Apply
+        <ShinyButton 
+          type="button" 
+          variant="secondary" 
+          size="sm" 
+          className="rounded-xl"
+          onClick={onApplyDiscount}
+          disabled={isDiscountValidating || !discountCode.trim()}
+        >
+          {isDiscountValidating ? 'Applying...' : 'Apply'}
         </ShinyButton>
       </div>
+      {discountError && (
+        <p className="text-sm text-red-500">{discountError}</p>
+      )}
+      {discountAmount > 0 && (
+        <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+          <p>Discount applied: -{formatCurrency(discountAmount)}</p>
+        </div>
+      )}
       <p className="text-xs text-stone-500">
         Promotions are applied before taxes and shipping charges.
       </p>
@@ -202,6 +225,12 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         <span>Subtotal</span>
         <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
       </div>
+      {discountAmount > 0 && (
+        <div className="flex items-center justify-between">
+          <span>Discount</span>
+          <span className="font-medium text-stone-900">-{formatCurrency(discountAmount)}</span>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <span>
           Shipping {deliveryZone === 'outside_dhaka' ? '(Outside Dhaka)' : '(Inside Dhaka)'}
@@ -347,6 +376,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const [address_line1, setAddressLine1] = useState<string>(user?.address?.line1 || '')
   const [address_line2, setAddressLine2] = useState<string>(user?.address?.line2 || '')
   const [discountCode, setDiscountCode] = useState<string>('')
+  const [discountAmount, setDiscountAmount] = useState<number>(0)
+  const [isDiscountValidating, setIsDiscountValidating] = useState<boolean>(false)
+  const [discountError, setDiscountError] = useState<string | null>(null)
   const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
     user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
   const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
@@ -372,6 +404,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         ? settings.outsideDhakaCharge
         : settings.insideDhakaCharge
   const total = subtotal + shippingCharge
+  const totalWithDiscount = Math.max(0, total - discountAmount)
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
   const requiresDigitalPaymentDetails = isDigitalPayment
@@ -392,6 +425,41 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const handlePaymentTransactionIdChange = (value: string) => {
     setPaymentTransactionId(value)
     setError(null)
+  }
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return
+
+    setIsDiscountValidating(true)
+    setDiscountError(null)
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: discountCode.trim(),
+          subtotal: subtotal,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setDiscountError(result.error || 'Invalid coupon code')
+        setDiscountAmount(0)
+        return
+      }
+
+      setDiscountAmount(result.discountAmount)
+    } catch (err) {
+      setDiscountError('Failed to validate coupon. Please try again.')
+      setDiscountAmount(0)
+    } finally {
+      setIsDiscountValidating(false)
+    }
   }
   const inputClasses =
     'block w-full rounded-xl border border-stone-200 bg-white/85 px-4 py-2.5 text-sm text-stone-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-400/70 focus:ring-offset-0'
@@ -532,6 +600,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           paymentTransactionId: requiresDigitalPaymentDetails
             ? paymentTransactionId.trim()
             : undefined,
+          discountCode: discountCode.trim() || undefined,
           ...(user
             ? {
                 // Use provided shipping if filled, otherwise API will fall back to user profile
@@ -945,9 +1014,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           items={state.items}
           discountCode={discountCode}
           onDiscountCodeChange={handleDiscountCodeChange}
+          onApplyDiscount={handleApplyDiscount}
+          discountAmount={discountAmount}
           subtotal={subtotal}
           shippingCharge={shippingCharge}
-          total={total}
+          total={totalWithDiscount}
           freeDelivery={freeDelivery}
           deliveryZone={deliveryZone}
           formatCurrency={formatCurrency}
@@ -966,6 +1037,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           senderNumberId={senderNumberId}
           transactionId={transactionId}
           isSubmitting={isSubmitting}
+          isDiscountValidating={isDiscountValidating}
+          discountError={discountError}
         />
       </div>
     </form>

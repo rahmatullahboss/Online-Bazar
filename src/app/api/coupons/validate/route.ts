@@ -18,7 +18,12 @@ export async function POST(req: NextRequest) {
         and: [
           { code: { equals: code.toUpperCase() } },
           { isActive: { equals: true } },
-          { expiryDate: { greater_than: now.toISOString() } },
+          {
+            or: [
+              { expiryDate: { greater_than: now.toISOString() } },
+              { expiryDate: { equals: null } }
+            ]
+          }
         ],
       },
     })

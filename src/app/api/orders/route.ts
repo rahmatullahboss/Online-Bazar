@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
       paymentMethod: paymentMethodInput,
       paymentSenderNumber: paymentSenderNumberInput,
       paymentTransactionId: paymentTransactionIdInput,
+      discountCode: discountCodeInput,
     } = body
 
     // Debugging: Log the extracted delivery zone input
@@ -352,6 +353,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate and apply discount code if provided
+    let discountAmount = 0
+    let couponId = null
+    
+    if (discountCodeInput && typeof discountCodeInput === 'string') {
+      try {
+        const couponResponse = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || ''}/api/coupons/validate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: discountCodeInput,
+            subtotal: subtotal,
+          }),
+        })
+
+        const couponResult = await couponResponse.json()
+        
+        if (couponResponse.ok && couponResult.success) {
+          discountAmount = couponResult.discountAmount
+          couponId = couponResult.coupon.id
+        }
+      } catch (error) {
+        console.error('Error validating coupon:', error)
+        // Continue without discount if validation fails
+      }
+    }
+
     const freeDeliveryApplied = subtotal >= freeDeliveryThreshold
     const isDigitalPayment = paymentMethod === 'bkash' || paymentMethod === 'nagad'
     const appliedShippingCharge = freeDeliveryApplied
@@ -364,7 +394,7 @@ export async function POST(request: NextRequest) {
     const shippingBase = Number.isFinite(appliedShippingCharge) ? appliedShippingCharge : 0
     const shippingChargeValue = Number(Math.max(0, shippingBase).toFixed(2))
     const subtotalValue = Number(subtotal.toFixed(2))
-    const totalValue = Number((subtotalValue + shippingChargeValue).toFixed(2))
+    const totalValue = Number(Math.max(0, (subtotalValue + shippingChargeValue - discountAmount)).toFixed(2))
 
     const order = await payload.create({
       collection: 'orders',
@@ -375,6 +405,8 @@ export async function POST(request: NextRequest) {
         customerNumber: String(computedCustomerNumber).trim(),
         items: normalizedItems,
         subtotal: subtotalValue,
+        discountAmount: discountAmount,
+        ...(couponId ? { coupon: couponId } : {}),
         shippingCharge: shippingChargeValue,
         deliveryZone,
         freeDeliveryApplied,

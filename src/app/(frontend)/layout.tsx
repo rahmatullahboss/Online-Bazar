@@ -1,12 +1,8 @@
 import React from 'react'
 import type { Metadata } from 'next'
 
-import { CartProvider } from '@/lib/cart-context'
-import { SiteFooter } from '@/components/site-footer'
-import { FloatingContactButtons } from '@/components/floating-contact-buttons'
+import { Providers } from '@/components/Providers'
 import '../globals.css'
-import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
-import { SplashCursor } from '@/components/splash-cursor'
 
 export const metadata: Metadata = {
   description:
@@ -56,7 +52,6 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     const id = match?.[1]?.toLowerCase()
     return id ? `${id}.public.blob.vercel-storage.com` : undefined
   })()
-  const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS !== 'false'
   const measurementId =
     process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ||
     process.env.NEXT_PUBLIC_GTM_MEASUREMENT_ID ||
@@ -99,18 +94,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         ) : null}
       </head>
       <body>
-        <CartProvider>
-          <main>{children}</main>
-          <SiteFooter />
-          <FloatingContactButtons />
-          {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
-          <CartSidebar />
-          {/* Reduced size splash cursor effect */}
-          <SplashCursor />
-          <Toaster richColors position="top-center" />
-          {enableAnalytics && <Analytics />}
-          {enableAnalytics && <SpeedInsights />}
-        </CartProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

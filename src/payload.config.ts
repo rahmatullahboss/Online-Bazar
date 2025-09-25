@@ -7,11 +7,13 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
-import oauth from 'payload-plugin-oauth'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
+import { authPlugin } from 'payload-auth-plugin'
+import { GoogleAuthProvider } from 'payload-auth-plugin/providers'
 
 import { Users } from './collections/Users'
+import { Accounts } from './collections/Accounts'
 import { Media } from './collections/Media'
 import { Items } from './collections/Items'
 import { Categories } from './collections/Categories'
@@ -104,22 +106,24 @@ export default buildConfig({
   ) as string[],
   plugins: [
     ...storagePlugins,
-    oauth({
-      enabled: true,
+    authPlugin({
+      name: 'frontend-auth',
+      allowOAuthAutoSignUp: true,
+      usersCollectionSlug: Users.slug,
+      accountsCollectionSlug: Accounts.slug,
+      successRedirectPath: '/',
+      errorRedirectPath: '/login',
       providers: [
-        {
-          name: 'google',
-          strategy: 'google',
-          clientID: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          redirectURL: 'https://online-bazar.top/api/oauth2/callback/google',
-          userCollection: 'users',
-        },
+        GoogleAuthProvider({
+          client_id: process.env.GOOGLE_CLIENT_ID as string,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }),
       ],
     }),
   ],
   collections: [
     Users,
+    Accounts,
     Media,
     Items,
     Categories,

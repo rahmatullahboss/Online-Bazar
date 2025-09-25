@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
+import { withUsersCollection } from 'payload-auth-plugin/collection'
+import { deleteLinkedAccounts } from 'payload-auth-plugin/collection/hooks'
 import { adminsOrSelf, anyone, checkRole } from './access'
+import { Accounts } from './Accounts'
 
-export const Users: CollectionConfig = {
+export const Users: CollectionConfig = withUsersCollection({
   slug: 'users',
   admin: {
     useAsTitle: 'email',
@@ -22,6 +25,9 @@ export const Users: CollectionConfig = {
         `
       },
     },
+  },
+  hooks: {
+    afterDelete: [deleteLinkedAccounts(Accounts.slug)],
   },
   access: {
     create: anyone, // Allow anyone to create a user account (for registration)
@@ -123,5 +129,5 @@ export const Users: CollectionConfig = {
       ],
     },
   ],
-}
+})
 

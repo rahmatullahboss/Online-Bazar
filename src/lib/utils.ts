@@ -1,6 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+// Utility functions
+export const getGoogleClientId = (): string | null => {
+  if (typeof window !== 'undefined') {
+    // Try to get from window object (injected by server)
+    return (window as any).GOOGLE_CLIENT_ID || null
+  }
+  return null
 }

@@ -16,30 +16,37 @@ export const revalidate = 3600
 
 const getItemsCached = unstableCache(
   async () => {
-    try {
-      const payloadConfig = await config
-      const payload = await getPayload({ config: payloadConfig })
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const payloadConfig = await config
+        const payload = await getPayload({ config: payloadConfig })
 
-      return await payload.find({
-        collection: 'items',
-        where: { available: { equals: true } },
-        depth: 1,
-        limit: 12,
-      })
-    } catch (error) {
-      console.error('Error fetching items for cache:', error)
-      // Return empty result set instead of throwing
-      return {
-        docs: [],
-        totalDocs: 0,
-        limit: 12,
-        totalPages: 1,
-        page: 1,
-        pagingCounter: 1,
-        hasPrevPage: false,
-        hasNextPage: false,
-        prevPage: null,
-        nextPage: null,
+        return await payload.find({
+          collection: 'items',
+          where: { available: { equals: true } },
+          depth: 1,
+          limit: 12,
+        })
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed fetching items:`, error)
+        if (attempt < 2) {
+          // Shorter exponential backoff: 300ms, 600ms
+          await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)))
+        } else {
+          // Final attempt failed, return empty to avoid page crash
+          return {
+            docs: [],
+            totalDocs: 0,
+            limit: 12,
+            totalPages: 1,
+            page: 1,
+            pagingCounter: 1,
+            hasPrevPage: false,
+            hasNextPage: false,
+            prevPage: null,
+            nextPage: null,
+          }
+        }
       }
     }
   },
@@ -155,7 +162,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
           </p>
         </div>
 
-        {items.docs.length === 0 ? (
+        {items!.docs.length === 0 ? (
           <div className="text-center py-20">
             <div className="space-y-4">
               <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
@@ -166,7 +173,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {items.docs.map((item: any, index: number) => (
+            {items!.docs.map((item: any, index: number) => (
               <Card
                 key={item.id}
                 className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0"

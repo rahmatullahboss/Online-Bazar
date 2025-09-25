@@ -15,26 +15,6 @@ import { GoogleSignInButton } from '@/components/google-signin-button'
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
-const MessageDisplay = () => {
-  const searchParams = useSearchParams()
-  const [message, setMessage] = useState('')
-  
-  useEffect(() => {
-    const messageParam = searchParams.get('message')
-    if (messageParam) {
-      setMessage(messageParam)
-    }
-  }, [searchParams])
-  
-  if (!message) return null
-  
-  return (
-    <Alert>
-      <AlertDescription>{message}</AlertDescription>
-    </Alert>
-  )
-}
-
 function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
@@ -43,8 +23,10 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const mergeGuestCart = useCallback(async () => {
     if (typeof window === 'undefined') return
@@ -106,6 +88,13 @@ function LoginForm() {
       console.error('Failed to merge guest cart:', error)
     }
   }, [])
+
+  useEffect(() => {
+    const messageParam = searchParams.get('message')
+    if (messageParam) {
+      setMessage(messageParam)
+    }
+  }, [searchParams])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -181,7 +170,11 @@ function LoginForm() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <MessageDisplay />
+              {message && (
+                <Alert>
+                  <AlertDescription>{message}</AlertDescription>
+                </Alert>
+              )}
 
               {error && (
                 <Alert variant="destructive">

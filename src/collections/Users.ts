@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { adminsOrSelf, anyone, checkRole } from './access'
 import { withUsersCollection } from 'payload-auth-plugin/collection'
 import { deleteLinkedAccounts } from 'payload-auth-plugin/collection/hooks'
+import { Accounts } from '@/collections/auth/Accounts'
 
 export const Users: CollectionConfig = withUsersCollection({
   slug: 'users',
@@ -32,7 +33,7 @@ export const Users: CollectionConfig = withUsersCollection({
     admin: ({ req: { user } }) => checkRole(['admin'], user),
   },
   hooks: {
-    afterDelete: [deleteLinkedAccounts('accounts')], // Use string instead of importing Accounts
+    afterDelete: [deleteLinkedAccounts(Accounts.slug)],
   },
   fields: [
     {

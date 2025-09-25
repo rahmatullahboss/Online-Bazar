@@ -36,7 +36,7 @@ export const Orders: CollectionConfig = {
     {
       name: 'coupon',
       type: 'relationship',
-      relationTo: 'coupons',
+      relationTo: 'coupons' as any,
       required: false,
       admin: {
         description: 'Coupon applied to this order, if any',

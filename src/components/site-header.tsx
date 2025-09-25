@@ -173,34 +173,18 @@ export function SiteHeader({
           </div>
         </header>
         <div aria-hidden="true" className="h-16 w-full" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.GOOGLE_CLIENT_ID = "${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}";
-            `,
-          }}
-        />
       </>
     )
   }
 
   // Simple variant (for auth pages, etc.)
   return (
-    <>
-      <div className={`text-center ${className}`}>
-        <Link href="/" className="text-2xl font-bold brand-text">
-          🍿 Online Bazar
-        </Link>
-        {title && <h2 className="mt-6 text-3xl font-bold text-gray-900">{title}</h2>}
-        {subtitle && <div className="mt-2 text-sm text-gray-600">{subtitle}</div>}
-      </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.GOOGLE_CLIENT_ID = "${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}";
-          `,
-        }}
-      />
-    </>
+    <div className={`text-center ${className}`}>
+      <Link href="/" className="text-2xl font-bold brand-text">
+        🍿 Online Bazar
+      </Link>
+      {title && <h2 className="mt-6 text-3xl font-bold text-gray-900">{title}</h2>}
+      {subtitle && <div className="mt-2 text-sm text-gray-600">{subtitle}</div>}
+    </div>
   )
 }

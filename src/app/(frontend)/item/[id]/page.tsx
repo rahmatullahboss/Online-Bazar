@@ -211,7 +211,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         <div className="absolute top-1/3 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-200/40 blur-3xl" />
       </div>
 
-      <SiteHeader variant="full" user={user} />
+      <SiteHeader variant="full" />
 
       <main className="relative z-10">
         <div className="container mx-auto px-4 py-10 sm:px-6 lg:py-16 lg:px-8">

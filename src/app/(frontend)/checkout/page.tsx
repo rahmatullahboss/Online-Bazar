@@ -35,7 +35,7 @@ export default async function CheckoutPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(251,191,36,0.14),transparent)]" />
-      <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
+      <SiteHeader variant="full" />
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-10 lg:px-8 lg:pt-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <Link

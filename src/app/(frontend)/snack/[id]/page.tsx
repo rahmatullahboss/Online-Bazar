@@ -38,7 +38,7 @@ export default async function SnackPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
+      <SiteHeader variant="full" />
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>

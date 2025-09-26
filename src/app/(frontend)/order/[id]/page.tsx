@@ -46,7 +46,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(251,191,36,0.14),transparent)]" />
-        <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
+        <SiteHeader variant="full" />
         <div className="relative mx-auto w-full max-w-4xl px-4 pb-16 pt-20 sm:pt-24">
           <Card className="rounded-3xl border border-amber-100/80 bg-white/90 shadow-xl shadow-amber-200/60 backdrop-blur">
             <CardHeader className="space-y-2 text-center">
@@ -69,7 +69,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_80%_at_50%_0%,rgba(251,191,36,0.14),transparent)]" />
-      <SiteHeader variant="full" user={(fullUser as any) || (user as any)} />
+      <SiteHeader variant="full" />
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-10 lg:px-8 lg:pt-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <Button

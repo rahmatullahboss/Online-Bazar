@@ -143,7 +143,7 @@ async function HeaderSection({ authPromise }: HeaderSectionProps) {
   const authResult = await authPromise
   const user = authResult?.user ?? null
 
-  return <SiteHeader variant="full" user={user ?? undefined} />
+  return <SiteHeader variant="full" />
 }
 
 async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSectionProps) {

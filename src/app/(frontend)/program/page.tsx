@@ -63,7 +63,7 @@ export default async function ProgramPage() {
       </div>
 
       <div className="relative z-20">
-        <SiteHeader variant="full" user={user} />
+        <SiteHeader variant="full" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 pt-12 pb-20">

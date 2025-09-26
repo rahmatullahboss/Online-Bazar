@@ -66,9 +66,28 @@ const formatCurrency = (value?: number | null): string => {
 }
 
 const resolveServerURL = (payloadInstance: Awaited<ReturnType<typeof getPayload>> | null): string => {
+  // Try multiple sources for the server URL
   const fromConfig = (payloadInstance?.config as any)?.serverURL
   const envURL = process.env.NEXT_PUBLIC_SERVER_URL
-  const raw = typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : envURL
+  const vercelURL = process.env.VERCEL_URL
+  
+  // Construct URL from Vercel environment if available
+  let constructedURL = ''
+  if (vercelURL) {
+    constructedURL = `https://${vercelURL}`
+  }
+  
+  const raw = typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : 
+              envURL || constructedURL || ''
+              
+  console.log('Resolved server URL:', {
+    fromConfig,
+    envURL,
+    vercelURL,
+    constructedURL,
+    final: raw
+  })
+  
   if (!raw) return ''
   return raw.endsWith('/') ? raw.slice(0, -1) : raw
 }
@@ -116,12 +135,20 @@ const buildEmailContent = (
       const itemRef = (entry as any)?.item
       let name = 'পণ্য'
       let unitPrice: number | undefined
+      
+      // Improved item data extraction
       if (itemRef && typeof itemRef === 'object') {
-        const maybeName = (itemRef as any)?.name
+        // Try to get the item name and price
+        const maybeName = (itemRef as any)?.name || (itemRef as any)?.title
         const maybePrice = (itemRef as any)?.price
-        if (typeof maybeName === 'string' && maybeName.trim()) {
+        
+        if (maybeName && typeof maybeName === 'string' && maybeName.trim()) {
           name = maybeName.trim()
+        } else if (itemRef.id) {
+          // Fallback to item ID if name is not available
+          name = `পণ্য #${itemRef.id}`
         }
+        
         if (typeof maybePrice === 'number' && Number.isFinite(maybePrice)) {
           unitPrice = maybePrice
         }
@@ -129,7 +156,10 @@ const buildEmailContent = (
         name = `পণ্য #${itemRef}`
       } else if (typeof itemRef === 'string') {
         name = itemRef
+      } else if (itemRef && itemRef.id) {
+        name = `পণ্য #${itemRef.id}`
       }
+      
       const detailedItem: DetailedItem = {
         name,
         quantity,
@@ -146,6 +176,40 @@ const buildEmailContent = (
       return detailedItem
     })
     .filter((entry): entry is DetailedItem => entry !== null)
+
+  // If we couldn't get detailed items, try to use a fallback approach
+  if (detailedItems.length === 0 && items.length > 0) {
+    console.log('Warning: Could not parse cart items, using fallback approach', { cart, items })
+    
+    // Try a simpler approach for item data
+    items.forEach((entry: any) => {
+      if (entry && typeof entry === 'object') {
+        const quantity = Number(entry.quantity) || 1
+        if (quantity > 0) {
+          let name = 'পণ্য'
+          let price: number | undefined
+          
+          // Try different property names for item data
+          const itemData = entry.item
+          if (itemData) {
+            if (typeof itemData === 'string') {
+              name = itemData
+            } else if (typeof itemData === 'object') {
+              name = itemData.name || itemData.title || `পণ্য #${itemData.id || 'N/A'}`
+              price = typeof itemData.price === 'number' ? itemData.price : undefined
+            }
+          }
+          
+          detailedItems.push({
+            name,
+            quantity,
+            unitPrice: price,
+            lineTotal: price ? price * quantity : undefined
+          })
+        }
+      }
+    })
+  }
 
   const fallbackTotal = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
   const computedTotal = detailedItems.reduce((sum, item) => sum + (item.lineTotal ?? 0), 0)
@@ -219,7 +283,7 @@ const buildEmailContent = (
       <p style="margin:8px 0;font-weight:600;">মোট মূল্য: ${escapeHtml(totalLabel)}</p>
       ${ctaButton}
       <p style="margin:8px 0;">অর্ডার সম্পন্ন করার জন্য আপনার পূর্বের তথ্য আমরা সংরক্ষণ করে রেখেছি। শুধু লগইন করুন এবং পেমেন্ট নিশ্চিত করুন।</p>
-      <p style="margin:16px 0 0 0;">শুভেচ্ছান্তে,<br/>Portal Mini Store টিম</p>
+      <p style="margin:16px 0 0 0;">শুভেচ্ছান্তে,<br/>Online Bazar টিম</p>
     </div>
   `
 
@@ -236,7 +300,7 @@ const buildEmailContent = (
     checkoutUrl ? `অর্ডার সম্পন্ন করুন: ${checkoutUrl}` : '',
     '',
     'শুভেচ্ছান্তে,',
-    'Portal Mini Store টিম',
+    'Online Bazar টিম',
   ].filter(Boolean)
 
   return { html, text: textParts.join('\n') }
@@ -285,6 +349,12 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
       },
     })
 
+    // Debug: Log the carts being processed
+    console.log(`Processing ${query.docs.length} carts for stage ${stage.stage}`, {
+      cutoff,
+      stageConfig: stage
+    })
+
     const stageResult = { stage: stage.stage, attempted: 0, sent: 0, errors: 0 }
 
     for (const raw of query.docs as AbandonedCart[]) {
@@ -293,8 +363,25 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
 
       stageResult.attempted += 1
 
+      // Debug: Log cart data
+      console.log('Processing cart:', {
+        cartId: (raw as any).id,
+        customerEmail: raw.customerEmail,
+        itemsCount: Array.isArray(raw.items) ? raw.items.length : 0,
+        items: raw.items
+      })
+
       try {
         const { html, text } = buildEmailContent(raw, stage, serverURL)
+        
+        // Debug: Log email content info
+        console.log('Email content generated:', {
+          hasHtml: !!html,
+          htmlLength: html?.length || 0,
+          hasText: !!text,
+          textLength: text?.length || 0
+        })
+
         await payloadInstance.sendEmail?.({
           to: String(raw.customerEmail),
           subject: stage.subject,

@@ -440,9 +440,7 @@ export async function POST(request: NextRequest) {
           city: shippingAddress.city,
           state: shippingAddress.state || undefined,
           postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country
-            ? shippingAddress.country.trim() || undefined
-            : undefined,
+          country: shippingAddress.country || undefined,
         },
       } as any,
     })

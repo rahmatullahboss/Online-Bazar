@@ -146,7 +146,7 @@ export default async function AdminDashboardPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
+      <SiteHeader variant="full" />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Button asChild variant="ghost" className="mb-4 gap-2">

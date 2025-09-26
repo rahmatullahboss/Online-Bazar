@@ -11,7 +11,7 @@
   },
   "crons": [
     {
-      "path": "/api/abandoned-carts/mark?ttlMinutes=1440",
+      "path": "/api/abandoned-carts/mark",
       "schedule": "0 2 * * *"
     },
     {

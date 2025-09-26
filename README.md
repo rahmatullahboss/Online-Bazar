@@ -203,12 +203,16 @@ pnpm lint         # Run ESLint
 
 ## Google OAuth Setup
 
-This project now supports Google Sign-In using Auth.js (NextAuth v5) with the payload-authjs plugin. Users can sign in with their Google accounts, and the sessions are automatically recognized by both the site and Payload admin.
+This project now supports Google Sign-In/Sign-Up using Auth.js (NextAuth v5) with the payload-authjs plugin. Users can sign in with their Google accounts, and new users will be automatically registered. The sessions are automatically recognized by both the site and Payload admin.
 
 ### Setup Instructions
 
 1. Follow the instructions in [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) to configure Google OAuth
-2. Add the required environment variables to your `.env.local` file
+2. Add the required environment variables to your `.env.local` file, including:
+   - `AUTH_GOOGLE_ID` - Your Google OAuth client ID
+   - `AUTH_GOOGLE_SECRET` - Your Google OAuth client secret
+   - `AUTH_SECRET` - A random string used to encode JWT tokens
+   - `ADMIN_EMAIL` - The email address that should be granted admin access
 3. Restart your development server
 
 ### How It Works
@@ -216,6 +220,8 @@ This project now supports Google Sign-In using Auth.js (NextAuth v5) with the pa
 - Uses Auth.js (NextAuth v5) with the official Google provider on the Next.js side
 - Bridges to Payload with the payload-authjs plugin so your Auth.js session automatically counts as a Payload session
 - Adds a "Continue with Google" button to the login page
+- New users are automatically registered when they sign in with Google for the first time
+- Existing users are signed in to their existing accounts
 - Supports automatic role assignment for admin users
 
 ## Contributing

@@ -28,6 +28,10 @@ import { Coupons } from './collections/Coupons'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+if (!process.env.PAYLOAD_AUTH_SECRET) {
+  throw new Error('Missing PAYLOAD_AUTH_SECRET in .env file')
+}
+
 export const getServerSideURL = () => {
   // Prefer explicitly provided public URL
   const explicit = process.env.NEXT_PUBLIC_SERVER_URL
@@ -40,7 +44,8 @@ export const getServerSideURL = () => {
   if (vercelURL) return `https://${vercelURL}`
   if (vercelProdURL) return `https://${vercelProdURL}`
 
-  return undefined as unknown as string
+  // Fallback to production URL to ensure it's never undefined during build
+  return 'https://online-bazar.top'
 }
 
 const storagePlugins = [] as any[]

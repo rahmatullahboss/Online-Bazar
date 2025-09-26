@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react'
 import { frontendAuthClient } from '@/lib/auth'
 import type { User } from '@/payload-types'
 
+// Type guard to check if the session data has a user property
+// This helps TypeScript understand the shape of the data object.
+function sessionDataHasUser(data: unknown): data is { user: User | null } {
+  return typeof data === 'object' && data !== null && 'user' in data
+}
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -13,8 +19,9 @@ export const useAuth = () => {
       try {
         setIsLoading(true)
         const session = await frontendAuthClient.getClientSession()
-        if (session.isSuccess && session.data?.user) {
-          setUser(session.data.user as User)
+
+        if (session.isSuccess && sessionDataHasUser(session.data)) {
+          setUser(session.data.user)
         } else {
           setUser(null)
         }

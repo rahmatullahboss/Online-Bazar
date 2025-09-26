@@ -28,8 +28,14 @@ import { Coupons } from './collections/Coupons'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-if (!process.env.PAYLOAD_AUTH_SECRET) {
-  throw new Error('Missing PAYLOAD_AUTH_SECRET in .env file')
+// Validate that PAYLOAD_SECRET is set and has a minimum length
+if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < 32) {
+  throw new Error('Missing or insecure PAYLOAD_SECRET. Please set a random string of at least 32 characters in your .env file.')
+}
+
+// Validate that PAYLOAD_AUTH_SECRET is set and has a minimum length
+if (!process.env.PAYLOAD_AUTH_SECRET || process.env.PAYLOAD_AUTH_SECRET.length < 32) {
+  throw new Error('Missing or insecure PAYLOAD_AUTH_SECRET. Please set a random string of at least 32 characters in your .env file.')
 }
 
 export const getServerSideURL = () => {
@@ -141,7 +147,7 @@ export default buildConfig({
     Coupons,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

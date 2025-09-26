@@ -1,4 +1,4 @@
-import { MigrateUpArgs, MigrateDownArgs } from '@payloadcms/db-postgres'
+import { MigrateUpArgs, MigrateDownArgs } from '@payloadcms/db-vercel-postgres'
 import { sql } from 'drizzle-orm'
 
 export async function up({ payload }: MigrateUpArgs): Promise<void> {

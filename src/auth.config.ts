@@ -1,6 +1,12 @@
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 
+// Extend the default session user type to include firstName and lastName
+interface CustomSessionUser extends Record<string, any> {
+  firstName?: string;
+  lastName?: string;
+}
+
 export const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET,
   providers: [
@@ -22,10 +28,13 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async session({ session, user }) {
-      if (session.user) {
+      // Cast session.user to our custom type
+      const customUser = session.user as CustomSessionUser;
+      
+      if (customUser) {
         // Ensure firstName and lastName are in the session user object
-        session.user.firstName = user?.firstName || (session.user.name ? session.user.name.split(' ')[0] : '');
-        session.user.lastName = user?.lastName || (session.user.name ? session.user.name.split(' ').slice(1).join(' ') : '');
+        customUser.firstName = (user as any)?.firstName || (customUser.name ? customUser.name.split(' ')[0] : '');
+        customUser.lastName = (user as any)?.lastName || (customUser.name ? customUser.name.split(' ').slice(1).join(' ') : '');
       }
       return session;
     },

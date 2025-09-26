@@ -612,7 +612,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                         city: address_city,
                         state: address_state || undefined,
                         postalCode: address_postalCode,
-                        country: address_country || undefined,
+                        country: address_country,
                       }
                     : undefined,
               }
@@ -626,7 +626,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
                   city: address_city,
                   state: address_state || undefined,
                   postalCode: address_postalCode,
-                  country: address_country || undefined,
+                  country: address_country,
                 },
               }),
         }),

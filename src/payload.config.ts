@@ -137,6 +137,7 @@ export default buildConfig({
       idleTimeoutMillis: 60000, // Close idle clients after 60 seconds
       connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
     },
+    idType: 'uuid',
     // When set to undefined or true, Payload will automatically push DB
     // changes in dev environment.
     push:

@@ -224,6 +224,16 @@ This project now supports Google Sign-In/Sign-Up using Auth.js (NextAuth v5) wit
 - Existing users are signed in to their existing accounts
 - Supports automatic role assignment for admin users
 
+### Important Note About Database IDs
+
+This project now uses UUID IDs for all database tables instead of integer/serial IDs to resolve Auth.js compatibility issues. When deploying or setting up a new environment, make sure to run migrations:
+
+```bash
+pnpm payload migrate
+```
+
+See [UUID_MIGRATION_NOTE.md](UUID_MIGRATION_NOTE.md) for more details.
+
 ### Troubleshooting
 
 If you encounter a "redirect_uri_mismatch" error:

@@ -3,7 +3,7 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-vercel-postg
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   // Drop and recreate the users_accounts table with the correct schema for UUID IDs
   await db.execute(sql`
-    DROP TABLE IF EXISTS users_accounts;
+    DROP TABLE IF EXISTS users_accounts CASCADE;
   `)
   
   await db.execute(sql`
@@ -25,7 +25,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   
   // Drop and recreate the users_sessions table with the correct schema for UUID IDs
   await db.execute(sql`
-    DROP TABLE IF EXISTS users_sessions;
+    DROP TABLE IF EXISTS users_sessions CASCADE;
   `)
   
   await db.execute(sql`
@@ -36,12 +36,15 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
       session_token VARCHAR(255) NOT NULL UNIQUE
     );
   `)
+  
+  // Update the users table to use UUID as primary key if needed
+  // Note: This assumes the users table is already set up with UUID IDs by the Payload configuration
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   // Drop and recreate the users_accounts table with the INTEGER schema
   await db.execute(sql`
-    DROP TABLE IF EXISTS users_accounts;
+    DROP TABLE IF EXISTS users_accounts CASCADE;
   `)
   
   await db.execute(sql`
@@ -63,7 +66,7 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   
   // Drop and recreate the users_sessions table with the INTEGER schema
   await db.execute(sql`
-    DROP TABLE IF EXISTS users_sessions;
+    DROP TABLE IF EXISTS users_sessions CASCADE;
   `)
   
   await db.execute(sql`

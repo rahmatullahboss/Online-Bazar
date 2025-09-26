@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { withUsersCollection } from 'payload-auth-plugin/collection'
 import { deleteLinkedAccounts } from 'payload-auth-plugin/collection/hooks'
 import { adminsOrSelf, anyone, checkRole } from './access'
-import { Accounts } from './Accounts'
 
 export const Users: CollectionConfig = withUsersCollection({
   slug: 'users',
@@ -27,7 +26,7 @@ export const Users: CollectionConfig = withUsersCollection({
     },
   },
   hooks: {
-    afterDelete: [deleteLinkedAccounts(Accounts.slug)],
+    afterDelete: [deleteLinkedAccounts('accounts')],
   },
   access: {
     create: anyone, // Allow anyone to create a user account (for registration)

@@ -107,6 +107,7 @@ export default buildConfig({
     ...storagePlugins,
     authjsPlugin({
       authjsConfig: authConfig,
+      userCollectionSlug: 'users',
     }),
   ],
   collections: [

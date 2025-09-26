@@ -299,7 +299,7 @@ export interface Order {
     city: string;
     state?: string | null;
     postalCode: string;
-    country: string;
+    country?: string | null;
   };
   updatedAt: string;
   createdAt: string;

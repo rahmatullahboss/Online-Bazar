@@ -8,58 +8,58 @@ const DEFAULT_CURRENCY =
 const resolveDeliveryZone = (value?: unknown): 'inside_dhaka' | 'outside_dhaka' | undefined => {
   console.log('Resolving delivery zone for value:', value)
   console.log('Type of value:', typeof value)
-  
+
   // Handle null, undefined, or non-string values
   if (value === null || value === undefined) {
     console.log('Value is null or undefined, returning undefined')
     return undefined
   }
-  
+
   if (typeof value !== 'string') {
     console.log('Value is not a string, returning undefined')
     return undefined
   }
-  
+
   // Trim whitespace and convert to lowercase
   const trimmed = value.trim().toLowerCase()
   console.log('Trimmed and lowercased value:', trimmed)
-  
+
   // Handle empty strings
   if (trimmed === '') {
     console.log('Value is empty string, returning undefined')
     return undefined
   }
-  
+
   // Direct matches
   if (trimmed === 'outside_dhaka' || trimmed === 'outside dhaka' || trimmed === 'outside-dhaka') {
     console.log('Direct match for outside_dhaka')
     return 'outside_dhaka'
   }
-  
+
   if (trimmed === 'inside_dhaka' || trimmed === 'inside dhaka' || trimmed === 'inside-dhaka') {
     console.log('Direct match for inside_dhaka')
     return 'inside_dhaka'
   }
-  
+
   // Fallback pattern matching (less strict)
   const normalized = trimmed.replace(/[\\s-]+/g, '_')
   console.log('Normalized value:', normalized)
-  
+
   if (normalized.includes('outside')) {
     console.log('Returning outside_dhaka (contains outside)')
     return 'outside_dhaka'
   }
-  
+
   if (normalized.includes('inside')) {
     console.log('Returning inside_dhaka (contains inside)')
     return 'inside_dhaka'
   }
-  
+
   if (normalized.includes('dhaka')) {
     console.log('Returning inside_dhaka (contains dhaka)')
     return 'inside_dhaka'
   }
-  
+
   console.log('No match found, returning undefined')
   return undefined
 }
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       shippingAddress = (fullUser as any)?.address
     }
 
-    const requiredAddressFields = ['line1', 'city', 'postalCode', 'country']
+    const requiredAddressFields = ['line1', 'city', 'postalCode']
     const hasAddress =
       shippingAddress &&
       requiredAddressFields.every(
@@ -271,31 +271,44 @@ export async function POST(request: NextRequest) {
     console.log('requestDeliveryZone (resolved):', requestDeliveryZone)
     console.log('userDeliveryZone (from user profile):', userDeliveryZone)
     console.log('inferredZoneFromAddress (from city):', inferredZoneFromAddress)
-    
+
     // NEW: Log the actual values for debugging
     console.log('Actual values:')
     console.log('- deliveryZoneInput type:', typeof deliveryZoneInput, 'value:', deliveryZoneInput)
-    console.log('- requestDeliveryZone type:', typeof requestDeliveryZone, 'value:', requestDeliveryZone)
+    console.log(
+      '- requestDeliveryZone type:',
+      typeof requestDeliveryZone,
+      'value:',
+      requestDeliveryZone,
+    )
     console.log('- userDeliveryZone type:', typeof userDeliveryZone, 'value:', userDeliveryZone)
-    console.log('- inferredZoneFromAddress type:', typeof inferredZoneFromAddress, 'value:', inferredZoneFromAddress)
-    
+    console.log(
+      '- inferredZoneFromAddress type:',
+      typeof inferredZoneFromAddress,
+      'value:',
+      inferredZoneFromAddress,
+    )
+
     let deliveryZone: 'inside_dhaka' | 'outside_dhaka' = 'inside_dhaka'
-    
+
     // NEW: Always prioritize the request delivery zone if it's valid, regardless of what it is
     if (requestDeliveryZone === 'inside_dhaka' || requestDeliveryZone === 'outside_dhaka') {
       console.log('Using delivery zone from request:', requestDeliveryZone)
       deliveryZone = requestDeliveryZone
-    } 
+    }
     // OLD: Only use user delivery zone if request delivery zone is not valid
     else if (userDeliveryZone === 'inside_dhaka' || userDeliveryZone === 'outside_dhaka') {
       console.log('Using delivery zone from user profile:', userDeliveryZone)
       deliveryZone = userDeliveryZone
-    } 
+    }
     // OLD: Only infer from address if neither request nor user delivery zone is valid
-    else if (inferredZoneFromAddress === 'inside_dhaka' || inferredZoneFromAddress === 'outside_dhaka') {
+    else if (
+      inferredZoneFromAddress === 'inside_dhaka' ||
+      inferredZoneFromAddress === 'outside_dhaka'
+    ) {
       console.log('Using inferred delivery zone from address:', inferredZoneFromAddress)
       deliveryZone = inferredZoneFromAddress
-    } 
+    }
     // OLD: Default to inside_dhaka
     else {
       console.log('Using default delivery zone: inside_dhaka')
@@ -303,8 +316,10 @@ export async function POST(request: NextRequest) {
 
     // NEW: Override with request delivery zone if it's explicitly provided, even if it's not resolved correctly
     // This handles cases where the frontend sends the correct value but our resolve function has issues
-    if (typeof deliveryZoneInput === 'string' && 
-        (deliveryZoneInput === 'inside_dhaka' || deliveryZoneInput === 'outside_dhaka')) {
+    if (
+      typeof deliveryZoneInput === 'string' &&
+      (deliveryZoneInput === 'inside_dhaka' || deliveryZoneInput === 'outside_dhaka')
+    ) {
       console.log('OVERRIDE: Using explicit delivery zone from request:', deliveryZoneInput)
       deliveryZone = deliveryZoneInput as 'inside_dhaka' | 'outside_dhaka'
     }
@@ -356,22 +371,25 @@ export async function POST(request: NextRequest) {
     // Validate and apply discount code if provided
     let discountAmount = 0
     let couponId = null
-    
+
     if (discountCodeInput && typeof discountCodeInput === 'string') {
       try {
-        const couponResponse = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || ''}/api/coupons/validate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const couponResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL || ''}/api/coupons/validate`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              code: discountCodeInput,
+              subtotal: subtotal,
+            }),
           },
-          body: JSON.stringify({
-            code: discountCodeInput,
-            subtotal: subtotal,
-          }),
-        })
+        )
 
         const couponResult = await couponResponse.json()
-        
+
         if (couponResponse.ok && couponResult.success) {
           discountAmount = couponResult.discountAmount
           couponId = couponResult.coupon.id
@@ -394,7 +412,9 @@ export async function POST(request: NextRequest) {
     const shippingBase = Number.isFinite(appliedShippingCharge) ? appliedShippingCharge : 0
     const shippingChargeValue = Number(Math.max(0, shippingBase).toFixed(2))
     const subtotalValue = Number(subtotal.toFixed(2))
-    const totalValue = Number(Math.max(0, (subtotalValue + shippingChargeValue - discountAmount)).toFixed(2))
+    const totalValue = Number(
+      Math.max(0, subtotalValue + shippingChargeValue - discountAmount).toFixed(2),
+    )
 
     const order = await payload.create({
       collection: 'orders',
@@ -420,7 +440,9 @@ export async function POST(request: NextRequest) {
           city: shippingAddress.city,
           state: shippingAddress.state || undefined,
           postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country,
+          country: shippingAddress.country
+            ? shippingAddress.country.trim() || undefined
+            : undefined,
         },
       } as any,
     })

@@ -21,6 +21,8 @@ import { Reviews } from './collections/Reviews'
 import Posts from './collections/Posts'
 import ProgramParticipants from './collections/ProgramParticipants'
 import { Coupons } from './collections/Coupons'
+import { authjsPlugin } from "payload-authjs"
+import { authConfig } from "./auth.config"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -101,7 +103,12 @@ export default buildConfig({
   cors: [getServerSideURL(), 'https://online-bazar.top', 'http://localhost:3000'].filter(
     Boolean,
   ) as string[],
-  plugins: storagePlugins,
+  plugins: [
+    ...storagePlugins,
+    authjsPlugin({
+      authjsConfig: authConfig,
+    }),
+  ],
   collections: [
     Users,
     Media,
@@ -142,7 +149,7 @@ export default buildConfig({
   email: nodemailerAdapter({
     defaultFromAddress: process.env.GMAIL_USER || '',
     defaultFromName: process.env.EMAIL_DEFAULT_FROM_NAME || 'Online Bazar',
-    transport: await nodemailer.createTransport({
+    transport: nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,

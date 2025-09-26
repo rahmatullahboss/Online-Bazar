@@ -11,6 +11,7 @@ This template comes configured with the bare minimum to get started on anything 
 
 ### 👤 Authenticated User Features
 - **User Registration & Login**: Secure authentication system
+- **Google Sign-In**: Sign in with Google account
 - **Place Orders**: Add snacks to cart and place orders
 - **Order History**: View personal order history with status tracking
 - **Order Tracking**: See order status (Pending, Completed, Cancelled)
@@ -30,7 +31,7 @@ This template comes configured with the bare minimum to get started on anything 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Backend**: Payload CMS 3.0
 - **Database**: Vercel Postgres
-- **Authentication**: Built-in Payload authentication with role-based access
+- **Authentication**: Built-in Payload authentication with role-based access + Google OAuth via Auth.js (NextAuth v5)
 - **Styling**: Custom CSS with modern responsive design
 - **Media**: Sharp for image processing
 
@@ -199,6 +200,23 @@ pnpm start        # Start production server
 pnpm generate:types  # Generate TypeScript types
 pnpm lint         # Run ESLint
 ```
+
+## Google OAuth Setup
+
+This project now supports Google Sign-In using Auth.js (NextAuth v5) with the payload-authjs plugin. Users can sign in with their Google accounts, and the sessions are automatically recognized by both the site and Payload admin.
+
+### Setup Instructions
+
+1. Follow the instructions in [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) to configure Google OAuth
+2. Add the required environment variables to your `.env.local` file
+3. Restart your development server
+
+### How It Works
+
+- Uses Auth.js (NextAuth v5) with the official Google provider on the Next.js side
+- Bridges to Payload with the payload-authjs plugin so your Auth.js session automatically counts as a Payload session
+- Adds a "Continue with Google" button to the login page
+- Supports automatic role assignment for admin users
 
 ## Contributing
 

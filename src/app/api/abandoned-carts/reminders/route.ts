@@ -332,16 +332,35 @@ const ensureEmailSupport = (payloadInstance: Awaited<ReturnType<typeof getPayloa
 }
 
 const handleCronAuthorization = (request: NextRequest) => {
+  // For Vercel cron jobs, they automatically set the x-vercel-cron header
   const isVercelCron = !!request.headers.get('x-vercel-cron')
+  
+  // For manual testing, we can still use the secret method
   const url = new URL(request.url)
   const providedSecret = url.searchParams.get('secret') || request.headers.get('x-cron-secret')
   const hasSecret = !!process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET
-  return { authorized: isVercelCron || hasSecret, via: isVercelCron ? 'vercel-cron' : hasSecret ? 'secret' : 'unknown' }
+  
+  // Debug logging (remove this in production)
+  console.log('Authorization Debug:', {
+    isVercelCron,
+    providedSecret: providedSecret ? '***' : null, // Don't log the actual secret
+    envSecretExists: !!process.env.CRON_SECRET,
+    envSecretLength: process.env.CRON_SECRET ? process.env.CRON_SECRET.length : 0,
+    secretsMatch: hasSecret
+  })
+  
+  // Allow either Vercel cron or secret-based authentication
+  return { 
+    authorized: isVercelCron || hasSecret, 
+    via: isVercelCron ? 'vercel-cron' : hasSecret ? 'secret' : 'unknown' 
+  }
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { authorized, via } = handleCronAuthorization(request)
+    console.log('GET request authorization result:', { authorized, via })
+    
     if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

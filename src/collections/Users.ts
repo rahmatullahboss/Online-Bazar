@@ -122,6 +122,20 @@ export const Users: CollectionConfig = {
         },
       ],
     },
+    // Fields needed for Auth.js compatibility
+    {
+      name: 'emailVerified',
+      type: 'date',
+      admin: {
+        hidden: true,
+      },
+    },
+    {
+      name: 'image',
+      type: 'text',
+      admin: {
+        hidden: true,
+      },
+    },
   ],
 }
-

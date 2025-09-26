@@ -359,6 +359,15 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
 
     for (const raw of query.docs as AbandonedCart[]) {
       if (!raw) continue
+      
+      // Skip empty carts
+      const items = Array.isArray(raw.items) ? raw.items : []
+      const hasItems = items.length > 0
+      if (!hasItems) {
+        console.log(`Skipping empty cart ${String((raw as any).id)}`)
+        continue
+      }
+      
       if (!shouldSendForStage(raw, stage, now)) continue
 
       stageResult.attempted += 1

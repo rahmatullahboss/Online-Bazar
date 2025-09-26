@@ -27,27 +27,43 @@ export async function POST(request: NextRequest) {
     })
 
     let updated = 0
+    let deleted = 0
     const errors: string[] = []
     for (const doc of res.docs || []) {
       try {
-        await payload.update({
-          collection: 'abandoned-carts',
-          id: (doc as any).id,
-          data: {
-            status: 'abandoned',
-            notes: `Marked as abandoned automatically after ${clampedTtl} minutes of inactivity`,
-          },
-        })
-        updated++
+        // Check if the cart is empty
+        const cartItems = Array.isArray((doc as any).items) ? (doc as any).items : []
+        const hasItems = cartItems.length > 0
+        
+        if (hasItems) {
+          // Mark as abandoned if it has items
+          await payload.update({
+            collection: 'abandoned-carts',
+            id: (doc as any).id,
+            data: {
+              status: 'abandoned',
+              notes: `Marked as abandoned automatically after ${clampedTtl} minutes of inactivity`,
+            },
+          })
+          updated++
+        } else {
+          // Delete empty carts
+          await payload.delete({
+            collection: 'abandoned-carts',
+            id: (doc as any).id,
+          })
+          deleted++
+        }
       } catch (error) {
-        console.error(`Failed to update cart ${doc.id}:`, error)
-        errors.push(`Failed to update cart ${(doc as any).id}`)
+        console.error(`Failed to process cart ${doc.id}:`, error)
+        errors.push(`Failed to process cart ${(doc as any).id}`)
       }
     }
 
     return NextResponse.json({
       success: true,
       updated,
+      deleted,
       totalChecked: res.docs?.length || 0,
       cutoff,
       ttlMinutes: clampedTtl,
@@ -106,11 +122,7 @@ export async function GET(request: NextRequest) {
     
     // Allow if it's a Vercel cron job, internal request, or has the correct secret
     const isAuthorized = isVercelCron || hasVercelHeader || isVercelAgent || isVercelIP || secretOK
-    const via = isVercelCron ? 'vercel-cron' : 
-                hasVercelHeader ? 'vercel-header' : 
-                isVercelAgent ? 'vercel-agent' : 
-                isVercelIP ? 'vercel-ip' : 
-                secretOK ? 'secret' : 'unknown'
+    const via = isVercelCron ? 'vercel-cron' : 'secret'
     
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -131,34 +143,51 @@ export async function GET(request: NextRequest) {
     })
 
     let updated = 0
+    let deleted = 0
     const errors: string[] = []
     for (const doc of res.docs || []) {
       try {
-        await payload.update({
-          collection: 'abandoned-carts',
-          id: (doc as any).id,
-          data: {
-            status: 'abandoned',
-            notes: `Marked as abandoned automatically after ${clampedTtl} minutes of inactivity`,
-          },
-        })
-        updated++
+        // Check if the cart is empty
+        const cartItems = Array.isArray((doc as any).items) ? (doc as any).items : []
+        const hasItems = cartItems.length > 0
+        
+        if (hasItems) {
+          // Mark as abandoned if it has items
+          await payload.update({
+            collection: 'abandoned-carts',
+            id: (doc as any).id,
+            data: {
+              status: 'abandoned',
+              notes: `Marked as abandoned automatically after ${clampedTtl} minutes of inactivity`,
+            },
+          })
+          updated++
+        } else {
+          // Delete empty carts
+          await payload.delete({
+            collection: 'abandoned-carts',
+            id: (doc as any).id,
+          })
+          deleted++
+        }
       } catch (error) {
-        console.error(`Failed to update cart ${doc.id}:`, error)
-        errors.push(`Failed to update cart ${(doc as any).id}`)
+        console.error(`Failed to process cart ${doc.id}:`, error)
+        errors.push(`Failed to process cart ${(doc as any).id}`)
       }
     }
 
     return NextResponse.json({
       success: true,
       updated,
+      deleted,
       totalChecked: res.docs?.length || 0,
       cutoff,
       ttlMinutes: clampedTtl,
       errors: errors.length > 0 ? errors : undefined,
-      via,
+      via: isVercelCron ? 'vercel-cron' : 'secret',
       note: "Note: Vercel free plan doesn't support cron jobs. Consider using the MCP tool at /api/mcp/abandoned-carts/cleanup for on-demand cleanup.",
     })
+
   } catch (e) {
     console.error('Mark abandoned (GET) error:', e)
     return NextResponse.json({ error: 'Failed to mark carts' }, { status: 500 })

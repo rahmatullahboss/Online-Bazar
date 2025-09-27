@@ -42,8 +42,7 @@ export function OrderNowButton({
       const message = error instanceof Error ? error.message : 'Failed to open checkout'
       setError(message)
     } finally {
-      // Note: We don't set loading to false here because we're navigating away
-      // If navigation fails, we'll reset the loading state
+      setLoading(false)
     }
   }
 
@@ -56,21 +55,10 @@ export function OrderNowButton({
         size="sm"
         className={cn(
           'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
-          loading && 'cursor-not-allowed',
           className,
         )}
       >
-        {loading ? (
-          <span className="flex items-center gap-2">
-            <span className="flex h-3 w-3">
-              <span className="absolute h-3 w-3 animate-ping rounded-full bg-white opacity-75"></span>
-              <span className="relative h-3 w-3 rounded-full bg-white"></span>
-            </span>
-            Confirming Order
-          </span>
-        ) : (
-          'Order Now'
-        )}
+        {loading ? 'Ordering.' : 'Order Now'}
       </ShinyButton>
       {error ? (
         <span className="text-xs text-red-600" role="alert">

@@ -224,18 +224,6 @@ This project now supports Google Sign-In/Sign-Up using Auth.js (NextAuth v5) wit
 - Existing users are signed in to their existing accounts
 - Supports automatic role assignment for admin users
 
-### Troubleshooting
-
-If you encounter a "redirect_uri_mismatch" error:
-
-1. Check that your Google OAuth client is configured with the correct redirect URIs:
-   - http://localhost:3000/api/auth/callback/google (for development)
-   - https://yourdomain.com/api/auth/callback/google (for production)
-
-2. Make sure you've replaced the placeholder values in your `.env.local` file with your actual Google OAuth credentials
-
-3. Restart your development server after making changes to environment variables
-
 ## Contributing
 
 1. Fork the repository

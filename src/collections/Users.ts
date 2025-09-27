@@ -22,11 +22,6 @@ export const Users: CollectionConfig = {
         `
       },
     },
-    strategies: [
-      {
-        name: 'google',
-      },
-    ],
   },
   access: {
     create: anyone, // Allow anyone to create a user account (for registration)
@@ -127,32 +122,6 @@ export const Users: CollectionConfig = {
         },
       ],
     },
-    {
-      name: 'oauthProvider',
-      type: 'select',
-      options: ['local', 'google'],
-      access: {
-        update: () => false,
-      },
-      admin: {
-        readOnly: true,
-      },
-    },
-    {
-      name: 'oauthId',
-      type: 'text',
-      access: {
-        update: () => false,
-      },
-      admin: {
-        readOnly: true,
-      },
-    },
-    {
-      name: 'avatar',
-      type: 'upload',
-      relationTo: 'media',
-      required: false,
-    },
   ],
 }
+

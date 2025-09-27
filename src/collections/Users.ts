@@ -25,15 +25,6 @@ export const Users: CollectionConfig = {
     strategies: [
       {
         name: 'google',
-        authenticate: async ({ headers, payload }) => {
-          // Placeholder for Google OAuth strategy
-          // In production, implement OAuth flow using headers for code/token
-          // For now, return to allow basic auth, but OAuth needs full implementation
-          return {
-            user: null,
-            token: null,
-          }
-        },
       },
     ],
   },

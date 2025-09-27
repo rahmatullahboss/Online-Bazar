@@ -136,11 +136,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
-  email: string;
-  emailVerified?: string | null;
-  name?: string | null;
-  image?: string | null;
+  id: number;
   /**
    * Primary contact number for orders and updates
    */
@@ -163,16 +159,23 @@ export interface User {
     postalCode?: string | null;
     country?: string | null;
   };
-  accounts?:
-    | {
-        provider: string;
-        providerAccountId: string;
-        type: string;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -240,7 +243,7 @@ export interface Category {
  */
 export interface Order {
   id: number;
-  user?: (string | null) | User;
+  user?: (number | null) | User;
   /**
    * Coupon applied to this order, if any
    */
@@ -346,7 +349,7 @@ export interface Review {
   /**
    * Reviewer (auto-set)
    */
-  user: string | User;
+  user: number | User;
   /**
    * Captured from user at time of review
    */
@@ -368,7 +371,7 @@ export interface AbandonedCart {
    * Anonymous session identifier for the cart
    */
   sessionId: string;
-  user?: (string | null) | User;
+  user?: (number | null) | User;
   customerName?: string | null;
   customerEmail?: string | null;
   customerNumber?: string | null;
@@ -424,7 +427,7 @@ export interface Post {
   id: number;
   title: string;
   slug: string;
-  author: string | User;
+  author: number | User;
   publishedDate: string;
   category: number | Category;
   featuredImage?: (number | null) | Media;
@@ -471,7 +474,7 @@ export interface PayloadLockedDocument {
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
@@ -516,7 +519,7 @@ export interface PayloadLockedDocument {
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -529,7 +532,7 @@ export interface PayloadPreference {
   id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -560,11 +563,6 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  id?: T;
-  email?: T;
-  emailVerified?: T;
-  name?: T;
-  image?: T;
   customerNumber?: T;
   deliveryZone?: T;
   role?: T;
@@ -580,16 +578,22 @@ export interface UsersSelect<T extends boolean = true> {
         postalCode?: T;
         country?: T;
       };
-  accounts?:
-    | T
-    | {
-        provider?: T;
-        providerAccountId?: T;
-        type?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

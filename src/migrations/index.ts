@@ -36,7 +36,6 @@ import * as migration_20250926_020000_add_users_accounts_table from './20250926_
 import * as migration_20250926_030000_add_authjs_fields_to_users from './20250926_030000_add_authjs_fields_to_users'
 import * as migration_20250926_040000_add_missing_authjs_columns_to_users from './20250926_040000_add_missing_authjs_columns_to_users'
 import * as migration_20250927_020000_fix_users_id_type from './20250927_020000_fix_users_id_type'
-import * as migration_20250927_030000_update_auth_tables_to_uuid from './20250927_030000_update_auth_tables_to_uuid'
 
 export const migrations = [
   {
@@ -228,10 +227,5 @@ export const migrations = [
     up: migration_20250927_020000_fix_users_id_type.up,
     down: migration_20250927_020000_fix_users_id_type.down,
     name: '20250927_020000_fix_users_id_type',
-  },
-  {
-    up: migration_20250927_030000_update_auth_tables_to_uuid.up,
-    down: migration_20250927_030000_update_auth_tables_to_uuid.down,
-    name: '20250927_030000_update_auth_tables_to_uuid',
   },
 ]

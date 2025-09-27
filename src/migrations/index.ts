@@ -35,7 +35,6 @@ import * as migration_20250926_010000_make_shipping_address_country_nullable fro
 import * as migration_20250926_020000_add_users_accounts_table from './20250926_020000_add_users_accounts_table'
 import * as migration_20250926_030000_add_authjs_fields_to_users from './20250926_030000_add_authjs_fields_to_users'
 import * as migration_20250926_040000_add_missing_authjs_columns_to_users from './20250926_040000_add_missing_authjs_columns_to_users'
-import * as migration_20250927_010000_fix_users_accounts_parent_id_type from './20250927_010000_fix_users_accounts_parent_id_type'
 
 export const migrations = [
   {

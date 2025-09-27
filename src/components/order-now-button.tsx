@@ -53,9 +53,9 @@ export function OrderNowButton({
         type="button"
         onClick={handleOrder}
         disabled={loading}
-        size="lg"
+        size="sm"
         className={cn(
-          'w-full rounded-full',
+          'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
           loading && 'cursor-not-allowed',
           className,
         )}

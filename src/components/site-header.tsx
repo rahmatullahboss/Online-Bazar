@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { CartButton } from '@/components/cart-button'
 import { LogoutButton } from '@/components/logout-button'
+import { UserProfile } from '@/components/user-profile'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +64,9 @@ export function SiteHeader({
                       <Link href="/blog">Blog</Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
+                      <Link href="/support">Support</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
                       <Link href="/profile">Profile</Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
@@ -98,6 +102,9 @@ export function SiteHeader({
                           <Link href="/profile">Profile</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
+                          <Link href="/support">Support</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link href="/my-orders">My Orders</Link>
                         </DropdownMenuItem>
                         {user.role === 'admin' && (
@@ -129,6 +136,9 @@ export function SiteHeader({
                       <Link href="/blog">Blog</Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
+                      <Link href="/support">Support</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
                       <Link href="/login">Sign In</Link>
                     </Button>
                     <Button asChild size="sm">
@@ -155,6 +165,9 @@ export function SiteHeader({
                         <DropdownMenuItem asChild>
                           <Link href="/blog">Blog</Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/support">Support</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link href="/login">Sign In</Link>
@@ -167,6 +180,7 @@ export function SiteHeader({
                   </div>
                   {/* Cart available for guests too */}
                   <CartButton />
+                  <UserProfile />
                 </>
               )}
             </div>

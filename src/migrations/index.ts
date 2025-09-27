@@ -33,7 +33,6 @@ import * as migration_20250925_add_coupon_fk_constraints from './20250925_add_co
 import * as migration_20250925_add_discount_amount_to_orders from './20250925_add_discount_amount_to_orders'
 import * as migration_20250926_010000_make_shipping_address_country_nullable from './20250926_010000_make_shipping_address_country_nullable'
 import * as migration_20250927_050000_fix_users_sessions_order_column from './20250927_050000_fix_users_sessions_order_column'
-import * as migration_20250927_add_support_collection from './20250927_add_support_collection'
 
 export const migrations = [
   {
@@ -210,10 +209,5 @@ export const migrations = [
     up: migration_20250927_050000_fix_users_sessions_order_column.up,
     down: migration_20250927_050000_fix_users_sessions_order_column.down,
     name: '20250927_050000_fix_users_sessions_order_column',
-  },
-  {
-    up: migration_20250927_add_support_collection.up,
-    down: migration_20250927_add_support_collection.down,
-    name: '20250927_add_support_collection',
   },
 ]

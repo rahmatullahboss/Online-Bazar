@@ -138,7 +138,7 @@ export default function SupportPage() {
           <div className="text-center space-y-1">
             <h1 className="text-2xl font-bold text-gray-900">Submit a Support Request</h1>
             <p className="text-sm text-gray-600">
-              Describe your issue below and we&#39;ll help you as soon as possible.
+              Describe your issue below and we'll help you as soon as possible.
             </p>
           </div>
 

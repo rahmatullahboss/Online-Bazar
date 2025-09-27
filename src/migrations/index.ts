@@ -33,7 +33,6 @@ import * as migration_20250925_add_coupon_fk_constraints from './20250925_add_co
 import * as migration_20250925_add_discount_amount_to_orders from './20250925_add_discount_amount_to_orders'
 import * as migration_20250926_010000_make_shipping_address_country_nullable from './20250926_010000_make_shipping_address_country_nullable'
 import * as migration_20250926_020000_add_users_accounts_table from './20250926_020000_add_users_accounts_table'
-import * as migration_20250926_030000_add_authjs_fields_to_users from './20250926_030000_add_authjs_fields_to_users'
 
 export const migrations = [
   {
@@ -210,10 +209,5 @@ export const migrations = [
     up: migration_20250926_020000_add_users_accounts_table.up,
     down: migration_20250926_020000_add_users_accounts_table.down,
     name: '20250926_020000_add_users_accounts_table',
-  },
-  {
-    up: migration_20250926_030000_add_authjs_fields_to_users.up,
-    down: migration_20250926_030000_add_authjs_fields_to_users.down,
-    name: '20250926_030000_add_authjs_fields_to_users',
   },
 ]

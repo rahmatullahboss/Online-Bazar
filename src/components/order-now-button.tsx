@@ -58,7 +58,7 @@ export function OrderNowButton({
           className,
         )}
       >
-        {loading ? 'Ordering.' : 'Order Now'}
+        {loading ? 'Ordering…' : 'Order Now'}
       </ShinyButton>
       {error ? (
         <span className="text-xs text-red-600" role="alert">

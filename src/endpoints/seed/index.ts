@@ -78,14 +78,13 @@ export const seed = async ({
           collection: 'users',
           data: {
             email: 'admin@onlinebazar.com',
+            password: 'admin123',
             role: 'admin',
             firstName: 'Admin',
             lastName: 'User',
             deliveryZone: INSIDE_DHAKA,
           },
           req,
-          // Pass the password in the options parameter, not in the data object
-          ...(adminExists.docs[0] ? {} : { password: 'admin123' }),
         })
 
     // Create sample customer user
@@ -101,6 +100,7 @@ export const seed = async ({
           collection: 'users',
           data: {
             email: 'customer@example.com',
+            password: 'customer123',
             role: 'user',
             firstName: 'Rahmat',
             lastName: 'Ullah',
@@ -108,8 +108,6 @@ export const seed = async ({
             deliveryZone: INSIDE_DHAKA,
           },
           req,
-          // Pass the password in the options parameter, not in the data object
-          ...(customerExists.docs[0] ? {} : { password: 'customer123' }),
         })
 
     // Create sample orders with different statuses

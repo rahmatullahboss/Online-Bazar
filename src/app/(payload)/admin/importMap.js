@@ -1,4 +1,3 @@
-import { AccountRowLabel as AccountRowLabel_06d0cb594d8f6ba2ac35015f930c882e } from 'payload-authjs/components'
 import { default as default_e2b96ce7c8cfe0d28f27a60ca49568aa } from '@/components/admin/OrderStatusDropdown'
 import { default as default_dbc3571da1650a567c6f588dc2fc947a } from '@/components/admin/OrderStatusSelect'
 import { default as default_b1afa974380bc4f253dc43ae94a50f05 } from '@/components/admin/AbandonedCartStatusCell'
@@ -25,12 +24,10 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
-import { SignInButton as SignInButton_06d0cb594d8f6ba2ac35015f930c882e } from 'payload-authjs/components'
 import { default as default_9f32ce6f473387f99159899dd857e0af } from '@/components/before-dashboard'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 
 export const importMap = {
-  "payload-authjs/components#AccountRowLabel": AccountRowLabel_06d0cb594d8f6ba2ac35015f930c882e,
   "@/components/admin/OrderStatusDropdown#default": default_e2b96ce7c8cfe0d28f27a60ca49568aa,
   "@/components/admin/OrderStatusSelect#default": default_dbc3571da1650a567c6f588dc2fc947a,
   "@/components/admin/AbandonedCartStatusCell#default": default_b1afa974380bc4f253dc43ae94a50f05,
@@ -57,7 +54,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
-  "payload-authjs/components#SignInButton": SignInButton_06d0cb594d8f6ba2ac35015f930c882e,
   "@/components/before-dashboard#default": default_9f32ce6f473387f99159899dd857e0af,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e
 }

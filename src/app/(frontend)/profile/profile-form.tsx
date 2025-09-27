@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 type User = {
-  id: string
+  id: number
   email: string
   firstName: string
   lastName: string

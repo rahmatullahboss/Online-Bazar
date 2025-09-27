@@ -50,7 +50,7 @@ export async function generateMetadata({
       },
     },
     limit: 1,
-    depth: 2, // Increase depth to fetch author data
+    depth: 1,
   })
 
   if (!posts.docs.length) {
@@ -65,12 +65,6 @@ export async function generateMetadata({
 
   // Get the featured image URL or fallback to og-image.png
   const imageUrl = post.featuredImage ? getImageUrl(post.featuredImage, serverURL) : '/og-image.png'
-
-  // Safely extract author name
-  let authorName: string | undefined
-  if (post.author && typeof post.author === 'object' && 'firstName' in post.author) {
-    authorName = `${post.author.firstName} ${post.author.lastName}`
-  }
 
   return {
     title: post.title,
@@ -92,7 +86,10 @@ export async function generateMetadata({
       ],
       type: 'article',
       publishedTime: post.publishedDate,
-      authors: authorName ? [authorName] : undefined,
+      authors:
+        post.author && typeof post.author !== 'number'
+          ? [`${post.author.firstName} ${post.author.lastName}`]
+          : undefined,
     },
     twitter: {
       card: 'summary_large_image',
@@ -154,14 +151,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     return '/og-image.png'
   }
 
-  // Safely extract author name for display
-  const getAuthorName = (author: Post['author']): string => {
-    if (author && typeof author === 'object' && 'firstName' in author) {
-      return `${author.firstName} ${author.lastName}`
-    }
-    return 'Unknown Author'
-  }
-
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100">
       {/* Animated Background Elements */}
@@ -196,9 +185,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
             <div className="flex flex-wrap items-center text-gray-600 mb-8 gap-4 relative z-10">
               <span>{post.publishedDate && new Date(post.publishedDate).toLocaleDateString()}</span>
-              {post.author && (
+              {post.author && typeof post.author !== 'number' && (
                 <span>
-                  By {getAuthorName(post.author)}
+                  By {post.author.firstName} {post.author.lastName}
                 </span>
               )}
               {post.category && typeof post.category !== 'number' && (

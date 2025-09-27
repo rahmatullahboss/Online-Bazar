@@ -10,7 +10,7 @@ This template comes configured with the bare minimum to get started on anything 
 - **Instant Hero Streaming**: Homepage hero renders immediately while the product grid loads asynchronously with graceful fallbacks
 
 ### 👤 Authenticated User Features
-- **User Registration & Login**: Secure authentication system
+- **User Registration & Login**: Secure authentication system (Email/Password or Google Sign-In)
 - **Place Orders**: Add snacks to cart and place orders
 - **Order History**: View personal order history with status tracking
 - **Order Tracking**: See order status (Pending, Completed, Cancelled)
@@ -30,7 +30,9 @@ This template comes configured with the bare minimum to get started on anything 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Backend**: Payload CMS 3.0
 - **Database**: Vercel Postgres
-- **Authentication**: Built-in Payload authentication with role-based access
+- **Authentication**: 
+  - Built-in Payload authentication with role-based access (Admin panel)
+  - Neon Auth with Google Sign-In (Storefront)
 - **Styling**: Custom CSS with modern responsive design
 - **Media**: Sharp for image processing
 

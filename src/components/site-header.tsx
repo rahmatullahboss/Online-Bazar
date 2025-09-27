@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { CartButton } from '@/components/cart-button'
 import { LogoutButton } from '@/components/logout-button'
 import { UserProfile } from '@/components/user-profile'
+import { StackLogoutButton } from '@/components/stack-logout-button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Menu as MenuIcon } from 'lucide-react'
+import { useUser } from '@stackframe/stack'
 
 export interface SiteHeaderProps {
   variant?: 'full' | 'simple'
@@ -28,6 +30,8 @@ export function SiteHeader({
   subtitle,
   className = '',
 }: SiteHeaderProps) {
+  const stackUser = useUser()
+  
   if (variant === 'full') {
     return (
       <>
@@ -47,11 +51,11 @@ export function SiteHeader({
 
             {/* Navigation and User Actions */}
             <div className="flex items-center gap-4">
-              {user ? (
+              {user || stackUser ? (
                 <>
                   <div className="hidden sm:flex items-center gap-4">
                     <span className="text-sm text-gray-600">
-                      Welcome, {user.firstName || user.email}
+                      Welcome, {user?.firstName || user?.email || stackUser?.displayName}
                     </span>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/program">Program</Link>
@@ -72,7 +76,7 @@ export function SiteHeader({
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/my-orders">My Orders</Link>
                     </Button>
-                    {user.role === 'admin' && (
+                    {user?.role === 'admin' && (
                       <Button asChild variant="ghost" size="sm">
                         <Link href="/admin-dashboard">Admin</Link>
                       </Button>
@@ -107,7 +111,7 @@ export function SiteHeader({
                         <DropdownMenuItem asChild>
                           <Link href="/my-orders">My Orders</Link>
                         </DropdownMenuItem>
-                        {user.role === 'admin' && (
+                        {user?.role === 'admin' && (
                           <DropdownMenuItem asChild>
                             <Link href="/admin-dashboard">Admin</Link>
                           </DropdownMenuItem>
@@ -120,7 +124,7 @@ export function SiteHeader({
                     </DropdownMenu>
                   </div>
                   <CartButton />
-                  <LogoutButton />
+                  {user ? <LogoutButton /> : <StackLogoutButton />}
                 </>
               ) : (
                 <>

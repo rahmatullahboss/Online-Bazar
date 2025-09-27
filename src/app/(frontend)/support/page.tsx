@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -80,13 +81,9 @@ export default function SupportPage() {
     }
 
     try {
-      const body = {
+      const body: any = {
         subject: formData.subject.trim(),
         message: formData.message.trim(),
-      } as {
-        subject: string
-        message: string
-        email?: string
       }
 
       if (!isLoggedIn) {
@@ -104,7 +101,7 @@ export default function SupportPage() {
 
       if (response.ok) {
         setSuccess(
-          'Your support ticket has been submitted successfully! We&#39;ll get back to you soon.',
+          'Your support ticket has been submitted successfully! We will get back to you soon.',
         )
         setFormData({ subject: '', message: '', email: formData.email })
       } else {

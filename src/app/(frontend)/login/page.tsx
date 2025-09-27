@@ -243,10 +243,6 @@ function LoginForm() {
             </div>
             
             <GoogleSignInButton />
-            
-            <div className="mt-3 text-center text-xs text-gray-500">
-              New user? Sign up with Google or <Link href="/register" className="text-red-600 hover:text-red-500">create an account</Link>
-            </div>
           </CardContent>
         </Card>
 

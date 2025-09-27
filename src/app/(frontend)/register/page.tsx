@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
-import GoogleSignInButton from '@/components/google-signin-button'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -310,23 +309,6 @@ export default function RegisterPage() {
                 {isSubmitting ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
-            
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="mt-3">
-              <GoogleSignInButton />
-            </div>
-            
-            <div className="mt-3 text-center text-xs text-gray-500">
-              <Link href="/login" className="text-red-600 hover:text-red-500">Sign in</Link> with an existing account or sign up with Google
-            </div>
           </CardContent>
         </Card>
 

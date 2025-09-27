@@ -21,18 +21,10 @@ Add the following to your `.env.local` file:
 ```
 AUTH_GOOGLE_ID=your_client_id_here
 AUTH_GOOGLE_SECRET=your_client_secret_here
-AUTH_SECRET=your_auth_secret_here
 ADMIN_EMAIL=you@yourdomain.com
 ```
 
 Replace the placeholder values with your actual Google OAuth credentials.
-
-The `AUTH_SECRET` should be a random string used to encode JWT tokens. You can generate one with:
-```bash
-openssl rand -base64 32
-```
-
-Or use any random string generator.
 
 ## Step 3: Testing
 
@@ -40,8 +32,6 @@ Or use any random string generator.
 2. Navigate to the login page
 3. Click the "Continue with Google" button
 4. You should be redirected to Google's OAuth flow
-
-Note: If you don't have an existing account, Google Sign-In will automatically create a new account for you. If you already have an account, you'll be signed in to your existing account.
 
 ## Admin Access
 

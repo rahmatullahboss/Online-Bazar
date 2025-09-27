@@ -78,7 +78,6 @@ export interface Config {
     posts: Post;
     'program-participants': ProgramParticipant;
     coupons: Coupon;
-    support: Support;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -96,7 +95,6 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     'program-participants': ProgramParticipantsSelect<false> | ProgramParticipantsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
-    support: SupportSelect<false> | SupportSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -469,20 +467,6 @@ export interface ProgramParticipant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "support".
- */
-export interface Support {
-  id: number;
-  subject: string;
-  message: string;
-  user?: (number | null) | User;
-  email?: string | null;
-  status?: ('open' | 'in-progress' | 'resolved' | 'closed') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -531,10 +515,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coupons';
         value: number | Coupon;
-      } | null)
-    | ({
-        relationTo: 'support';
-        value: number | Support;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -800,19 +780,6 @@ export interface CouponsSelect<T extends boolean = true> {
   usageLimit?: T;
   usedCount?: T;
   applicableTo?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "support_select".
- */
-export interface SupportSelect<T extends boolean = true> {
-  subject?: T;
-  message?: T;
-  user?: T;
-  email?: T;
-  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

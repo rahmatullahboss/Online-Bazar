@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Metadata } from 'next'
+import { StackProvider } from '@stackframe/stack'
 
 export const metadata: Metadata = {
   title: 'Online Bazar',
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <StackProvider>
+          {children}
+        </StackProvider>
       </body>
     </html>
   )

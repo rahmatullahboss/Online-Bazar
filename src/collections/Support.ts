@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import type { User } from '@/payload-types'
+import type { User } from '../../payload-types'
 import { adminsOrSelf } from './access'
 
 const Support: CollectionConfig = {

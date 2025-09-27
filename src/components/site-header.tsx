@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Menu as MenuIcon } from 'lucide-react'
+import { useUser } from '@stackframe/stack'
 
 export interface SiteHeaderProps {
   variant?: 'full' | 'simple'
@@ -29,8 +30,7 @@ export function SiteHeader({
   subtitle,
   className = '',
 }: SiteHeaderProps) {
-  // Since we're not using StackProvider, we'll set stackUser to null
-  const stackUser = null
+  const stackUser = useUser()
   
   if (variant === 'full') {
     return (
@@ -55,7 +55,7 @@ export function SiteHeader({
                 <>
                   <div className="hidden sm:flex items-center gap-4">
                     <span className="text-sm text-gray-600">
-                      Welcome, {user?.firstName || user?.email || 'User'}
+                      Welcome, {user?.firstName || user?.email || stackUser?.displayName}
                     </span>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/program">Program</Link>
@@ -64,97 +64,145 @@ export function SiteHeader({
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/products">Products</Link>
                     </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/blog">Blog</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/support">Support</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/profile">Profile</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/my-orders">My Orders</Link>
+                    </Button>
+                    {user?.role === 'admin' && (
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href="/admin-dashboard">Admin</Link>
+                      </Button>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <UserProfile />
-                    {user ? <LogoutButton /> : <StackLogoutButton />}
+                  {/* Mobile menu */}
+                  <div className="sm:hidden">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" aria-label="Open menu">
+                          <MenuIcon className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        {/* Updated Products link for mobile menu (logged-in users) */}
+                        <DropdownMenuItem asChild>
+                          <Link href="/products">Products</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/blog">Blog</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile">Profile</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/support">Support</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/my-orders">My Orders</Link>
+                        </DropdownMenuItem>
+                        {user?.role === 'admin' && (
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin-dashboard">Admin</Link>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/checkout">Checkout</Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
+                  <CartButton />
+                  {user ? <LogoutButton /> : <StackLogoutButton />}
                 </>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href="/login">Sign In</Link>
-                  </Button>
-                  <Button asChild size="sm">
-                    <Link href="/register">Register</Link>
-                  </Button>
-                </div>
+                <>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/program">Program</Link>
+                    </Button>
+                    {/* Updated Products button for guest users to point to the new products page */}
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/products">Products</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/blog">Blog</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/support">Support</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link href="/register">Sign Up</Link>
+                    </Button>
+                  </div>
+                  {/* Mobile menu for guests */}
+                  <div className="sm:hidden">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" aria-label="Open menu">
+                          <MenuIcon className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/program">Program</Link>
+                        </DropdownMenuItem>
+                        {/* Updated Products link for mobile menu (guest users) */}
+                        <DropdownMenuItem asChild>
+                          <Link href="/products">Products</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/blog">Blog</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/support">Support</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/login">Sign In</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/register">Sign Up</Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  {/* Cart available for guests too */}
+                  <CartButton />
+                  <UserProfile />
+                </>
               )}
-              <CartButton />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <MenuIcon className="h-5 w-5" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href="/">Home</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/products">Products</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/program">Program</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/blog">Blog</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/support">Support</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {user ? (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile">Profile</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-orders">My Orders</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <LogoutButton />
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link href="/login">Sign In</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/register">Register</Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </header>
-        <div className="h-16"></div>
+        <div aria-hidden="true" className="h-16 w-full" />
       </>
     )
   }
 
+  // Simple variant (for auth pages, etc.)
   return (
-    <header className={`w-full border-b border-gray-200/60 bg-white ${className}`}>
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {title ? (
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-            {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
-          </div>
-        ) : (
-          <Link href="/" className="text-xl font-bold text-gray-900">
-            Online Bazar
-          </Link>
-        )}
-        <div className="flex items-center gap-4">
-          <CartButton />
-        </div>
-      </div>
-    </header>
+    <div className={`text-center ${className}`}>
+      <Link href="/" className="text-2xl font-bold brand-text">
+        🍿 Online Bazar
+      </Link>
+      {title && <h2 className="mt-6 text-3xl font-bold text-gray-900">{title}</h2>}
+      {subtitle && <div className="mt-2 text-sm text-gray-600">{subtitle}</div>}
+    </div>
   )
 }

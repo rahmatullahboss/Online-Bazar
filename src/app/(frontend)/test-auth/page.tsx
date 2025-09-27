@@ -1,13 +1,13 @@
 'use client'
 
 import React from 'react'
+import { useUser } from '@stackframe/stack'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 
 export default function TestAuthPage() {
-  // Since we're not using StackProvider, we'll set user to null
-  const user = null
+  const user = useUser()
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -23,41 +23,33 @@ export default function TestAuthPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Display Name</p>
-                  <p>N/A</p>
+                  <p>{user.displayName || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <p>N/A</p>
+                  <p>{user.primaryEmail || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">User ID</p>
-                  <p className="text-sm font-mono">N/A</p>
+                  <p className="text-sm font-mono">{user.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Primary Email Verified</p>
-                  <p>N/A</p>
+                  <p className="text-sm text-gray-500">Auth Type</p>
+                  <p>Google OAuth</p>
                 </div>
               </div>
               <div className="pt-4">
                 <Button asChild>
-                  <Link href="/">Go to Home</Link>
+                  <Link href="/">Back to Home</Link>
                 </Button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-gray-600">
-                You are not currently signed in with Google. This page is used to test the Neon Auth integration.
-              </p>
-              <p className="text-gray-600">
-                To test the integration, you would need to set up the StackProvider with the proper environment variables.
-              </p>
-              <div className="pt-4 flex gap-3">
+              <p className="text-gray-600">No user is currently signed in.</p>
+              <div className="pt-4">
                 <Button asChild>
-                  <Link href="/login">Go to Login</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/">Go to Home</Link>
+                  <Link href="/login">Go to Login Page</Link>
                 </Button>
               </div>
             </div>

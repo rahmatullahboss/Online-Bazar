@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { useUser } from '@stackframe/stack'
 
 export async function POST(request: NextRequest) {
   try {

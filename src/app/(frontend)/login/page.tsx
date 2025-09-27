@@ -244,7 +244,7 @@ function LoginForm() {
               </div>
 
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/api/oauth/google/login">
+                <a href="/api/oauth/google/login">
                   <svg
                     className="mr-2 h-4 w-4"
                     aria-hidden="true"
@@ -273,7 +273,7 @@ function LoginForm() {
                     />
                   </svg>
                   Sign in with Google
-                </Link>
+                </a>
               </Button>
             </CardContent>
           </Card>

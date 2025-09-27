@@ -244,6 +244,7 @@ function LoginForm() {
               </div>
 
               <Button variant="outline" className="w-full" asChild>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a href="/api/oauth/google/login">
                   <svg
                     className="mr-2 h-4 w-4"

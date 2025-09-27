@@ -20,6 +20,12 @@ export const AbandonedCarts: CollectionConfig = {
     admin: adminsOnly,
   },
   timestamps: true,
+  indexes: [
+    // Index for querying carts to be processed by cron jobs (reminders, cleanup)
+    { fields: { status: 1, lastActivityAt: 1 }, name: 'status_activity_idx' },
+    // Index for high-frequency lookups by session ID (cart activity, heartbeat)
+    { fields: { sessionId: 1, status: 1 }, name: 'session_status_idx' },
+  ],
   fields: [
     {
       name: 'sessionId',

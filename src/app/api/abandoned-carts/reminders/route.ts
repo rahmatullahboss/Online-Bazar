@@ -427,107 +427,28 @@ const ensureEmailSupport = (payloadInstance: Awaited<ReturnType<typeof getPayloa
   }
 }
 
-const handleCronAuthorization = (request: NextRequest) => {
-  // Check for Vercel cron header (this is what should be present)
-  const isVercelCron = !!request.headers.get('x-vercel-cron')
-  
-  // Check for other Vercel-specific headers that indicate it's a Vercel internal request
-  const vercelHeaders = [
-    'x-vercel-id',
-    'x-vercel-deployment-url',
-    'x-vercel-forwarded-proto',
-    'x-vercel-proxy-signature',
-    'x-vercel-sc-host'
-  ]
-  
-  const hasVercelHeader = vercelHeaders.some(header => request.headers.get(header))
-  
-  // Check if the request is coming from Vercel's internal network
-  const userAgent = request.headers.get('user-agent') || ''
-  const isVercelAgent = userAgent.includes('vercel') || userAgent.includes('Vercel')
-  
-  // Check if the request is coming from Vercel's IP ranges (this is a more advanced check)
-  const xForwardedFor = request.headers.get('x-forwarded-for') || ''
-  const isVercelIP = xForwardedFor.includes('vercel') || xForwardedFor.includes('zeit') || xForwardedFor.includes('now')
-  
-  // For manual testing, we can still use the secret method
-  const url = new URL(request.url)
-  const providedSecret = url.searchParams.get('secret') || request.headers.get('x-cron-secret')
-  const hasSecret = !!process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET
-  
-  // Debug logging with more details
-  console.log('Authorization Debug:', {
-    isVercelCron,
-    hasVercelHeader,
-    isVercelAgent,
-    isVercelIP,
-    providedSecret: providedSecret ? '***' : null,
-    envSecretExists: !!process.env.CRON_SECRET,
-    envSecretLength: process.env.CRON_SECRET ? process.env.CRON_SECRET.length : 0,
-    secretsMatch: hasSecret,
-    userAgent: userAgent.substring(0, 100),
-    xForwardedFor: xForwardedFor.substring(0, 100),
-    keyHeaders: {
-      'x-vercel-id': !!request.headers.get('x-vercel-id'),
-      'x-vercel-deployment-url': !!request.headers.get('x-vercel-deployment-url'),
-      'x-vercel-forwarded-proto': !!request.headers.get('x-vercel-forwarded-proto'),
-      'x-vercel-cron': !!request.headers.get('x-vercel-cron')
-    }
-  })
-  
-  // Allow Vercel cron, internal requests, or secret-based authentication
-  const isAuthorized = isVercelCron || hasVercelHeader || isVercelAgent || isVercelIP || hasSecret
-  const via = isVercelCron ? 'vercel-cron' : 
-              hasVercelHeader ? 'vercel-header' : 
-              isVercelAgent ? 'vercel-agent' : 
-              isVercelIP ? 'vercel-ip' : 
-              hasSecret ? 'secret' : 'unknown'
-  
-  return { authorized: isAuthorized, via }
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const { authorized, via } = handleCronAuthorization(request)
-    console.log('GET request authorization result:', { authorized, via })
-    
-    // TEMPORARY WORKAROUND: If this looks like it might be a Vercel cron job, allow it
-    // This is for debugging purposes only
-    if (!authorized) {
-      const userAgent = request.headers.get('user-agent') || ''
-      const xForwardedFor = request.headers.get('x-forwarded-for') || ''
-      const isLikelyCron = userAgent.includes('vercel') || 
-                          xForwardedFor.includes('vercel') ||
-                          via === 'unknown' // If nothing matched, it might still be a cron
-      
-      // Additional check: if it's coming at a typical cron time (hourly)
-      const now = new Date()
-      const isCronTime = now.getMinutes() === 0 || now.getMinutes() === 30 // Typical cron times
-      
-      console.log('Temporary workaround check:', {
-        isLikelyCron,
-        isCronTime,
-        currentTime: now.toISOString(),
-        userAgent: userAgent.substring(0, 100)
-      })
-      
-      // If it looks like a cron job, temporarily allow it
-      if (isLikelyCron && isCronTime) {
-        console.log('TEMPORARY: Allowing request that looks like Vercel cron')
-        // Continue with execution but log that we're using the workaround
-      } else {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    const url = new URL(request.url)
+    const querySecret = url.searchParams.get('secret')
+    const headerSecret = request.headers.get('x-cron-secret')
+    const envSecret = process.env.CRON_SECRET
+
+    const isVercelCron = !!request.headers.get('x-vercel-cron')
+    const secretOK = !!envSecret && (querySecret === envSecret || headerSecret === envSecret)
+
+    if (!isVercelCron && !secretOK) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const payloadInstance = await getPayload({ config: await config })
     ensureEmailSupport(payloadInstance)
 
     const outcome = await runReminderJob(payloadInstance)
-    return NextResponse.json({ 
-      success: true, 
-      via: authorized ? via : 'temp-allowed', 
-      ...outcome 
+    return NextResponse.json({
+      success: true,
+      via: isVercelCron ? 'vercel-cron' : 'secret',
+      ...outcome,
     })
   } catch (error) {
     console.error('Failed to process abandoned cart reminders:', error)

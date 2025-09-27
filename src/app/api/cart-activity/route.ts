@@ -78,18 +78,6 @@ export async function POST(request: NextRequest) {
       })
       .filter((row): row is { item: number; quantity: number } => !!row)
 
-    const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
-    if (isZeroCart) {
-      console.log('Zero cart detected, deleting if exists')
-      if (existing?.docs?.[0]) {
-        await payload.delete({
-          collection: 'abandoned-carts',
-          id: (existing.docs[0] as any).id,
-        })
-      }
-      return NextResponse.json({ success: true })
-    }
-
     // Pull profile fallbacks for logged-in users
     const userEmail = normalizeString(user ? (user as any)?.email : undefined)
     const userName = normalizeString(
@@ -102,15 +90,22 @@ export async function POST(request: NextRequest) {
     const hasContactInfo = Boolean(
       user || customerEmail || customerNumber || userEmail || userNumber,
     )
+    const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
 
-    if (!hasContactInfo) {
-      console.log('No contact info, deleting cart if exists')
+    // We only track carts that have items and contact information.
+    // If a cart becomes empty or has no contact details, we delete it.
+    if (isZeroCart || !hasContactInfo) {
+      const reason = isZeroCart ? 'is empty' : 'has no contact info'
+      console.log(`Cart is not worth tracking because it ${reason}. Deleting if it exists.`)
+
       if (existing?.docs?.[0]) {
         await payload.delete({
           collection: 'abandoned-carts',
           id: (existing.docs[0] as any).id,
         })
       }
+
+      // Whether the cart existed or not, the end result is that we don't track it.
       return NextResponse.json({ success: true })
     }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense, useCallback } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,11 +9,15 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
+import { useStackApp, useUser } from '@stackframe/stack'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
 function LoginForm() {
+  const app = useStackApp()
+  const user = useUser()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,76 +26,19 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const router = useRouter()
   const searchParams = useSearchParams()
-
-  const mergeGuestCart = useCallback(async () => {
-    if (typeof window === 'undefined') return
-    try {
-      const savedCart = window.localStorage.getItem('dyad-cart')
-      if (!savedCart) return
-      const parsed = JSON.parse(savedCart) as unknown
-      const itemsRaw = isRecord(parsed) ? parsed.items : null
-      if (!Array.isArray(itemsRaw)) {
-        window.localStorage.removeItem('dyad-cart')
-        return
-      }
-
-      const sessionIdRaw = isRecord(parsed) && typeof parsed.sessionId === 'string' ? parsed.sessionId : null
-
-      const itemsPayload = itemsRaw
-        .map((item) => {
-          if (!isRecord(item)) return null
-          const idValue = item.id
-          if (typeof idValue !== 'string' && typeof idValue !== 'number') return null
-          const quantityRaw = Number(item.quantity)
-          const quantity = Number.isFinite(quantityRaw) && quantityRaw > 0 ? Math.floor(quantityRaw) : 0
-          if (quantity <= 0) return null
-          return {
-            id: typeof idValue === 'number' ? String(idValue) : idValue,
-            quantity,
-          }
-        })
-        .filter((item): item is { id: string; quantity: number } => item !== null)
-
-      if (!itemsPayload.length) {
-        window.localStorage.removeItem('dyad-cart')
-        return
-      }
-
-      const bodyPayload: Record<string, unknown> = { items: itemsPayload }
-      if (sessionIdRaw) {
-        bodyPayload.sessionId = sessionIdRaw
-      }
-
-      const response = await fetch('/api/cart/merge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(bodyPayload),
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) return
-        throw new Error(`Merge failed with status ${response.status}`)
-      }
-
-      const data = (await response.json().catch(() => null)) as unknown
-      if (isRecord(data) && data.success === true) {
-        window.localStorage.removeItem('dyad-cart')
-        window.dispatchEvent(new Event('dyad-cart-merge-success'))
-      }
-    } catch (error) {
-      console.error('Failed to merge guest cart:', error)
-    }
-  }, [])
 
   useEffect(() => {
     const messageParam = searchParams.get('message')
     if (messageParam) {
       setMessage(messageParam)
     }
-  }, [searchParams])
+    
+    // If user is already logged in, redirect to home
+    if (user?.id) {
+      router.push('/')
+    }
+  }, [user, router, searchParams])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -113,34 +60,37 @@ function LoginForm() {
     }
 
     try {
-      const response = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          rememberMe,
-        }),
+      // Use Stack's signIn method
+      await app.signInWithCredential({
+        email: formData.email,
+        password: formData.password,
       })
-
-      if (response.ok) {
-        // Login successful, redirect to home
-        await mergeGuestCart()
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('dyad-auth-changed'))
-        }
-        router.push('/')
-        router.refresh()
+      
+      // Login successful, redirect to home
+      router.push('/')
+      router.refresh()
+    } catch (err: any) {
+      console.error('Sign in error:', err)
+      if (err.message) {
+        setError(err.message)
       } else {
-        const errorData = await response.json()
-        setError(errorData.message || 'Login failed. Please check your credentials.')
+        setError('Login failed. Please check your credentials.')
       }
-    } catch (err) {
-      setError('Login failed. Please try again.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await app.signInWithOAuth('google')
+    } catch (err: any) {
+      console.error('Google sign in error:', err)
+      if (err.message) {
+        setError(err.message)
+      } else {
+        setError('Google sign-in failed. Please try again.')
+      }
     }
   }
 

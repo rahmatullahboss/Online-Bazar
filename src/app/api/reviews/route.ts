@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
       limit: 1,
     })
     if (!orders?.docs?.length) {
-      return NextResponse.json({ error: 'Review allowed after completed purchase' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Review allowed after completed purchase' },
+        { status: 403 },
+      )
     }
 
     // Ensure item exists
@@ -75,10 +78,7 @@ export async function GET(request: NextRequest) {
     const result = await payload.find({
       collection: 'reviews',
       where: {
-        and: [
-          { item: { equals: item } },
-          { approved: { equals: true } },
-        ],
+        and: [{ item: { equals: item } }, { approved: { equals: true } }],
       },
       depth: 1,
       sort: '-createdAt',

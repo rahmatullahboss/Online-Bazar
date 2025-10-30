@@ -136,7 +136,7 @@ export default buildConfig({
         ? false
         : process.env.DYAD_DISABLE_DB_PUSH === 'true'
           ? false
-          : undefined,
+          : false, // Changed from undefined to false to prevent automatic schema pushing
   }),
   sharp,
   email: nodemailerAdapter({

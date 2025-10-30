@@ -20,6 +20,23 @@ const dynamicRemotePatterns: RemotePattern[] = [
   { protocol: 'https', hostname: 'images.unsplash.com' },
 ]
 
+const addRemotePatternFromUrl = (value?: string) => {
+  if (!value) return
+  try {
+    const url = new URL(value)
+    if (!url.hostname) return
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      dynamicRemotePatterns.push({
+        protocol: url.protocol.replace(':', '') as 'http' | 'https',
+        hostname: url.hostname,
+        ...(url.port ? { port: url.port } : {}),
+      })
+    }
+  } catch {
+    // ignore invalid URLs
+  }
+}
+
 for (const host of [s3OrBlobHostEnv, blobHostFromToken]) {
   if (host) {
     dynamicRemotePatterns.push({
@@ -40,6 +57,8 @@ for (const host of vercelHosts) {
     })
   }
 }
+
+addRemotePatternFromUrl(process.env.NEXT_PUBLIC_SERVER_URL)
 
 const nextConfig: NextConfig = {
   webpack: (config) => {

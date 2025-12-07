@@ -33,7 +33,7 @@ if (typeof window === 'undefined') {
 
   serverApp = new StackServerApp({
     projectId,
-    serverSecret,
+    secretServerKey: serverSecret,
     tokenStore: 'nextjs-cookie',
   })
 }

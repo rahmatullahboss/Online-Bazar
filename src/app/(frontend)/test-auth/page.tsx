@@ -2,8 +2,10 @@
 
 import React from 'react'
 import { useUser } from '@stackframe/stack'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+// Disable SSR for this page since it uses client-only hooks
+export const dynamic = 'force-dynamic'
 
 export default function TestAuthPage() {
   const user = useUser()

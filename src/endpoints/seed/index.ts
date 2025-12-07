@@ -173,7 +173,7 @@ export const seed = async ({
       `Successfully created ${createdItems.length} items, user accounts (${(adminUser as any).email}, ${(customerUser as any).email}) and ${successfulOrders} sample orders with all status types`,
     )
   } catch (error) {
-    payload.logger.error('Error running seed migration:', error)
+    payload.logger.error(`Error running seed migration: ${String(error)}`)
     throw error
   }
 }

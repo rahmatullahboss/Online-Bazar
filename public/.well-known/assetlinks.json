@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "top.online_bazar.twa",
+    "sha256_cert_fingerprints": ["BA:7C:17:31:26:97:40:16:EA:E4:05:C6:81:FD:1C:4F:9E:BF:F0:EF:D0:2D:65:41:92:82:3B:C3:CA:BC:01:9D"]
+  }
+}]

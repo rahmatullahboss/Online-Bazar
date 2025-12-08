@@ -99,4 +99,17 @@ trigger: always_on
 - **Use Payload's hooks** for data transformation and validation
 - **Follow Payload's collection configuration patterns**
 
+## Commit & Deployment Rules
+
+### Pre-Commit Requirements
+- **ALWAYS run `npm run build` or `pnpm build`** before committing changes
+- **Fix all TypeScript/build errors** before committing
+- **ESLint warnings are acceptable** but errors must be fixed
+- **Test locally first** - run `npm run dev` to verify changes work
+
+### Git Workflow
+- **Commit frequently** with descriptive messages
+- **Use conventional commits** format (feat:, fix:, refactor:, etc.)
+- **Never commit broken code** that fails to build
+
 Remember: This is a production application handling user data and orders. Always prioritize security, user experience, and data integrity in your implementations.

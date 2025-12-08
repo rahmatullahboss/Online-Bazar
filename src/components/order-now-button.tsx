@@ -22,12 +22,14 @@ type OrderNowButtonProps = {
   wrapperClassName?: string
   isLoggedIn?: boolean
   deliveryZone?: 'inside_dhaka' | 'outside_dhaka'
+  compact?: boolean
 }
 
 export function OrderNowButton({
   item,
   className = '',
   wrapperClassName = '',
+  compact,
 }: OrderNowButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,11 +56,13 @@ export function OrderNowButton({
         disabled={loading}
         size="sm"
         className={cn(
-          'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
+          compact
+            ? 'rounded-full h-7 px-2 text-[10px] flex-1 sm:flex-none sm:h-9 sm:px-4 sm:text-xs'
+            : 'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
           className,
         )}
       >
-        {loading ? 'Ordering…' : 'Order Now'}
+        {loading ? '...' : compact ? 'Order' : 'Order Now'}
       </ShinyButton>
       {error ? (
         <span className="text-xs text-red-600" role="alert">
@@ -68,3 +72,4 @@ export function OrderNowButton({
     </div>
   )
 }
+

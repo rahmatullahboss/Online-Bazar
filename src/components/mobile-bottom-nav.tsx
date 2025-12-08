@@ -17,8 +17,8 @@ export function MobileBottomNav() {
   const { state, openCart } = useCart()
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Hide on admin pages, checkout, and order pages
-  const hiddenPaths = ['/admin', '/checkout', '/order/', '/login', '/register']
+  // Hide on admin pages, checkout, and order pages only
+  const hiddenPaths = ['/admin', '/checkout', '/order/']
   if (hiddenPaths.some(path => pathname.startsWith(path))) {
     return null
   }

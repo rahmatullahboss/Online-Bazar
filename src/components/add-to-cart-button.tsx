@@ -22,9 +22,10 @@ interface AddToCartButtonProps {
     imageUrl?: string
   }
   className?: string
+  compact?: boolean
 }
 
-export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, className }) => {
+export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, className, compact }) => {
   const { addItem, openCart } = useCart()
   const [isAdded, setIsAdded] = useState(false)
   const [isAdding, setIsAdding] = useState(false) // Prevent rapid clicks
@@ -34,8 +35,6 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
     if (isAdding) return
 
     setIsAdding(true)
-
-    console.log('Adding item to cart:', item)
 
     addItem({
       id: item.id,
@@ -57,9 +56,6 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       setIsAdded(false)
       setIsAdding(false) // Re-enable button
     }, 1000)
-
-    // Optional: Open cart after adding item
-    // openCart()
   }
 
   return (
@@ -68,24 +64,25 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       disabled={isAdded || isAdding}
       size="sm"
       className={cn(
-        'h-9 px-2 text-xs',
-        'sm:h-10 sm:px-3 sm:text-sm',
-        'md:h-11 md:px-4 md:text-sm',
+        compact
+          ? 'h-7 px-2 text-[10px] flex-1 sm:flex-none sm:h-9 sm:px-3 sm:text-xs'
+          : 'h-9 px-2 text-xs sm:h-10 sm:px-3 sm:text-sm md:h-11 md:px-4 md:text-sm',
         isAdded && 'bg-green-600 hover:bg-green-600',
         className,
       )}
     >
       {isAdded ? (
         <React.Fragment>
-          <Check className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
-          <span>Added!</span>
+          <Check className={cn(compact ? 'h-3 w-3 mr-0.5' : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2')} />
+          <span>{compact ? '✓' : 'Added!'}</span>
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <Plus className="h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2" />
-          <span>Add to Cart</span>
+          <Plus className={cn(compact ? 'h-3 w-3 mr-0.5' : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2')} />
+          <span>{compact ? 'Add' : 'Add to Cart'}</span>
         </React.Fragment>
       )}
     </Button>
   )
 }
+

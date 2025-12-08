@@ -153,12 +153,12 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
     (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
 
   return (
-    <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-2 py-8 sm:px-6 sm:py-16 lg:px-8">
       {/* Online Bazar Grid */}
-      <section className="space-y-12">
-        <div className="text-center space-y-4">
-          <h3 className="text-5xl font-bold brand-text">Our Collection</h3>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+      <section className="space-y-6 sm:space-y-12">
+        <div className="text-center space-y-2 sm:space-y-4">
+          <h3 className="text-3xl sm:text-5xl font-bold brand-text">Our Collection</h3>
+          <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
             Handcrafted experiences, delivered to perfection
           </p>
         </div>
@@ -173,23 +173,17 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items!.docs.map((item: any, index: number) => (
               <Card
                 key={item.id}
-                className="group relative overflow-hidden rounded-3xl border-2 border-gray-200/60 bg-white shadow-xl transition-all duration-700 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/20 hover:border-amber-300/60 transform-group-0 md:bg-white/95 md:backdrop-blur-xl gap-0 p-0"
+                className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Enhanced Card Glow Effect */}
-                <div className="absolute inset-0 hidden md:block md:bg-gradient-to-br md:from-amber-100/30 md:via-rose-100/20 md:to-blue-100/30 md:opacity-0 md:group-hover:opacity-100 md:transition-all md:duration-700"></div>
-
-                {/* Shimmer Effect */}
-                <div className="absolute inset-0 hidden motion-safe:md:block motion-safe:md:-translate-x-full motion-safe:md:group-hover:translate-x-full motion-safe:md:transition-transform motion-safe:md:duration-1000 md:bg-gradient-to-r md:from-transparent md:via-white/20 md:to-transparent md:skew-x-12"></div>
-
                 <div className="relative z-10 h-full flex flex-col">
                   <Link href={`/item/${item.id}`} className="block">
                     {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-                      <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl">
+                      <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
                         <Image
                           src={
                             item.image && typeof item.image === 'object'
@@ -202,17 +196,15 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                               : undefined) || item.name
                           }
                           fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-110"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                          className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
                         />
-                        {/* Image Overlay */}
-                        <div className="absolute inset-0 hidden md:block md:bg-gradient-to-t md:from-gray-900/30 md:via-transparent md:to-transparent md:opacity-0 md:group-hover:opacity-100 md:transition-opacity md:duration-500"></div>
 
                         {/* Floating Badge */}
-                        <div className="absolute top-4 right-4 transform group-hover:scale-110 transition-transform duration-300">
+                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
                           <Badge
                             variant="secondary"
-                            className="bg-white text-gray-700 border border-gray-200/60 shadow-lg font-medium px-3 py-1 md:bg-white/90 md:backdrop-blur-sm"
+                            className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
                           >
                             {typeof item.category === 'object'
                               ? (item.category as any)?.name
@@ -222,32 +214,30 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                       </div>
                     )}
 
-                    <CardHeader className="space-y-3 p-4">
-                      <div className="space-y-1">
-                        <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 leading-tight">
-                          {item.name}
-                        </CardTitle>
-                        <div className="h-0.5 w-12 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      </div>
-                      <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                    <CardHeader className="p-2 sm:p-4 space-y-1 sm:space-y-3">
+                      <CardTitle className="text-sm sm:text-xl font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
+                        {item.name}
+                      </CardTitle>
+                      <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
                         {item.shortDescription ?? item.description}
                       </CardDescription>
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex items-center justify-between border-t border-gray-200/60 bg-white p-4 rounded-b-3xl md:bg-gradient-to-r md:from-gray-50/80 md:to-white/80 md:backdrop-blur-sm">
-                    <div className="space-y-1">
-                      <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        Tk {item.price.toFixed(2)}
+                  <CardFooter className="flex flex-col items-stretch gap-2 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-2 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center justify-between sm:flex-col sm:items-start sm:space-y-1">
+                      <span className="text-lg sm:text-3xl font-bold text-green-600">
+                        ৳{item.price.toFixed(0)}
                       </span>
-                      <p className="text-xs text-gray-500 font-medium">Premium Quality</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500">Premium</p>
                     </div>
-                    <div className="flex flex-wrap justify-end gap-1 sm:gap-2 md:flex-col md:items-end md:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
-                      <AddToCartButton item={item} />
+                    <div className="flex gap-1 sm:gap-2 sm:flex-col sm:items-end lg:flex-row">
+                      <AddToCartButton item={item} compact />
                       <OrderNowButton
                         item={item}
                         isLoggedIn={!!user}
                         deliveryZone={userDeliveryZone}
+                        compact
                       />
                     </div>
                   </CardFooter>

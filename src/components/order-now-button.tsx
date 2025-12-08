@@ -49,7 +49,7 @@ export function OrderNowButton({
   }
 
   return (
-    <div className={cn('flex flex-col gap-2', wrapperClassName)}>
+    <div className={cn('flex flex-col', className, wrapperClassName)}>
       <ShinyButton
         type="button"
         onClick={handleOrder}
@@ -57,9 +57,8 @@ export function OrderNowButton({
         size="sm"
         className={cn(
           compact
-            ? 'rounded-full h-7 px-2 text-[10px] flex-1 sm:flex-none sm:h-9 sm:px-4 sm:text-xs'
+            ? 'rounded-full h-7 px-2 text-[10px] w-full sm:h-9 sm:px-4 sm:text-xs'
             : 'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
-          className,
         )}
       >
         {loading ? '...' : compact ? 'Order' : 'Order Now'}

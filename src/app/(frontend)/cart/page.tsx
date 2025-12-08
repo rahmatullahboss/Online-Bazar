@@ -20,7 +20,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <SiteHeader variant="simple" />
+        <SiteHeader variant="full" />
         <div className="container mx-auto px-4 pt-24 pb-24">
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -39,7 +39,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="simple" />
+      <SiteHeader variant="full" />
       
       <div className="container mx-auto px-4 pt-24 pb-40 md:pb-24">
         {/* Header */}

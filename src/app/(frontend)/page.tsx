@@ -224,17 +224,18 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-1.5 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-2 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-lg sm:text-2xl font-bold text-green-600">
-                      ৳{item.price.toFixed(0)}
+                  <CardFooter className="flex flex-col gap-1 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-2 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-base sm:text-2xl font-bold text-green-600">
+                      ৳{item.price.toFixed(0)}<span className="text-xs sm:text-sm font-normal text-gray-500">/kg</span>
                     </span>
                     <div className="flex gap-1 w-full sm:w-auto">
-                      <AddToCartButton item={item} compact />
+                      <AddToCartButton item={item} compact className="flex-1" />
                       <OrderNowButton
                         item={item}
                         isLoggedIn={!!user}
                         deliveryZone={userDeliveryZone}
                         compact
+                        className="flex-[2]"
                       />
                     </div>
                   </CardFooter>

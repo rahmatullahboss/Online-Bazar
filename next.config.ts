@@ -1,6 +1,23 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 import { NextConfig } from 'next'
 import type { RemotePattern } from 'next/dist/shared/lib/image-config'
+import withPWAInit from '@ducanh2912/next-pwa'
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+  fallbacks: {
+    document: '/offline.html',
+  },
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+})
 
 const s3OrBlobHostEnv =
   process.env.NEXT_PUBLIC_IMAGE_HOSTNAME ||
@@ -97,4 +114,5 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+export default withPayload(withPWA(nextConfig), { devBundleServerPackages: false })
+

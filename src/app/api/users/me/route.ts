@@ -3,15 +3,11 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 
 export async function GET(request: NextRequest) {
-  console.log('Me route called')
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers: request.headers })
-  console.log('Authenticated user:', user)
   if (!user) {
-    console.log('No user found, returning 401')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  // Return a trimmed user object
   return NextResponse.json({
     id: (user as any).id,
     email: (user as any).email,
@@ -25,17 +21,13 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    console.log('Update me route called')
     const payload = await getPayload({ config: await config })
     const { user } = await payload.auth({ headers: request.headers })
-    console.log('Authenticated user:', user)
     if (!user) {
-      console.log('No user found, returning 401')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    console.log('Update body:', body)
     const data: any = {}
 
     if (typeof body.firstName === 'string') data.firstName = body.firstName
@@ -61,12 +53,9 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    console.log('Updating user with data:', data)
     const updated = await payload.update({ collection: 'users', id: (user as any).id, data })
-    console.log('Update result:', updated)
     return NextResponse.json({ success: true, user: updated })
-  } catch (e) {
-    console.error('Update me error:', e)
+  } catch {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }

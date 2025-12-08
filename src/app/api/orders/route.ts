@@ -6,61 +6,44 @@ import { DEFAULT_DELIVERY_SETTINGS, normalizeDeliverySettings } from '@/lib/deli
 const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || process.env.DEFAULT_CURRENCY || 'BDT'
 const resolveDeliveryZone = (value?: unknown): 'inside_dhaka' | 'outside_dhaka' | undefined => {
-  console.log('Resolving delivery zone for value:', value)
-  console.log('Type of value:', typeof value)
-
-  // Handle null, undefined, or non-string values
   if (value === null || value === undefined) {
-    console.log('Value is null or undefined, returning undefined')
     return undefined
   }
 
   if (typeof value !== 'string') {
-    console.log('Value is not a string, returning undefined')
     return undefined
   }
 
-  // Trim whitespace and convert to lowercase
   const trimmed = value.trim().toLowerCase()
-  console.log('Trimmed and lowercased value:', trimmed)
 
-  // Handle empty strings
   if (trimmed === '') {
-    console.log('Value is empty string, returning undefined')
     return undefined
   }
 
   // Direct matches
   if (trimmed === 'outside_dhaka' || trimmed === 'outside dhaka' || trimmed === 'outside-dhaka') {
-    console.log('Direct match for outside_dhaka')
     return 'outside_dhaka'
   }
 
   if (trimmed === 'inside_dhaka' || trimmed === 'inside dhaka' || trimmed === 'inside-dhaka') {
-    console.log('Direct match for inside_dhaka')
     return 'inside_dhaka'
   }
 
-  // Fallback pattern matching (less strict)
-  const normalized = trimmed.replace(/[\\s-]+/g, '_')
-  console.log('Normalized value:', normalized)
+  // Fallback pattern matching
+  const normalized = trimmed.replace(/[\s-]+/g, '_')
 
   if (normalized.includes('outside')) {
-    console.log('Returning outside_dhaka (contains outside)')
     return 'outside_dhaka'
   }
 
   if (normalized.includes('inside')) {
-    console.log('Returning inside_dhaka (contains inside)')
     return 'inside_dhaka'
   }
 
   if (normalized.includes('dhaka')) {
-    console.log('Returning inside_dhaka (contains dhaka)')
     return 'inside_dhaka'
   }
 
-  console.log('No match found, returning undefined')
   return undefined
 }
 
@@ -98,8 +81,6 @@ export async function POST(request: NextRequest) {
       body = {}
     }
 
-    // Debugging: Log the received body
-    console.log('Received body:', body)
 
     const {
       items,
@@ -113,8 +94,6 @@ export async function POST(request: NextRequest) {
       discountCode: discountCodeInput,
     } = body
 
-    // Debugging: Log the extracted delivery zone input
-    console.log('Extracted deliveryZoneInput:', deliveryZoneInput)
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
@@ -125,10 +104,8 @@ export async function POST(request: NextRequest) {
     if (user) {
       try {
         fullUser = await payload.findByID({ collection: 'users', id: (user as any).id })
-        console.log('Full user data:', fullUser)
-        console.log('User delivery zone:', (fullUser as any)?.deliveryZone)
-      } catch (error) {
-        console.error('Error fetching full user:', error)
+      } catch {
+        // User fetch failed, continue with partial data
       }
     }
 
@@ -257,76 +234,27 @@ export async function POST(request: NextRequest) {
       if (city.length > 0) return 'outside_dhaka' as const
       return undefined
     })()
-    // Debugging: Log the delivery zone resolution
-    console.log('Delivery zone input from request:', deliveryZoneInput)
-    console.log('Request delivery zone (resolved):', requestDeliveryZone)
-    console.log('User delivery zone:', userDeliveryZone)
-    console.log('Inferred zone from address:', inferredZoneFromAddress)
-    console.log('Shipping address city:', (shippingAddress as any)?.city)
-
-    // Use the request delivery zone first, then fall back to user's zone, then inferred zone, and finally default to inside_dhaka
-    // Fix: Prioritize request delivery zone over user delivery zone
-    console.log('=== DELIVERY ZONE RESOLUTION ===')
-    console.log('deliveryZoneInput from request body:', deliveryZoneInput)
-    console.log('requestDeliveryZone (resolved):', requestDeliveryZone)
-    console.log('userDeliveryZone (from user profile):', userDeliveryZone)
-    console.log('inferredZoneFromAddress (from city):', inferredZoneFromAddress)
-
-    // NEW: Log the actual values for debugging
-    console.log('Actual values:')
-    console.log('- deliveryZoneInput type:', typeof deliveryZoneInput, 'value:', deliveryZoneInput)
-    console.log(
-      '- requestDeliveryZone type:',
-      typeof requestDeliveryZone,
-      'value:',
-      requestDeliveryZone,
-    )
-    console.log('- userDeliveryZone type:', typeof userDeliveryZone, 'value:', userDeliveryZone)
-    console.log(
-      '- inferredZoneFromAddress type:',
-      typeof inferredZoneFromAddress,
-      'value:',
-      inferredZoneFromAddress,
-    )
-
+    // Determine delivery zone: request > user profile > inferred from address > default
     let deliveryZone: 'inside_dhaka' | 'outside_dhaka' = 'inside_dhaka'
 
-    // NEW: Always prioritize the request delivery zone if it's valid, regardless of what it is
     if (requestDeliveryZone === 'inside_dhaka' || requestDeliveryZone === 'outside_dhaka') {
-      console.log('Using delivery zone from request:', requestDeliveryZone)
       deliveryZone = requestDeliveryZone
-    }
-    // OLD: Only use user delivery zone if request delivery zone is not valid
-    else if (userDeliveryZone === 'inside_dhaka' || userDeliveryZone === 'outside_dhaka') {
-      console.log('Using delivery zone from user profile:', userDeliveryZone)
+    } else if (userDeliveryZone === 'inside_dhaka' || userDeliveryZone === 'outside_dhaka') {
       deliveryZone = userDeliveryZone
-    }
-    // OLD: Only infer from address if neither request nor user delivery zone is valid
-    else if (
+    } else if (
       inferredZoneFromAddress === 'inside_dhaka' ||
       inferredZoneFromAddress === 'outside_dhaka'
     ) {
-      console.log('Using inferred delivery zone from address:', inferredZoneFromAddress)
       deliveryZone = inferredZoneFromAddress
     }
-    // OLD: Default to inside_dhaka
-    else {
-      console.log('Using default delivery zone: inside_dhaka')
-    }
 
-    // NEW: Override with request delivery zone if it's explicitly provided, even if it's not resolved correctly
-    // This handles cases where the frontend sends the correct value but our resolve function has issues
+    // Override with explicit request value if provided
     if (
       typeof deliveryZoneInput === 'string' &&
       (deliveryZoneInput === 'inside_dhaka' || deliveryZoneInput === 'outside_dhaka')
     ) {
-      console.log('OVERRIDE: Using explicit delivery zone from request:', deliveryZoneInput)
       deliveryZone = deliveryZoneInput as 'inside_dhaka' | 'outside_dhaka'
     }
-
-    // Debugging: Log the final delivery zone
-    console.log('Final delivery zone:', deliveryZone)
-    console.log('=== END DELIVERY ZONE RESOLUTION ===')
 
     // Detect device
     const ua = request.headers.get('user-agent') || ''

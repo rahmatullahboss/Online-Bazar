@@ -12,7 +12,7 @@ export function SiteFooter() {
             <Link href="/" className="text-2xl font-semibold brand-text">
               Online Bazar
             </Link>
-            <p className="text-sm text-gray-600 mt-3 max-w-xs">
+            <p className="text-sm text-gray-600 mt-3 max-w-xs mx-auto sm:mx-0">
               Your destination for great products and a smooth shopping experience — all in one place.
             </p>
           </div>

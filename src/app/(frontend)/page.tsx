@@ -214,7 +214,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                       </div>
                     )}
 
-                    <CardHeader className="p-2 sm:p-4 space-y-1 sm:space-y-3">
+                    <CardHeader className="p-1.5 sm:p-4 space-y-0.5 sm:space-y-3">
                       <CardTitle className="text-sm sm:text-xl font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
                         {item.name}
                       </CardTitle>
@@ -224,9 +224,9 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-1 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-1.5 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-2xl sm:text-2xl font-bold text-green-600">
-                      ৳{item.price.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal text-gray-500">/kg</span>
+                  <CardFooter className="flex flex-col gap-0.5 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-1.5 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-[22px] sm:text-2xl font-bold text-green-600">
+                      ৳{item.price.toFixed(0)}<span className="text-[9px] sm:text-sm font-normal text-gray-500">/kg</span>
                     </span>
                     <div className="flex gap-1 w-full sm:w-auto">
                       <AddToCartButton item={item} compact className="flex-1" />

@@ -9,14 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteHeader } from '@/components/site-header'
-import { useStackApp, useUser } from '@stackframe/stack'
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
 
 function LoginForm() {
-  const app = useStackApp()
-  const user = useUser()
   const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
@@ -33,12 +27,7 @@ function LoginForm() {
     if (messageParam) {
       setMessage(messageParam)
     }
-    
-    // If user is already logged in, redirect to home
-    if (user?.id) {
-      router.push('/')
-    }
-  }, [user, router, searchParams])
+  }, [searchParams])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -60,37 +49,35 @@ function LoginForm() {
     }
 
     try {
-      // Use Stack's signIn method
-      await app.signInWithCredential({
-        email: formData.email,
-        password: formData.password,
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          rememberMe,
+        }),
       })
-      
-      // Login successful, redirect to home
-      router.push('/')
-      router.refresh()
-    } catch (err: any) {
-      console.error('Sign in error:', err)
-      if (err.message) {
-        setError(err.message)
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Dispatch auth changed event for cart sync
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('dyad-auth-changed'))
+        }
+        router.push('/')
+        router.refresh()
       } else {
-        setError('Login failed. Please check your credentials.')
+        setError(data.message || 'Login failed. Please check your credentials.')
       }
+    } catch {
+      setError('Login failed. Please try again.')
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await app.signInWithOAuth('google')
-    } catch (err: any) {
-      console.error('Google sign in error:', err)
-      if (err.message) {
-        setError(err.message)
-      } else {
-        setError('Google sign-in failed. Please try again.')
-      }
     }
   }
 
@@ -207,3 +194,4 @@ export default function LoginPage() {
     </Suspense>
   )
 }
+

@@ -7,7 +7,6 @@ import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 import { SplashCursor } from '@/components/splash-cursor'
-import { AuthProvider } from '@/components/auth-provider'
 
 export const metadata: Metadata = {
   description:
@@ -100,20 +99,18 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         ) : null}
       </head>
       <body>
-        <AuthProvider>
-          <CartProvider>
-            <main>{children}</main>
-            <SiteFooter />
-            <FloatingContactButtons />
-            {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
-            <CartSidebar />
-            {/* Reduced size splash cursor effect */}
-            <SplashCursor />
-            <Toaster richColors position="top-center" />
-            {enableAnalytics && <Analytics />}
-            {enableAnalytics && <SpeedInsights />}
-          </CartProvider>
-        </AuthProvider>
+        <CartProvider>
+          <main>{children}</main>
+          <SiteFooter />
+          <FloatingContactButtons />
+          {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
+          <CartSidebar />
+          {/* Reduced size splash cursor effect */}
+          <SplashCursor />
+          <Toaster richColors position="top-center" />
+          {enableAnalytics && <Analytics />}
+          {enableAnalytics && <SpeedInsights />}
+        </CartProvider>
       </body>
     </html>
   )

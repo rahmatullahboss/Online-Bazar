@@ -1,0 +1,162 @@
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { useCart } from '@/lib/cart-context'
+import { Button } from '@/components/ui/button'
+import { SiteHeader } from '@/components/site-header'
+
+export default function CartPage() {
+  const router = useRouter()
+  const { state, removeItem, updateQuantity, clearCart } = useCart()
+  const { items } = state
+
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const deliveryCharge = subtotal > 0 ? 60 : 0
+  const total = subtotal + deliveryCharge
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <SiteHeader variant="simple" />
+        <div className="container mx-auto px-4 pt-24 pb-24">
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <ShoppingBag className="w-10 h-10 text-gray-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Your cart is empty</h2>
+            <p className="text-gray-500 mb-6">Add some items to get started</p>
+            <Button asChild>
+              <Link href="/products">Browse Products</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <SiteHeader variant="simple" />
+      
+      <div className="container mx-auto px-4 pt-24 pb-40 md:pb-24">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">Your Cart</h1>
+          <span className="text-gray-500">({items.length} items)</span>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-4">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex gap-4 bg-white rounded-xl p-4 shadow-sm"
+              >
+                {/* Image */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  {item.image?.url ? (
+                    <Image
+                      src={item.image.url}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingBag className="w-8 h-8 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-800 truncate">{item.name}</h3>
+                  {item.category && (
+                    <p className="text-sm text-gray-500">{item.category}</p>
+                  )}
+                  <p className="text-lg font-bold text-green-600 mt-1">
+                    ৳{item.price.toFixed(0)}
+                  </p>
+                </div>
+
+                {/* Quantity Controls */}
+                <div className="flex flex-col items-end justify-between">
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex items-center gap-2 bg-gray-100 rounded-full">
+                    <button
+                      onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                      className="p-1.5 hover:bg-gray-200 rounded-full transition-colors"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-6 text-center font-medium">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="p-1.5 hover:bg-gray-200 rounded-full transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Clear Cart */}
+            <button
+              onClick={clearCart}
+              className="w-full py-3 text-red-500 hover:text-red-600 text-sm font-medium"
+            >
+              Clear Cart
+            </button>
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl p-6 shadow-sm sticky top-24">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h2>
+              
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">৳{subtotal.toFixed(0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Delivery</span>
+                  <span className="font-medium">৳{deliveryCharge}</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between text-base">
+                  <span className="font-semibold">Total</span>
+                  <span className="font-bold text-green-600">৳{total.toFixed(0)}</span>
+                </div>
+              </div>
+
+              <Button asChild className="w-full mt-6" size="lg">
+                <Link href="/checkout">Proceed to Checkout</Link>
+              </Button>
+
+              <p className="text-xs text-gray-500 text-center mt-4">
+                Delivery charge may vary based on location
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

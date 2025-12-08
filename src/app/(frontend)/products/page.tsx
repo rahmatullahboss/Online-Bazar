@@ -174,7 +174,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.docs.map((item: any, index: number) => (
               <Card
                 key={item.id}
@@ -292,7 +292,7 @@ function ProductGridFallback() {
             Handcrafted experiences, delivered to perfection
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={`skeleton-${index}`}

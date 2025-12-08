@@ -7,6 +7,7 @@ import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 import { SplashCursor } from '@/components/splash-cursor'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 
 export const metadata: Metadata = {
   description:
@@ -110,13 +111,15 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       </head>
       <body>
         <CartProvider>
-          <main>{children}</main>
+          <main className="pb-16 md:pb-0">{children}</main>
           <SiteFooter />
           <FloatingContactButtons />
           {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
           <CartSidebar />
           {/* Reduced size splash cursor effect */}
           <SplashCursor />
+          {/* Mobile bottom navigation */}
+          <MobileBottomNav />
           <Toaster richColors position="top-center" />
           {enableAnalytics && <Analytics />}
           {enableAnalytics && <SpeedInsights />}

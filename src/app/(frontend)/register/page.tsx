@@ -319,7 +319,8 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Google OAuth Button */}
+              {/* Google OAuth Button - using <a> for API route redirect */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/api/auth/google"
                 className="w-full inline-flex items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"

@@ -213,8 +213,8 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
       <SiteHeader variant="full" user={user} />
 
-      <main className="relative z-10">
-        <div className="container mx-auto px-4 py-10 sm:px-6 lg:py-16 lg:px-8">
+      <main className="relative z-10 pb-20 md:pb-0">
+        <div className="container mx-auto px-3 py-6 sm:px-6 lg:py-16 lg:px-8">
           <div className="mb-6 flex items-center gap-3 text-sm text-gray-500">
             <Link
               href="/"
@@ -230,10 +230,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             ) : null}
           </div>
 
-          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-6 lg:gap-12 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
               {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-                <div className="group relative overflow-hidden rounded-[2.75rem] border border-white/60 bg-white shadow-xl shadow-amber-100/80">
+                <div className="group relative overflow-hidden rounded-2xl sm:rounded-[2.75rem] border border-white/60 bg-white shadow-xl shadow-amber-100/80">
                   <div className="relative aspect-square">
                     <Image
                       src={
@@ -254,7 +254,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
 
-              <div className="grid gap-4 rounded-[2rem] border border-white/60 bg-white/70 p-6 backdrop-blur">
+              <div className="grid gap-3 rounded-xl sm:rounded-[2rem] border border-white/60 bg-white/70 p-4 sm:p-6 backdrop-blur">
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-500">
                   Highlights
                 </p>
@@ -274,9 +274,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
             <aside className="space-y-6">
               <div className="sticky top-28 space-y-6">
-                <div className="rounded-[2.75rem] border border-white/60 bg-white/80 p-8 shadow-2xl shadow-amber-100/70 backdrop-blur">
+                <div className="rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-2xl shadow-amber-100/70 backdrop-blur">
                   <div className="flex items-start justify-between gap-4">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900 lg:text-4xl">
                       {item.name}
                     </h1>
                     <Badge
@@ -301,7 +301,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                       <p className="text-xs uppercase tracking-[0.3em] text-amber-500">
                         Starting from
                       </p>
-                      <p className="text-4xl font-bold text-gray-900 sm:text-5xl">
+                      <p className="text-3xl sm:text-4xl font-bold text-gray-900 lg:text-5xl">
                         Tk {item.price.toFixed(2)}
                       </p>
                     </div>
@@ -310,7 +310,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     </span>
                   </div>
 
-                  <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-6 sm:mt-8 grid gap-3 grid-cols-2">
                     <AddToCartButton item={item as any} />
                     <OrderNowButton
                       item={item as any}
@@ -350,7 +350,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
             </aside>
           </div>
 
-          <section className="mt-16 rounded-[2.75rem] border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur">
+          <section className="mt-8 sm:mt-16 rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-xl backdrop-blur">
             <Tabs defaultValue="description" className="w-full">
               <TabsList className="inline-flex rounded-full bg-amber-100/60 p-1 text-sm">
                 <TabsTrigger

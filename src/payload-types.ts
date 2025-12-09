@@ -78,6 +78,7 @@ export interface Config {
     posts: Post;
     'program-participants': ProgramParticipant;
     coupons: Coupon;
+    'push-subscriptions': PushSubscription;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -96,6 +97,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     'program-participants': ProgramParticipantsSelect<false> | ProgramParticipantsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
+    'push-subscriptions': PushSubscriptionsSelect<false> | PushSubscriptionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -469,6 +471,46 @@ export interface ProgramParticipant {
   createdAt: string;
 }
 /**
+ * Browser push notification subscriptions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-subscriptions".
+ */
+export interface PushSubscription {
+  id: number;
+  /**
+   * The user who owns this subscription
+   */
+  user: number | User;
+  /**
+   * Push service endpoint URL
+   */
+  endpoint: string;
+  /**
+   * Encryption keys for push notifications
+   */
+  keys: {
+    /**
+     * Public key for message encryption
+     */
+    p256dh: string;
+    /**
+     * Authentication secret
+     */
+    auth: string;
+  };
+  /**
+   * Browser user agent for debugging
+   */
+  userAgent?: string | null;
+  /**
+   * Whether this subscription is still active
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -535,6 +577,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coupons';
         value: number | Coupon;
+      } | null)
+    | ({
+        relationTo: 'push-subscriptions';
+        value: number | PushSubscription;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -800,6 +846,24 @@ export interface CouponsSelect<T extends boolean = true> {
   usageLimit?: T;
   usedCount?: T;
   applicableTo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-subscriptions_select".
+ */
+export interface PushSubscriptionsSelect<T extends boolean = true> {
+  user?: T;
+  endpoint?: T;
+  keys?:
+    | T
+    | {
+        p256dh?: T;
+        auth?: T;
+      };
+  userAgent?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }

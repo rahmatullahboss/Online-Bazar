@@ -215,6 +215,21 @@ const orderStatusUpdate: CollectionAfterChangeHook = async ({ doc, previousDoc, 
       })
     }
 
+    // Send push notification to user if available
+    const userId = (doc as any).user
+    if (userId) {
+      try {
+        const { sendOrderStatusNotification } = await import('@/lib/push-notifications')
+        await sendOrderStatusNotification(
+          typeof userId === 'object' ? userId.id : userId,
+          orderId,
+          currentStatus,
+        )
+      } catch {
+        // Push notification is optional, don't fail the hook
+      }
+    }
+
   } catch (error) {
     req?.payload?.logger?.error?.('Order status update notification failed', error as any)
   }

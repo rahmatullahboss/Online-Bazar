@@ -21,6 +21,7 @@ import { Reviews } from './collections/Reviews'
 import Posts from './collections/Posts'
 import ProgramParticipants from './collections/ProgramParticipants'
 import { Coupons } from './collections/Coupons'
+import { PushSubscriptions } from './collections/PushSubscriptions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -114,6 +115,7 @@ export default buildConfig({
     Posts,
     ProgramParticipants,
     Coupons,
+    PushSubscriptions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

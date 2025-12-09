@@ -55,3 +55,4 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/worker-*.js
 public/worker-*.js.map
+.agent/rules/online-bazar-rules.md

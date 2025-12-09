@@ -111,5 +111,6 @@ trigger: always_on
 - **Commit frequently** with descriptive messages
 - **Use conventional commits** format (feat:, fix:, refactor:, etc.)
 - **Never commit broken code** that fails to build
+- **Don't push every commit. push after a significant change
 
 Remember: This is a production application handling user data and orders. Always prioritize security, user experience, and data integrity in your implementations.

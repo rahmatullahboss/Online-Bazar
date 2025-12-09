@@ -1,12 +1,12 @@
 import React from 'react'
 import type { Metadata } from 'next'
+import Script from 'next/script'
 
 import { CartProvider } from '@/lib/cart-context'
 import { SiteFooter } from '@/components/site-footer'
 import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
-import { SplashCursor } from '@/components/splash-cursor'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 
 export const metadata: Metadata = {
@@ -88,14 +88,16 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         {blobHost ? <link rel="dns-prefetch" href={`//${blobHost}`} /> : null}
 
-        {/* Google Analytics (gtag.js) */}
+        {/* Google Analytics - deferred loading */}
         {measurementId ? (
           <>
-            <script
-              async
+            <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-            ></script>
-            <script
+              strategy="afterInteractive"
+            />
+            <Script
+              id="gtag-init"
+              strategy="afterInteractive"
               dangerouslySetInnerHTML={{
                 __html: `
                   window.dataLayer = window.dataLayer || [];
@@ -114,10 +116,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <main className="pb-16 md:pb-0">{children}</main>
           <SiteFooter />
           <FloatingContactButtons />
-          {/* Lazy-load the cart sidebar to reduce initial JS on mobile */}
           <CartSidebar />
-          {/* Reduced size splash cursor effect */}
-          <SplashCursor />
           {/* Mobile bottom navigation */}
           <MobileBottomNav />
           <Toaster richColors position="top-center" />

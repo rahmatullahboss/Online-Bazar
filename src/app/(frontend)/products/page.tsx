@@ -225,8 +225,8 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-0 border-t border-gray-200/60 bg-gray-50/50 px-1 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <span className="text-xl sm:text-2xl font-bold text-green-600 text-center w-full pb-4">
+                  <CardFooter className="flex flex-col gap-0 border-t border-gray-200/60 bg-gray-50/50 px-0.5 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <span className="text-xl sm:text-2xl font-bold text-green-600 text-center w-full pb-6">
                       ৳{item.price.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal text-gray-500">/kg</span>
                     </span>
                     <div className="flex gap-2 w-full">

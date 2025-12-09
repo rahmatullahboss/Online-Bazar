@@ -565,6 +565,31 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       if (response.ok) {
         const data = await response.json().catch(() => null)
         const oid = (data as any)?.doc?.id
+        
+        // Save user details to profile for future orders (only for logged-in users)
+        if (user) {
+          try {
+            await fetch('/api/users/me', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                customerNumber: customerNumber || undefined,
+                deliveryZone,
+                address: {
+                  line1: address_line1 || undefined,
+                  line2: address_line2 || undefined,
+                  city: address_city || undefined,
+                  state: address_state || undefined,
+                  postalCode: address_postalCode || undefined,
+                  country: address_country || undefined,
+                },
+              }),
+            })
+          } catch {
+            // Don't block order completion if profile update fails
+          }
+        }
+        
         try {
           sessionStorage.setItem(
             'last-order-preview',

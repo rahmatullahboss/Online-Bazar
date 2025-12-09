@@ -3,25 +3,10 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import crypto from 'crypto'
 
-// Simple JWT creation using native crypto
-function createJWT(payload: object, secret: string, expiresInDays = 7): string {
-  const header = { alg: 'HS256', typ: 'JWT' }
-  const now = Math.floor(Date.now() / 1000)
-  const fullPayload = {
-    ...payload,
-    iat: now,
-    exp: now + expiresInDays * 24 * 60 * 60,
-  }
-
-  const base64Header = Buffer.from(JSON.stringify(header)).toString('base64url')
-  const base64Payload = Buffer.from(JSON.stringify(fullPayload)).toString('base64url')
-
-  const signature = crypto
-    .createHmac('sha256', secret)
-    .update(`${base64Header}.${base64Payload}`)
-    .digest('base64url')
-
-  return `${base64Header}.${base64Payload}.${signature}`
+// Generate a deterministic password for OAuth users based on their Google sub ID
+function getOAuthPassword(googleSub: string): string {
+  const secret = process.env.PAYLOAD_SECRET || 'oauth-secret'
+  return crypto.createHmac('sha256', secret).update(`oauth:${googleSub}`).digest('hex')
 }
 
 export async function GET(request: NextRequest) {
@@ -29,11 +14,15 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
 
+  console.log('OAuth callback received, code present:', !!code)
+
   if (error) {
+    console.log('OAuth error:', error)
     return NextResponse.redirect(new URL(`/login?error=${error}`, serverUrl))
   }
 
   if (!code) {
+    console.log('No code received')
     return NextResponse.redirect(new URL('/login?error=no_code', serverUrl))
   }
 
@@ -41,6 +30,8 @@ export async function GET(request: NextRequest) {
     const clientId = process.env.GOOGLE_CLIENT_ID
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET
     const redirectUri = `${serverUrl}/api/auth/google/callback`
+
+    console.log('Exchanging code for tokens...')
 
     // Exchange code for tokens
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -62,20 +53,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=token_exchange_failed', serverUrl))
     }
 
+    console.log('Token exchange successful')
+
     // Get user info from Google
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     })
 
     const googleUser = await userInfoResponse.json()
+    console.log('Google user info:', { email: googleUser.email, sub: googleUser.sub })
 
-    if (!googleUser.email) {
+    if (!googleUser.email || !googleUser.sub) {
+      console.log('No email or sub in Google response')
       return NextResponse.redirect(new URL('/login?error=no_email', serverUrl))
     }
 
     // Get Payload instance
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
+
+    // Generate deterministic password for this OAuth user
+    const oauthPassword = getOAuthPassword(googleUser.sub)
 
     // Check if user exists
     const existingUsers = await payload.find({
@@ -85,48 +83,63 @@ export async function GET(request: NextRequest) {
     })
 
     let user = existingUsers.docs[0]
+    console.log('Existing user found:', !!user)
 
     if (!user) {
-      // Create new user with Google OAuth
+      // Create new user with deterministic OAuth password
+      console.log('Creating new user...')
       user = await payload.create({
         collection: 'users',
         data: {
           email: googleUser.email,
           firstName: googleUser.given_name || googleUser.name?.split(' ')[0] || 'Google',
           lastName: googleUser.family_name || googleUser.name?.split(' ').slice(1).join(' ') || 'User',
-          password: `oauth_${googleUser.sub}_${Math.random().toString(36).slice(-8)}`, // Random password for OAuth users
+          password: oauthPassword,
           role: 'user',
           deliveryZone: 'inside_dhaka',
         },
       })
+      console.log('New user created:', user.id)
+    } else {
+      // Update password for existing OAuth user (in case they registered differently before)
+      console.log('Updating existing user password for OAuth...')
+      await payload.update({
+        collection: 'users',
+        id: user.id,
+        data: {
+          password: oauthPassword,
+        },
+      })
     }
 
-    // Create JWT token using native crypto
-    const secret = process.env.PAYLOAD_SECRET || ''
-    const token = createJWT(
-      {
-        id: user.id,
-        email: user.email,
-        collection: 'users',
+    // Now login using Payload's built-in login to get a proper token
+    console.log('Logging in with Payload...')
+    const loginResult = await payload.login({
+      collection: 'users',
+      data: {
+        email: googleUser.email,
+        password: oauthPassword,
       },
-      secret
-    )
+    })
 
-    // Create redirect response and set cookie directly on it
+    if (!loginResult.token) {
+      console.error('No token received from Payload login')
+      return NextResponse.redirect(new URL('/login?error=no_token', serverUrl))
+    }
+
+    console.log('Payload login successful, token received')
+
+    // Create redirect response with proper cookie
     const response = NextResponse.redirect(new URL('/', serverUrl))
     
-    // Set cookie on the response object directly
-    const isProduction = process.env.NODE_ENV === 'production'
-    const cookieOptions = [
-      `payload-token=${token}`,
-      'Path=/',
-      `Max-Age=${60 * 60 * 24 * 7}`, // 7 days
-      'HttpOnly',
-      'SameSite=Lax',
-      isProduction ? 'Secure' : '',
-    ].filter(Boolean).join('; ')
+    // Build cookie string matching Payload's format
+    const cookiePrefix = payload.config.cookiePrefix || 'payload'
+    const cookieName = `${cookiePrefix}-token`
+    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+    const cookieValue = `${cookieName}=${loginResult.token}; Path=/; HttpOnly; SameSite=Lax; Expires=${expires.toUTCString()}`
     
-    response.headers.set('Set-Cookie', cookieOptions)
+    response.headers.set('Set-Cookie', cookieValue)
+    console.log('Cookie set, redirecting to /')
 
     return response
   } catch (err) {

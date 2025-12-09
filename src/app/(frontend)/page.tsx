@@ -198,6 +198,7 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                           className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
+                          priority={index < 2}
                         />
 
                         {/* Floating Badge */}

@@ -8,15 +8,5 @@
   "env": {
     "NEXT_PUBLIC_SERVER_URL": "https://your-deployment-url.vercel.app",
     "NODE_OPTIONS": "--no-deprecation"
-  },
-  "crons": [
-    {
-      "path": "/api/abandoned-carts/mark",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/abandoned-carts/reminders",
-      "schedule": "0 3 * * *"
-    }
-  ]
+  }
 }

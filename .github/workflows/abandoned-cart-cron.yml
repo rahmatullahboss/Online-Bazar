@@ -1,0 +1,70 @@
+name: Abandoned Cart Cron Jobs
+
+on:
+  schedule:
+    # Run cleanup every hour at minute 0
+    - cron: '0 * * * *'
+    # Run reminders at 2 AM UTC daily
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      job_type:
+        description: 'Which job to run'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - cleanup
+          - reminders
+          - both
+
+env:
+  SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.job_type == 'cleanup' || github.event.inputs.job_type == 'both'
+    steps:
+      - name: Trigger Abandoned Cart Cleanup
+        run: |
+          echo "Triggering abandoned cart cleanup..."
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ env.SERVER_URL }}/api/abandoned-carts/cleanup?secret=${{ env.CRON_SECRET }}&ttlMinutes=30" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ env.CRON_SECRET }}")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "Status: $http_code"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Cleanup failed with status $http_code"
+            exit 1
+          fi
+
+  reminders:
+    runs-on: ubuntu-latest
+    # Only run reminders job once daily (at 2 AM UTC)
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 2 * * *') || github.event.inputs.job_type == 'reminders' || github.event.inputs.job_type == 'both'
+    steps:
+      - name: Trigger Recovery Email Reminders
+        run: |
+          echo "Triggering recovery email reminders..."
+          response=$(curl -s -w "\n%{http_code}" -X GET \
+            "${{ env.SERVER_URL }}/api/abandoned-carts/reminders?secret=${{ env.CRON_SECRET }}" \
+            -H "x-cron-secret: ${{ env.CRON_SECRET }}")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "Status: $http_code"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "Reminders failed with status $http_code"
+            exit 1
+          fi

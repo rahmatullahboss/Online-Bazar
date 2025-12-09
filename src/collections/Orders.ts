@@ -380,15 +380,22 @@ export const Orders: CollectionConfig = {
             String(address.country || '').trim(),
           ].filter((l) => l && l.length > 0)
 
+          const logoUrl = serverURL ? `${serverURL}/icon.png` : ''
+          
           const bodyHTML = `
-            <div style="font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827;">
+            <div style="font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827;max-width:600px;margin:0 auto;">
+              ${logoUrl ? `
+              <div style="text-align:center;padding:24px 0;border-bottom:1px solid #e5e7eb;margin-bottom:24px;">
+                <img src="${logoUrl}" alt="${companyName}" width="120" height="120" style="width:120px;height:120px;border-radius:16px;" />
+              </div>
+              ` : ''}
               <p>হ্যালো ${customerName || 'গ্রাহক'},</p>
-              <p>আপনার অর্ডারের জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং এটি শিপমেন্টের জন্য প্রস্তুত করছি।</p>
+              <p>আপনার অর্ডারের জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং এটি শিপমেন্টের জন্য প্রস্তুত করছি।</p>
               <p><strong>অর্ডার আইডি:</strong> #${orderId}<br/>
               <strong>অর্ডারের তারিখ:</strong> ${orderDateStr}</p>
 
               <h3 style="margin:16px 0 8px 0;">অর্ডারের বিবরণ</h3>
-              <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;min-width:300px;">
+              <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;min-width:300px;width:100%;">
                 <thead>
                   <tr>
                     <th align="left" style="padding:8px;border:1px solid #e5e7eb;background:#f9fafb;">পণ্য</th>
@@ -406,17 +413,17 @@ export const Orders: CollectionConfig = {
                 paymentSenderNumber ? ` (Sender: ${paymentSenderNumber})` : ''
               }${paymentTransactionId ? `, Txn: ${paymentTransactionId}` : ''}</p>
 
-              <h3 style="margin:16px 0 8px 0;">যে ঠিকানায় পাঠানো হবে:</h3>
+              <h3 style="margin:16px 0 8px 0;">যে ঠিকানায় পাঠানো হবে:</h3>
               <p>${addressLines.map((l: string) => l.replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('<br/>')}</p>
 
-              <p style="margin-top:16px;">আমরা আপনার অর্ডারটি শিপিং করার পর আপনাকে আরেকটি ইমেলের মাধ্যমে জানিয়ে দেব।</p>
-              ${serverURL ? `<p>আপনার অর্ডার হিস্টোরি দেখতে চাইলে আমাদের ওয়েবসাইটে লগইন করতে পারেন: <a href="${serverURL}" target="_blank" rel="noreferrer">${serverURL}</a></p>` : ''}
+              <p style="margin-top:16px;">আমরা আপনার অর্ডারটি শিপিং করার পর আপনাকে আরেকটি ইমেলের মাধ্যমে জানিয়ে দেব।</p>
+              ${serverURL ? `<p>আপনার অর্ডার হিস্টোরি দেখতে চাইলে আমাদের ওয়েবসাইটে লগইন করতে পারেন: <a href="${serverURL}" target="_blank" rel="noreferrer">${serverURL}</a></p>` : ''}
 
               <p>আমাদের সাথে শপিং করার জন্য আবারও ধন্যবাদ!</p>
               <p>শুভেচ্ছান্তে,<br/>${companyName} টিম</p>
 
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;"/>
-              <p style="font-size:12px;color:#6b7280;">© ${year} ${companyName}. সর্বস্বত্ব সংরক্ষিত।</p>
+              <p style="font-size:12px;color:#6b7280;text-align:center;">© ${year} ${companyName}. সর্বস্বত্ব সংরক্ষিত।</p>
             </div>
           `
 

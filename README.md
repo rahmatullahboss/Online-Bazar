@@ -29,10 +29,11 @@ This template comes configured with the bare minimum to get started on anything 
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Backend**: Payload CMS 3.0
-- **Database**: Vercel Postgres
-- **Authentication**: Built-in Payload authentication with role-based access
-- **Styling**: Custom CSS with modern responsive design
+- **Database**: Neon Database (PostgreSQL)
+- **Authentication**: Built-in Payload auth + Google OAuth
+- **Styling**: Tailwind CSS with shadcn/ui components
 - **Media**: Sharp for image processing
+- **PWA**: Installable app with push notifications
 
 ## User Roles
 
@@ -83,8 +84,8 @@ This template comes configured with the bare minimum to get started on anything 
 
 ### Prerequisites
 - Node.js 18+ or 20+
-- pnpm 9+ or 10+
-- PostgreSQL database (Vercel Postgres recommended)
+- npm 9+
+- PostgreSQL database (Neon recommended)
 
 ### Installation
 
@@ -96,7 +97,7 @@ This template comes configured with the bare minimum to get started on anything 
 
 2. **Install dependencies**
    ```bash
-   pnpm install
+   npm install --legacy-peer-deps
    ```
 
 3. **Environment Setup**
@@ -112,7 +113,7 @@ This template comes configured with the bare minimum to get started on anything 
 
 4. **Start the development server**
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 5. **Open your browser**
@@ -193,11 +194,11 @@ The application is fully responsive with breakpoints:
 ## Development Commands
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm generate:types  # Generate TypeScript types
-pnpm lint         # Run ESLint
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run generate:types  # Generate TypeScript types
+npm run lint         # Run ESLint
 ```
 
 ## Contributing

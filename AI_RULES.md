@@ -7,10 +7,12 @@
 - **Database**: Neon Database with automatic schema management via Payload migrations
 - **UI Components**: shadcn/ui components with Radix UI primitives for accessible, customizable components
 - **Styling**: Tailwind CSS for utility-first styling with custom design system
-- **Authentication**: Built-in Payload authentication with role-based access control (user/admin roles)
+- **Authentication**: Built-in Payload authentication with role-based access control (user/admin roles) + Google OAuth
 - **State Management**: React Context API for cart functionality, built-in Payload state for CMS data
 - **Image Handling**: Next.js Image component with Sharp for optimization, Payload Media collection for uploads
 - **Form Handling**: React Hook Form with Zod validation for type-safe form management
+- **PWA**: @ducanh2912/next-pwa for Progressive Web App with push notifications
+- **Package Manager**: npm (not pnpm)
 
 ## Access Control Rules
 
@@ -33,6 +35,7 @@
 - **Collections**: Define Payload collections in `src/collections/`
 - **API Routes**: Custom API routes in `src/app/api/`
 - **Utilities**: Helper functions in `src/lib/`
+- **PWA Files**: Service workers and manifest in `public/`
 
 ## Development Best Practices
 
@@ -95,10 +98,39 @@
 - **Use Payload's hooks** for data transformation and validation
 - **Follow Payload's collection configuration patterns**
 
+### Push Notifications
+- **Use web-push** for server-side push notification sending
+- **VAPID keys** are required for push notifications (generate with `npx web-push generate-vapid-keys`)
+- **PushSubscriptions collection** stores user browser subscriptions
+- **usePushNotifications hook** manages client-side subscription
+
+## Environment Variables
+
+### Required for Production
+```
+PAYLOAD_SECRET=         # Secret key for Payload authentication
+POSTGRES_URL=           # Neon database connection string
+GMAIL_USER=             # Email for sending notifications
+GMAIL_APP_PASSWORD=     # Gmail app password
+CRON_SECRET=            # Secret for cron job authorization
+```
+
+### Optional - Push Notifications
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=   # Public VAPID key for push
+VAPID_PRIVATE_KEY=              # Private VAPID key for push
+```
+
+### Optional - Google OAuth
+```
+GOOGLE_CLIENT_ID=       # Google OAuth client ID
+GOOGLE_CLIENT_SECRET=   # Google OAuth client secret
+```
+
 ## Commit & Deployment Rules
 
 ### Pre-Commit Requirements
-- **ALWAYS run `npm run build` or `pnpm build`** before committing changes
+- **ALWAYS run `npm run build`** before committing changes
 - **Fix all TypeScript/build errors** before committing
 - **ESLint warnings are acceptable** but errors must be fixed
 - **Test locally first** - run `npm run dev` to verify changes work
@@ -109,3 +141,4 @@
 - **Never commit broken code** that fails to build
 
 Remember: This is a production application handling user data and orders. Always prioritize security, user experience, and data integrity in your implementations.
+

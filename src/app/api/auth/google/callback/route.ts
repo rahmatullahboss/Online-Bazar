@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
 // Simple JWT creation using native crypto
@@ -113,18 +112,21 @@ export async function GET(request: NextRequest) {
       secret
     )
 
-    // Create response with redirect
+    // Create redirect response and set cookie directly on it
     const response = NextResponse.redirect(new URL('/', serverUrl))
-
-    // Set the auth cookie
-    const cookieStore = await cookies()
-    cookieStore.set('payload-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    })
+    
+    // Set cookie on the response object directly
+    const isProduction = process.env.NODE_ENV === 'production'
+    const cookieOptions = [
+      `payload-token=${token}`,
+      'Path=/',
+      `Max-Age=${60 * 60 * 24 * 7}`, // 7 days
+      'HttpOnly',
+      'SameSite=Lax',
+      isProduction ? 'Secure' : '',
+    ].filter(Boolean).join('; ')
+    
+    response.headers.set('Set-Cookie', cookieOptions)
 
     return response
   } catch (err) {

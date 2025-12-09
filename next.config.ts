@@ -10,13 +10,28 @@ const withPWA = withPWAInit({
   fallbacks: {
     document: '/offline.html',
   },
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  // Disable aggressive caching that causes blank screen on first load
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
   workboxOptions: {
     disableDevLogs: true,
     skipWaiting: true,
     clientsClaim: true,
+    // Use network-first strategy to prevent stale content
+    runtimeCaching: [
+      {
+        urlPattern: /^https?.*/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'offlineCache',
+          networkTimeoutSeconds: 10,
+          expiration: {
+            maxEntries: 200,
+          },
+        },
+      },
+    ],
   },
 })
 

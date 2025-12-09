@@ -79,14 +79,6 @@ const resolveServerURL = (payloadInstance: Awaited<ReturnType<typeof getPayload>
   
   const raw = typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : 
               envURL || constructedURL || ''
-              
-  console.log('Resolved server URL:', {
-    fromConfig,
-    envURL,
-    vercelURL,
-    constructedURL,
-    final: raw
-  })
   
   if (!raw) return ''
   return raw.endsWith('/') ? raw.slice(0, -1) : raw
@@ -177,9 +169,9 @@ const buildEmailContent = (
     })
     .filter((entry): entry is DetailedItem => entry !== null)
 
-  // If we couldn't get detailed items, try to use a fallback approach
-  if (detailedItems.length === 0 && items.length > 0) {
-    console.log('Warning: Could not parse cart items, using fallback approach', { cart, items })
+    // If we couldn't get detailed items, try to use a fallback approach
+    if (detailedItems.length === 0 && items.length > 0) {
+      // Try a simpler approach for item data
     
     // Try a simpler approach for item data
     items.forEach((entry: any) => {
@@ -349,11 +341,10 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
       },
     })
 
-    // Debug: Log the carts being processed
-    console.log(`Processing ${query.docs.length} carts for stage ${stage.stage}`, {
-      cutoff,
-      stageConfig: stage
-    })
+    // Log processing info only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Processing ${query.docs.length} carts for stage ${stage.stage}`)
+    }
 
     const stageResult = { stage: stage.stage, attempted: 0, sent: 0, errors: 0 }
 
@@ -364,7 +355,7 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
       const items = Array.isArray(raw.items) ? raw.items : []
       const hasItems = items.length > 0
       if (!hasItems) {
-        console.log(`Skipping empty cart ${String((raw as any).id)}`)
+        // Skip empty carts
         continue
       }
       
@@ -372,24 +363,12 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
 
       stageResult.attempted += 1
 
-      // Debug: Log cart data
-      console.log('Processing cart:', {
-        cartId: (raw as any).id,
-        customerEmail: raw.customerEmail,
-        itemsCount: Array.isArray(raw.items) ? raw.items.length : 0,
-        items: raw.items
-      })
+      // Process cart for email
 
       try {
         const { html, text } = buildEmailContent(raw, stage, serverURL)
         
-        // Debug: Log email content info
-        console.log('Email content generated:', {
-          hasHtml: !!html,
-          htmlLength: html?.length || 0,
-          hasText: !!text,
-          textLength: text?.length || 0
-        })
+        // Email content generated successfully
 
         await payloadInstance.sendEmail?.({
           to: String(raw.customerEmail),
@@ -428,59 +407,23 @@ const ensureEmailSupport = (payloadInstance: Awaited<ReturnType<typeof getPayloa
 }
 
 const handleCronAuthorization = (request: NextRequest) => {
-  // Check for Vercel cron header (this is what should be present)
+  // Check for Vercel cron header
   const isVercelCron = !!request.headers.get('x-vercel-cron')
   
-  // Check for other Vercel-specific headers that indicate it's a Vercel internal request
-  const vercelHeaders = [
-    'x-vercel-id',
-    'x-vercel-deployment-url',
-    'x-vercel-forwarded-proto',
-    'x-vercel-proxy-signature',
-    'x-vercel-sc-host'
-  ]
+  // Check for other Vercel-specific headers
+  const hasVercelHeader = ['x-vercel-id', 'x-vercel-deployment-url'].some(
+    header => request.headers.get(header)
+  )
   
-  const hasVercelHeader = vercelHeaders.some(header => request.headers.get(header))
-  
-  // Check if the request is coming from Vercel's internal network
-  const userAgent = request.headers.get('user-agent') || ''
-  const isVercelAgent = userAgent.includes('vercel') || userAgent.includes('Vercel')
-  
-  // Check if the request is coming from Vercel's IP ranges (this is a more advanced check)
-  const xForwardedFor = request.headers.get('x-forwarded-for') || ''
-  const isVercelIP = xForwardedFor.includes('vercel') || xForwardedFor.includes('zeit') || xForwardedFor.includes('now')
-  
-  // For manual testing, we can still use the secret method
+  // Check for secret-based authentication
   const url = new URL(request.url)
   const providedSecret = url.searchParams.get('secret') || request.headers.get('x-cron-secret')
   const hasSecret = !!process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET
   
-  // Debug logging with more details
-  console.log('Authorization Debug:', {
-    isVercelCron,
-    hasVercelHeader,
-    isVercelAgent,
-    isVercelIP,
-    providedSecret: providedSecret ? '***' : null,
-    envSecretExists: !!process.env.CRON_SECRET,
-    envSecretLength: process.env.CRON_SECRET ? process.env.CRON_SECRET.length : 0,
-    secretsMatch: hasSecret,
-    userAgent: userAgent.substring(0, 100),
-    xForwardedFor: xForwardedFor.substring(0, 100),
-    keyHeaders: {
-      'x-vercel-id': !!request.headers.get('x-vercel-id'),
-      'x-vercel-deployment-url': !!request.headers.get('x-vercel-deployment-url'),
-      'x-vercel-forwarded-proto': !!request.headers.get('x-vercel-forwarded-proto'),
-      'x-vercel-cron': !!request.headers.get('x-vercel-cron')
-    }
-  })
-  
   // Allow Vercel cron, internal requests, or secret-based authentication
-  const isAuthorized = isVercelCron || hasVercelHeader || isVercelAgent || isVercelIP || hasSecret
+  const isAuthorized = isVercelCron || hasVercelHeader || hasSecret
   const via = isVercelCron ? 'vercel-cron' : 
               hasVercelHeader ? 'vercel-header' : 
-              isVercelAgent ? 'vercel-agent' : 
-              isVercelIP ? 'vercel-ip' : 
               hasSecret ? 'secret' : 'unknown'
   
   return { authorized: isAuthorized, via }
@@ -489,35 +432,9 @@ const handleCronAuthorization = (request: NextRequest) => {
 export async function GET(request: NextRequest) {
   try {
     const { authorized, via } = handleCronAuthorization(request)
-    console.log('GET request authorization result:', { authorized, via })
     
-    // TEMPORARY WORKAROUND: If this looks like it might be a Vercel cron job, allow it
-    // This is for debugging purposes only
     if (!authorized) {
-      const userAgent = request.headers.get('user-agent') || ''
-      const xForwardedFor = request.headers.get('x-forwarded-for') || ''
-      const isLikelyCron = userAgent.includes('vercel') || 
-                          xForwardedFor.includes('vercel') ||
-                          via === 'unknown' // If nothing matched, it might still be a cron
-      
-      // Additional check: if it's coming at a typical cron time (hourly)
-      const now = new Date()
-      const isCronTime = now.getMinutes() === 0 || now.getMinutes() === 30 // Typical cron times
-      
-      console.log('Temporary workaround check:', {
-        isLikelyCron,
-        isCronTime,
-        currentTime: now.toISOString(),
-        userAgent: userAgent.substring(0, 100)
-      })
-      
-      // If it looks like a cron job, temporarily allow it
-      if (isLikelyCron && isCronTime) {
-        console.log('TEMPORARY: Allowing request that looks like Vercel cron')
-        // Continue with execution but log that we're using the workaround
-      } else {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const payloadInstance = await getPayload({ config: await config })
@@ -526,7 +443,7 @@ export async function GET(request: NextRequest) {
     const outcome = await runReminderJob(payloadInstance)
     return NextResponse.json({ 
       success: true, 
-      via: authorized ? via : 'temp-allowed', 
+      via, 
       ...outcome 
     })
   } catch (error) {

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sessionId = body?.sessionId
 
-    console.log('Heartbeat request received', { sessionId })
+    // Heartbeat request received
 
     if (!sessionId) {
       console.log('Session ID missing from heartbeat request')
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // If no active cart exists, try to find any cart with this session ID
     if (!existing?.docs?.[0]) {
-      console.log('No active cart found, checking for any cart with this session ID')
+      // No active cart found, checking for any cart with this session ID
       const anyCart = await payload.find({
         collection: 'abandoned-carts',
         limit: 1,
@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
 
       // If no cart exists at all, we can't send a heartbeat
       if (!anyCart?.docs?.[0]) {
-        console.log('No cart found with this session ID')
+        // No cart found with this session ID
         return NextResponse.json({ error: 'Cart not found' }, { status: 404 })
       }
 
       // If a cart exists but is not active, we shouldn't send a heartbeat
       // This could happen if the cart was already marked as abandoned or recovered
       const cart = anyCart.docs[0] as any
-      console.log('Cart found but not active', { status: cart.status })
+      // Cart found but not active
       
       // If the cart is already abandoned, return success but indicate it's not active
       if (cart.status === 'abandoned') {
@@ -85,10 +85,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    console.log('Heartbeat processed successfully', {
-      cartId: (updated as any)?.id,
-      lastActivityAt: (updated as any)?.lastActivityAt,
-    })
+    // Heartbeat processed successfully
 
     return NextResponse.json({
       success: true,

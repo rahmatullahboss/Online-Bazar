@@ -24,15 +24,7 @@ export async function POST(request: NextRequest) {
     const isFinalUpdate = Boolean(body?.isFinalUpdate)
     const isPotentialAbandonment = Boolean(body?.isPotentialAbandonment)
 
-    // Log incoming request for debugging
-    console.log('Cart activity request:', {
-      itemsCount: items.length,
-      total,
-      hasCustomerInfo: !!(customerEmail || customerName || customerNumber),
-      isFinalUpdate,
-      isPotentialAbandonment,
-      hasUser: !!user,
-    })
+    // Cart activity request received
 
     // Require at least one meaningful field
     if (!items.length && typeof total !== 'number') {
@@ -80,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
     if (isZeroCart) {
-      console.log('Zero cart detected, deleting if exists')
+      // Zero cart detected, deleting if exists
       if (existing?.docs?.[0]) {
         await payload.delete({
           collection: 'abandoned-carts',
@@ -104,7 +96,7 @@ export async function POST(request: NextRequest) {
     )
 
     if (!hasContactInfo) {
-      console.log('No contact info, deleting cart if exists')
+      // No contact info, deleting cart if exists
       if (existing?.docs?.[0]) {
         await payload.delete({
           collection: 'abandoned-carts',
@@ -139,29 +131,29 @@ export async function POST(request: NextRequest) {
         : 'Potential abandonment detected'
 
       data.notes = data.notes ? `${data.notes}\n${note}` : note
-      console.log('Marking cart as abandoned with final update note:', note)
+      // Marking cart as abandoned
     }
 
     let doc
     if (existing?.docs?.[0]) {
-      console.log('Updating existing cart')
+      // Updating existing cart
       doc = await payload.update({
         collection: 'abandoned-carts',
         id: (existing.docs[0] as any).id,
         data,
       })
     } else {
-      console.log('Creating new cart')
+      // Creating new cart
       doc = await payload.create({ collection: 'abandoned-carts', data })
     }
 
-    console.log('Cart activity saved successfully', { cartId: (doc as any)?.id })
+    // Cart activity saved successfully
 
     const res = NextResponse.json({ success: true, id: (doc as any)?.id })
     if (isNewSID && sid) {
       res.cookies.set('dyad_cart_sid', String(sid), {
         path: '/',
-        httpOnly: false,
+        httpOnly: true,  // Security: prevent JS access to session cookie
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 30, // 30 days
       })

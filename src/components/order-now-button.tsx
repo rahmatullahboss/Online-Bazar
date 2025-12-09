@@ -57,8 +57,8 @@ export function OrderNowButton({
         size="sm"
         className={cn(
           compact
-            ? 'rounded-full h-9 px-5 text-xs w-full sm:h-9 sm:px-5 sm:text-xs'
-            : 'rounded-full h-9 px-5 text-xs sm:h-10 sm:px-6 sm:text-sm md:h-11 md:px-7 md:text-sm',
+            ? 'rounded-full h-9 px-3 text-xs w-full sm:h-9 sm:px-3 sm:text-xs'
+            : 'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
         )}
       >
         {loading ? '...' : compact ? 'Order' : 'Order Now'}

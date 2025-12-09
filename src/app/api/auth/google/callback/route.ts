@@ -2,7 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { cookies } from 'next/headers'
-import { SignJWT } from 'jose'
+import crypto from 'crypto'
+
+// Simple JWT creation using native crypto
+function createJWT(payload: object, secret: string, expiresInDays = 7): string {
+  const header = { alg: 'HS256', typ: 'JWT' }
+  const now = Math.floor(Date.now() / 1000)
+  const fullPayload = {
+    ...payload,
+    iat: now,
+    exp: now + expiresInDays * 24 * 60 * 60,
+  }
+
+  const base64Header = Buffer.from(JSON.stringify(header)).toString('base64url')
+  const base64Payload = Buffer.from(JSON.stringify(fullPayload)).toString('base64url')
+
+  const signature = crypto
+    .createHmac('sha256', secret)
+    .update(`${base64Header}.${base64Payload}`)
+    .digest('base64url')
+
+  return `${base64Header}.${base64Payload}.${signature}`
+}
 
 export async function GET(request: NextRequest) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
@@ -81,17 +102,16 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Create JWT token using jose (built into Next.js)
-    const secret = new TextEncoder().encode(process.env.PAYLOAD_SECRET || '')
-    const token = await new SignJWT({
-      id: user.id,
-      email: user.email,
-      collection: 'users',
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('7d')
-      .sign(secret)
+    // Create JWT token using native crypto
+    const secret = process.env.PAYLOAD_SECRET || ''
+    const token = createJWT(
+      {
+        id: user.id,
+        email: user.email,
+        collection: 'users',
+      },
+      secret
+    )
 
     // Create response with redirect
     const response = NextResponse.redirect(new URL('/', serverUrl))

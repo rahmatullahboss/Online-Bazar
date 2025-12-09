@@ -132,14 +132,20 @@ export async function GET(request: NextRequest) {
     // Create redirect response with proper cookie
     const response = NextResponse.redirect(new URL('/', serverUrl))
     
-    // Build cookie string matching Payload's format
+    // Set cookie using Next.js cookies API for better compatibility
     const cookiePrefix = payload.config.cookiePrefix || 'payload'
     const cookieName = `${cookiePrefix}-token`
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-    const cookieValue = `${cookieName}=${loginResult.token}; Path=/; HttpOnly; SameSite=Lax; Expires=${expires.toUTCString()}`
+    const isProduction = serverUrl.startsWith('https')
     
-    response.headers.set('Set-Cookie', cookieValue)
-    console.log('Cookie set, redirecting to /')
+    response.cookies.set(cookieName, loginResult.token, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProduction,
+      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+    })
+    
+    console.log('Cookie set with Next.js cookies API, redirecting to /')
 
     return response
   } catch (err) {

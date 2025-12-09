@@ -66,7 +66,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       className={cn(
         compact
           ? 'h-9 px-3 text-xs flex-1 sm:flex-none sm:h-9 sm:px-3 sm:text-xs'
-          : 'h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
+          : 'h-9 px-2 text-xs sm:h-10 sm:px-3 sm:text-sm md:h-11 md:px-4 md:text-sm',
         isAdded && 'bg-green-600 hover:bg-green-600',
         className,
       )}

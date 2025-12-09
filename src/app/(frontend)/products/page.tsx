@@ -215,8 +215,8 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                       </div>
                     )}
 
-                    <CardHeader className="p-1.5 sm:p-4 space-y-0.5 sm:space-y-3">
-                      <CardTitle className="text-sm sm:text-xl font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
+                    <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+                      <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
                         {item.name}
                       </CardTitle>
                       <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
@@ -225,11 +225,11 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-1.5 border-t border-gray-200/60 bg-gray-50/50 sm:bg-white p-2 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-[22px] sm:text-2xl font-bold text-green-600 text-center sm:text-left">
+                  <CardFooter className="flex flex-col gap-1 border-t border-gray-200/60 bg-gray-50/50 p-2 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <span className="text-xl sm:text-2xl font-bold text-green-600 text-center w-full">
                       ৳{item.price.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal text-gray-500">/kg</span>
                     </span>
-                    <div className="flex gap-1.5 w-full sm:w-auto">
+                    <div className="flex gap-2 w-full">
                       <AddToCartButton item={item} compact className="flex-1" />
                       <OrderNowButton
                         item={item}

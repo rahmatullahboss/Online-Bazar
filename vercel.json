@@ -2,9 +2,9 @@
   "github": {
     "silent": true
   },
-  "buildCommand": "pnpm build",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "pnpm install",
+  "installCommand": "npm install --legacy-peer-deps",
   "env": {
     "NEXT_PUBLIC_SERVER_URL": "https://your-deployment-url.vercel.app",
     "NODE_OPTIONS": "--no-deprecation"

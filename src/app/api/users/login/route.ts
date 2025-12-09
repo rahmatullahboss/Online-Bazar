@@ -8,11 +8,13 @@ function buildTokenCookie(
   token: string,
   cookiePrefix: string | undefined,
   expiresInSeconds: number,
+  isSecure: boolean = false,
 ): string {
   const cookieName = `${cookiePrefix || 'payload'}-token`
   const expires = new Date(Date.now() + expiresInSeconds * 1000)
-
-  return `${cookieName}=${token}; Path=/; HttpOnly; SameSite=Lax; Expires=${expires.toUTCString()}`
+  
+  const secureFlag = isSecure ? '; Secure' : ''
+  return `${cookieName}=${token}; Path=/; HttpOnly; SameSite=Lax${secureFlag}; Expires=${expires.toUTCString()}`
 }
 
 async function parseRequestBody(request: NextRequest): Promise<Record<string, unknown> | null> {
@@ -126,10 +128,14 @@ export async function POST(request: NextRequest) {
         throw new Error('Authentication token was not generated')
       }
 
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+      const isSecure = serverUrl.startsWith('https')
+      
       const tokenCookie = buildTokenCookie(
         result.token,
         payload.config.cookiePrefix,
         effectiveExpiration,
+        isSecure,
       )
 
       const responseBody: Record<string, unknown> = {

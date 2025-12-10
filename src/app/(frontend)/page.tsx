@@ -78,8 +78,8 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-stone-100 text-gray-800">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Animated Background Elements - hidden on mobile for better LCP */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none hidden md:block">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.35),_transparent_65%)] motion-reduce:opacity-25"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(244,114,182,0.3),_transparent_60%)] motion-reduce:opacity-25 animation-delay-2000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 motion-safe:animate-pulse motion-reduce:animate-none motion-reduce:filter-none motion-reduce:mix-blend-normal motion-reduce:bg-[radial-gradient(circle_at_center,_rgba(147,197,253,0.25),_transparent_60%)] motion-reduce:opacity-20 animation-delay-4000"></div>
@@ -94,8 +94,8 @@ export default async function HomePage() {
       <div className="relative z-10">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          {/* Floating Elements */}
-          <div className="absolute inset-0 pointer-events-none">
+          {/* Floating Elements - hidden on mobile for better LCP */}
+          <div className="absolute inset-0 pointer-events-none hidden md:block">
             <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-1000"></div>
             <div className="absolute top-40 right-20 w-6 h-6 bg-rose-300 rounded-full opacity-50 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-2000"></div>
             <div className="absolute bottom-40 left-20 w-3 h-3 bg-blue-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-3000"></div>
@@ -103,7 +103,8 @@ export default async function HomePage() {
           </div>
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div className="space-y-8 motion-safe:animate-fade-in motion-reduce:fade-in-reset">
+            {/* Removed animate-fade-in to improve LCP - the paragraph is the LCP element */}
+            <div className="space-y-8">
               <div className="space-y-4">
                 <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
                   <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">
@@ -114,6 +115,7 @@ export default async function HomePage() {
                 </h2>
                 <div className="h-1 w-32 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
               </div>
+              {/* LCP Element - no animation to ensure immediate render */}
               <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Experience the future of shopping with our curated collection of premium items,
                 delivered with precision and passion.

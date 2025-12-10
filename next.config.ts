@@ -18,16 +18,59 @@ const withPWA = withPWAInit({
     disableDevLogs: true,
     skipWaiting: true,
     clientsClaim: true,
-    // Use network-first strategy to prevent stale content
+    // Enable navigation preload for faster page loads
+    navigationPreload: true,
+    // Don't precache HTML pages - always fetch fresh
+    navigateFallback: null,
+    // Use network-first strategy with shorter timeout
     runtimeCaching: [
+      // HTML pages - always network first with short timeout
+      {
+        urlPattern: /^https?:\/\/[^/]+\/?$/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'start-url',
+          networkTimeoutSeconds: 3,
+          expiration: {
+            maxAgeSeconds: 60 * 60, // 1 hour
+          },
+        },
+      },
+      // API routes - network first
+      {
+        urlPattern: /^https?:\/\/[^/]+\/api\/.*/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'api-cache',
+          networkTimeoutSeconds: 5,
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 60 * 5, // 5 minutes
+          },
+        },
+      },
+      // Static assets - cache first (they have content hashes)
+      {
+        urlPattern: /^https?:\/\/[^/]+\/_next\/static\/.*/,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'static-assets',
+          expiration: {
+            maxEntries: 200,
+            maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+          },
+        },
+      },
+      // Everything else - network first
       {
         urlPattern: /^https?.*/,
         handler: 'NetworkFirst',
         options: {
           cacheName: 'offlineCache',
-          networkTimeoutSeconds: 10,
+          networkTimeoutSeconds: 5,
           expiration: {
             maxEntries: 200,
+            maxAgeSeconds: 60 * 60 * 24, // 1 day
           },
         },
       },

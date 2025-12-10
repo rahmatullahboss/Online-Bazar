@@ -2,6 +2,7 @@
   "name": "Online Bazar",
   "short_name": "Bazar",
   "description": "Experience the future of shopping with our curated collection of premium items",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -36,5 +37,10 @@
     }
   ],
   "categories": ["shopping", "lifestyle"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "serviceworker": {
+    "src": "/sw.js",
+    "scope": "/",
+    "type": "module"
+  }
 }

@@ -196,7 +196,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               onClick={handleSubmit as () => void}
               className="text-sm text-amber-600 hover:text-amber-700 font-medium"
             >
-              View all results for "{query}"
+              View all results for &quot;{query}&quot;
             </button>
           </div>
         </div>

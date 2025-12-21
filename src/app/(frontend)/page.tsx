@@ -227,20 +227,24 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-3 border-t border-gray-200/60 bg-gray-50/50 p-3 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <span className="text-2xl font-bold text-green-600 text-center">
-                      ৳{item.price.toFixed(0)}<span className="text-sm font-normal text-gray-500 ml-0.5">/kg</span>
-                    </span>
-                    <div className="flex gap-2 w-full">
-                      <AddToCartButton item={item} compact className="flex-1" />
-                      <OrderNowButton
+                  <CardFooter className="flex flex-col gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                        ৳{item.price.toLocaleString()}
+                      </span>
+                      <AddToCartButton
                         item={item}
-                        isLoggedIn={!!user}
-                        deliveryZone={userDeliveryZone}
                         compact
-                        className="flex-1"
+                        className="!p-2 !rounded-full bg-gray-100 hover:bg-emerald-500 hover:text-white transition-colors"
                       />
                     </div>
+                    <OrderNowButton
+                      item={item}
+                      isLoggedIn={!!user}
+                      deliveryZone={userDeliveryZone}
+                      compact
+                      className="w-full !bg-emerald-500 hover:!bg-emerald-600 !text-white !font-medium !py-2.5 !rounded-xl"
+                    />
                   </CardFooter>
                 </div>
               </Card>

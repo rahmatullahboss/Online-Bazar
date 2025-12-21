@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find or create wishlist for user
-    let wishlist = await payload.find({
+    const wishlist = await payload.find({
       collection: 'wishlists',
       where: { user: { equals: user.id } },
       limit: 1,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find or create wishlist
-    let wishlist = await payload.find({
+    const wishlist = await payload.find({
       collection: 'wishlists',
       where: { user: { equals: user.id } },
       limit: 1,

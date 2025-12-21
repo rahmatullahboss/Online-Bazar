@@ -31,6 +31,15 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
+      name: 'profilePhoto',
+      type: 'upload',
+      relationTo: 'media',
+      required: false,
+      admin: {
+        description: 'Profile photo for user avatar',
+      },
+    },
+    {
       name: 'customerNumber',
       type: 'text',
       label: 'Customer number',
@@ -124,4 +133,3 @@ export const Users: CollectionConfig = {
     },
   ],
 }
-

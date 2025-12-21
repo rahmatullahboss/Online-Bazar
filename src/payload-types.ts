@@ -145,6 +145,10 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   /**
+   * Profile photo for user avatar
+   */
+  profilePhoto?: (number | null) | Media;
+  /**
    * Primary contact number for orders and updates
    */
   customerNumber?: string | null;
@@ -825,6 +829,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  profilePhoto?: T;
   customerNumber?: T;
   deliveryZone?: T;
   role?: T;

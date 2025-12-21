@@ -13,13 +13,13 @@ import {
   Calendar,
   ChevronRight,
   LogOut,
-  Settings,
 } from 'lucide-react'
 
 import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import { Badge } from '@/components/ui/badge'
 import { ShinyButton } from '@/components/ui/shiny-button'
+import { ProfileAvatar } from './profile-avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +56,10 @@ export default async function ProfilePage() {
     ? new Date(user.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short' })
     : 'N/A'
 
+  // Get profile photo URL
+  const profilePhoto = (user as { profilePhoto?: { url: string } | null }).profilePhoto
+  const profilePhotoUrl = profilePhoto && typeof profilePhoto === 'object' ? profilePhoto.url : null
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-amber-50/30 to-rose-50/30 pb-24 md:pb-8">
       <SiteHeader variant="full" user={user} />
@@ -70,15 +74,11 @@ export default async function ProfilePage() {
           </div>
 
           <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/40 flex items-center justify-center text-white text-4xl sm:text-5xl font-bold shadow-2xl">
-                {(user.firstName?.[0] || user.email[0]).toUpperCase()}
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <Settings className="w-4 h-4 text-gray-600" />
-              </div>
-            </div>
+            {/* Avatar with Photo Upload */}
+            <ProfileAvatar
+              initial={(user.firstName?.[0] || user.email[0]).toUpperCase()}
+              photoUrl={profilePhotoUrl}
+            />
 
             {/* User Info */}
             <div className="flex-1 text-center sm:text-left text-white">

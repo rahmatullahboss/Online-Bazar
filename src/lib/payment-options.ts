@@ -1,3 +1,5 @@
+import { PAYMENT_BKASH_NUMBER, PAYMENT_NAGAD_NUMBER } from './site-config'
+
 export type PaymentMethod = 'cod' | 'bkash' | 'nagad'
 
 export interface PaymentLogo {
@@ -13,15 +15,16 @@ export interface PaymentOption {
   logo: PaymentLogo
 }
 
-export const DIGITAL_PAYMENT_ACCOUNT_NUMBER = '01739-416661'
+// Use payment numbers from site config (env variables)
+export const DIGITAL_PAYMENT_ACCOUNT_NUMBER = PAYMENT_BKASH_NUMBER
 
 export const DIGITAL_PAYMENT_INSTRUCTIONS: Partial<Record<PaymentMethod, string[]>> = {
   bkash: [
-    `Send your payment to our bKash number ${DIGITAL_PAYMENT_ACCOUNT_NUMBER} using "Send Money".`,
+    `Send your payment to our bKash number ${PAYMENT_BKASH_NUMBER} using "Send Money".`,
     'After completing the transfer, provide the sender wallet number and transaction ID in the boxes below so we can verify your payment.',
   ],
   nagad: [
-    `Send your payment to our Nagad number ${DIGITAL_PAYMENT_ACCOUNT_NUMBER} using "Send Money".`,
+    `Send your payment to our Nagad number ${PAYMENT_NAGAD_NUMBER} using "Send Money".`,
     'After completing the transfer, provide the sender wallet number and transaction ID in the boxes below so we can verify your payment.',
   ],
 }
@@ -64,8 +67,10 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
   },
 ]
 
-export const PAYMENT_OPTION_MAP: Record<PaymentMethod, PaymentOption> =
-  PAYMENT_OPTIONS.reduce((acc, option) => {
+export const PAYMENT_OPTION_MAP: Record<PaymentMethod, PaymentOption> = PAYMENT_OPTIONS.reduce(
+  (acc, option) => {
     acc[option.value] = option
     return acc
-  }, {} as Record<PaymentMethod, PaymentOption>)
+  },
+  {} as Record<PaymentMethod, PaymentOption>,
+)

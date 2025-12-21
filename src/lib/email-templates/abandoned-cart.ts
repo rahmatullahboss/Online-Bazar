@@ -1,4 +1,5 @@
 // Abandoned Cart Recovery Email Templates
+import { SITE_NAME } from '../site-config'
 
 export type AbandonedCartEmailData = {
   customerName: string
@@ -80,7 +81,7 @@ export function generateAbandonedCartEmailHTML(data: AbandonedCartEmailData): st
     
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
-      <h1 style="margin: 0; color: white; font-size: 24px;">🛒 Online Bazar</h1>
+      <h1 style="margin: 0; color: white; font-size: 24px;">🛒 ${SITE_NAME}</h1>
     </div>
     
     <!-- Main Content -->
@@ -140,7 +141,7 @@ export function generateAbandonedCartEmailHTML(data: AbandonedCartEmailData): st
     
     <!-- Footer -->
     <div style="text-align: center; padding: 24px; color: #9ca3af; font-size: 12px;">
-      <p style="margin: 0 0 8px;">© ${new Date().getFullYear()} Online Bazar. All rights reserved.</p>
+      <p style="margin: 0 0 8px;">© ${new Date().getFullYear()} ${SITE_NAME}. All rights reserved.</p>
       <p style="margin: 0;">
         আপনি এই email পেয়েছেন কারণ আপনার একটি pending cart আছে।<br>
         <a href="#" style="color: #f59e0b;">Unsubscribe</a>
@@ -185,7 +186,7 @@ export function generateAbandonedCartEmailText(data: AbandonedCartEmailData): st
   text += `${'─'.repeat(40)}\n`
   text += `Total: ৳${cartTotal.toLocaleString()}\n\n`
   text += `Complete your order: ${recoveryLink}\n\n`
-  text += `© ${new Date().getFullYear()} Online Bazar`
+  text += `© ${new Date().getFullYear()} ${SITE_NAME}`
 
   return text
 }

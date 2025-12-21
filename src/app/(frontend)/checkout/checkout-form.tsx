@@ -196,10 +196,10 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           placeholder="Enter promo code"
           className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400/70"
         />
-        <ShinyButton 
-          type="button" 
-          variant="secondary" 
-          size="sm" 
+        <ShinyButton
+          type="button"
+          variant="secondary"
+          size="sm"
           className="rounded-xl"
           onClick={onApplyDiscount}
           disabled={isDiscountValidating || !discountCode.trim()}
@@ -207,9 +207,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           {isDiscountValidating ? 'Applying...' : 'Apply'}
         </ShinyButton>
       </div>
-      {discountError && (
-        <p className="text-sm text-red-500">{discountError}</p>
-      )}
+      {discountError && <p className="text-sm text-red-500">{discountError}</p>}
       {discountAmount > 0 && (
         <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
           <p>Discount applied: -{formatCurrency(discountAmount)}</p>
@@ -583,6 +581,56 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
     const sanitizedSenderNumber = normalizeSenderNumberInput(paymentSenderNumber)
 
     try {
+      // Step 1: Validate stock before placing order
+      const expectedPrices: Record<string, number> = {}
+      state.items.forEach((item) => {
+        expectedPrices[item.id] = item.price
+      })
+
+      const stockValidationResponse = await fetch('/api/cart/validate-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: state.items.map((item) => ({ id: item.id, quantity: item.quantity })),
+          expectedPrices,
+        }),
+      })
+
+      if (stockValidationResponse.ok) {
+        const stockResult = await stockValidationResponse.json()
+
+        // Check for out of stock items
+        if (stockResult.outOfStockItems && stockResult.outOfStockItems.length > 0) {
+          const outOfStockNames = stockResult.outOfStockItems
+            .map((item: { name: string }) => item.name)
+            .join(', ')
+          setError(
+            `Sorry, the following items are no longer available: ${outOfStockNames}. Please remove them from your cart to continue.`,
+          )
+          setIsSubmitting(false)
+          return
+        }
+
+        // Check for price changes
+        if (stockResult.priceChangedItems && stockResult.priceChangedItems.length > 0) {
+          const changedNames = stockResult.priceChangedItems
+            .map((item: { name: string }) => item.name)
+            .join(', ')
+          setError(
+            `Prices have changed for: ${changedNames}. Please refresh the page to see updated prices.`,
+          )
+          setIsSubmitting(false)
+          return
+        }
+
+        // Warn about low stock (but don't block)
+        if (stockResult.lowStockItems && stockResult.lowStockItems.length > 0) {
+          // Just log warning, don't block checkout
+          console.info('Low stock warning:', stockResult.lowStockItems)
+        }
+      }
+
+      // Step 2: Place the order
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -637,7 +685,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       }
 
       const result = await response.json()
-      
+
       // Save user details to profile for future orders (only for logged-in users)
       if (user) {
         try {
@@ -661,7 +709,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           // Don't block order completion if profile update fails
         }
       }
-      
+
       // Save a lightweight preview for confirmation page
       try {
         sessionStorage.setItem(

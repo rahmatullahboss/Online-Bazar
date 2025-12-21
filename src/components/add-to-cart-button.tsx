@@ -65,7 +65,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       size="sm"
       className={cn(
         compact
-          ? 'h-9 px-3 text-xs flex-1 sm:flex-none sm:h-9 sm:px-3 sm:text-xs'
+          ? 'h-7 px-2 text-[11px] sm:h-9 sm:px-3 sm:text-xs'
           : 'h-9 px-2 text-xs sm:h-10 sm:px-3 sm:text-sm md:h-11 md:px-4 md:text-sm',
         isAdded && 'bg-green-600 hover:bg-green-600',
         className,
@@ -73,16 +73,27 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
     >
       {isAdded ? (
         <React.Fragment>
-          <Check className={cn(compact ? 'h-3 w-3 mr-0.5' : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2')} />
+          <Check
+            className={cn(
+              compact
+                ? 'h-3 w-3 mr-0.5'
+                : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2',
+            )}
+          />
           <span>{compact ? '✓' : 'Added!'}</span>
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <Plus className={cn(compact ? 'h-3 w-3 mr-0.5' : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2')} />
+          <Plus
+            className={cn(
+              compact
+                ? 'h-3 w-3 mr-0.5'
+                : 'h-3 w-3 sm:h-3 sm:w-3 md:h-4 md:w-4 mr-1 sm:mr-1 md:mr-2',
+            )}
+          />
           <span>{compact ? 'Add' : 'Add to Cart'}</span>
         </React.Fragment>
       )}
     </Button>
   )
 }
-

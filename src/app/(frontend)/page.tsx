@@ -228,15 +228,15 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex items-center justify-between gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                  <CardFooter className="flex items-center justify-between gap-1.5 sm:gap-2 border-t border-gray-100 bg-white p-2 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <span className="text-base sm:text-2xl font-bold text-gray-900 shrink-0">
                       ৳{item.price.toLocaleString()}
                     </span>
-                    <div className="flex gap-1.5 sm:gap-2">
+                    <div className="flex gap-1 sm:gap-2 shrink-0">
                       <AddToCartButton
                         item={item}
                         compact
-                        className="!px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs sm:!text-sm"
+                        className="!px-2 sm:!px-2.5 !py-1 sm:!py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-[11px] sm:!text-sm"
                       />
                       <OrderNowButton
                         item={item}

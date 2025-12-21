@@ -114,6 +114,29 @@ export const seed = async ({
           req,
         })
 
+    // Create COMEBACK10 recovery coupon for abandoned cart emails
+    const couponExists = await payload.find({
+      collection: 'coupons',
+      where: { code: { equals: 'COMEBACK10' } },
+      limit: 1,
+    })
+
+    if (!couponExists.docs[0]) {
+      await payload.create({
+        collection: 'coupons',
+        data: {
+          code: 'COMEBACK10',
+          discountType: 'percent',
+          discountValue: 10,
+          isActive: true,
+          usageLimit: 0, // Unlimited
+          applicableTo: 'all',
+        },
+        req,
+      })
+      payload.logger.info('Created COMEBACK10 recovery coupon')
+    }
+
     // Create sample orders with different statuses
     const sampleOrderStatuses = [
       'pending',

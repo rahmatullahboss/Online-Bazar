@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import type { AbandonedCart } from '@/payload-types'
 
 import config from '@/payload.config'
+import { SITE_NAME } from '@/lib/site-config'
 
 const HOUR_IN_MS = 60 * 60 * 1000
 
@@ -65,21 +66,25 @@ const formatCurrency = (value?: number | null): string => {
   return `৳${amount.toFixed(2)}`
 }
 
-const resolveServerURL = (payloadInstance: Awaited<ReturnType<typeof getPayload>> | null): string => {
+const resolveServerURL = (
+  payloadInstance: Awaited<ReturnType<typeof getPayload>> | null,
+): string => {
   // Try multiple sources for the server URL
   const fromConfig = (payloadInstance?.config as any)?.serverURL
   const envURL = process.env.NEXT_PUBLIC_SERVER_URL
   const vercelURL = process.env.VERCEL_URL
-  
+
   // Construct URL from Vercel environment if available
   let constructedURL = ''
   if (vercelURL) {
     constructedURL = `https://${vercelURL}`
   }
-  
-  const raw = typeof fromConfig === 'string' && fromConfig.length > 0 ? fromConfig : 
-              envURL || constructedURL || ''
-  
+
+  const raw =
+    typeof fromConfig === 'string' && fromConfig.length > 0
+      ? fromConfig
+      : envURL || constructedURL || ''
+
   if (!raw) return ''
   return raw.endsWith('/') ? raw.slice(0, -1) : raw
 }
@@ -127,20 +132,20 @@ const buildEmailContent = (
       const itemRef = (entry as any)?.item
       let name = 'পণ্য'
       let unitPrice: number | undefined
-      
+
       // Improved item data extraction
       if (itemRef && typeof itemRef === 'object') {
         // Try to get the item name and price
         const maybeName = (itemRef as any)?.name || (itemRef as any)?.title
         const maybePrice = (itemRef as any)?.price
-        
+
         if (maybeName && typeof maybeName === 'string' && maybeName.trim()) {
           name = maybeName.trim()
         } else if (itemRef.id) {
           // Fallback to item ID if name is not available
           name = `পণ্য #${itemRef.id}`
         }
-        
+
         if (typeof maybePrice === 'number' && Number.isFinite(maybePrice)) {
           unitPrice = maybePrice
         }
@@ -151,7 +156,7 @@ const buildEmailContent = (
       } else if (itemRef && itemRef.id) {
         name = `পণ্য #${itemRef.id}`
       }
-      
+
       const detailedItem: DetailedItem = {
         name,
         quantity,
@@ -169,10 +174,10 @@ const buildEmailContent = (
     })
     .filter((entry): entry is DetailedItem => entry !== null)
 
-    // If we couldn't get detailed items, try to use a fallback approach
-    if (detailedItems.length === 0 && items.length > 0) {
-      // Try a simpler approach for item data
-    
+  // If we couldn't get detailed items, try to use a fallback approach
+  if (detailedItems.length === 0 && items.length > 0) {
+    // Try a simpler approach for item data
+
     // Try a simpler approach for item data
     items.forEach((entry: any) => {
       if (entry && typeof entry === 'object') {
@@ -180,7 +185,7 @@ const buildEmailContent = (
         if (quantity > 0) {
           let name = 'পণ্য'
           let price: number | undefined
-          
+
           // Try different property names for item data
           const itemData = entry.item
           if (itemData) {
@@ -191,12 +196,12 @@ const buildEmailContent = (
               price = typeof itemData.price === 'number' ? itemData.price : undefined
             }
           }
-          
+
           detailedItems.push({
             name,
             quantity,
             unitPrice: price,
-            lineTotal: price ? price * quantity : undefined
+            lineTotal: price ? price * quantity : undefined,
           })
         }
       }
@@ -205,7 +210,7 @@ const buildEmailContent = (
 
   const fallbackTotal = typeof cart.cartTotal === 'number' ? cart.cartTotal : undefined
   const computedTotal = detailedItems.reduce((sum, item) => sum + (item.lineTotal ?? 0), 0)
-  const totalValue = computedTotal > 0 ? computedTotal : fallbackTotal ?? 0
+  const totalValue = computedTotal > 0 ? computedTotal : (fallbackTotal ?? 0)
 
   const itemRowsHTML = detailedItems
     .map((item) => {
@@ -258,8 +263,9 @@ const buildEmailContent = (
       <h2 style="font-size:18px;margin:16px 0 8px 0;">${escapeHtml(stage.headline)}</h2>
       <p style="margin:8px 0;">${escapeHtml(stage.intro)}</p>
       <p style="margin:8px 0;">${escapeHtml(stage.followUp)}</p>
-      ${itemRowsHTML
-        ? `
+      ${
+        itemRowsHTML
+          ? `
             <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;width:100%;max-width:520px;margin:16px 0;">
               <thead>
                 <tr>
@@ -271,11 +277,12 @@ const buildEmailContent = (
               <tbody>${itemRowsHTML}</tbody>
             </table>
           `
-        : ''}
+          : ''
+      }
       <p style="margin:8px 0;font-weight:600;">মোট মূল্য: ${escapeHtml(totalLabel)}</p>
       ${ctaButton}
       <p style="margin:8px 0;">অর্ডার সম্পন্ন করার জন্য আপনার পূর্বের তথ্য আমরা সংরক্ষণ করে রেখেছি। শুধু লগইন করুন এবং পেমেন্ট নিশ্চিত করুন।</p>
-      <p style="margin:16px 0 0 0;">শুভেচ্ছান্তে,<br/>Online Bazar টিম</p>
+      <p style="margin:16px 0 0 0;">শুভেচ্ছান্তে,<br/>${SITE_NAME} টিম</p>
     </div>
   `
 
@@ -292,7 +299,7 @@ const buildEmailContent = (
     checkoutUrl ? `অর্ডার সম্পন্ন করুন: ${checkoutUrl}` : '',
     '',
     'শুভেচ্ছান্তে,',
-    'Online Bazar টিম',
+    `${SITE_NAME} টিম`,
   ].filter(Boolean)
 
   return { html, text: textParts.join('\n') }
@@ -334,10 +341,7 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
       limit: 250,
       sort: 'lastActivityAt',
       where: {
-        and: [
-          { status: { not_equals: 'recovered' } },
-          { lastActivityAt: { less_than: cutoff } },
-        ],
+        and: [{ status: { not_equals: 'recovered' } }, { lastActivityAt: { less_than: cutoff } }],
       },
     })
 
@@ -350,7 +354,7 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
 
     for (const raw of query.docs as AbandonedCart[]) {
       if (!raw) continue
-      
+
       // Skip empty carts
       const items = Array.isArray(raw.items) ? raw.items : []
       const hasItems = items.length > 0
@@ -358,7 +362,7 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
         // Skip empty carts
         continue
       }
-      
+
       if (!shouldSendForStage(raw, stage, now)) continue
 
       stageResult.attempted += 1
@@ -367,7 +371,7 @@ const runReminderJob = async (payloadInstance: Awaited<ReturnType<typeof getPayl
 
       try {
         const { html, text } = buildEmailContent(raw, stage, serverURL)
-        
+
         // Email content generated successfully
 
         await payloadInstance.sendEmail?.({
@@ -409,30 +413,34 @@ const ensureEmailSupport = (payloadInstance: Awaited<ReturnType<typeof getPayloa
 const handleCronAuthorization = (request: NextRequest) => {
   // Check for Vercel cron header
   const isVercelCron = !!request.headers.get('x-vercel-cron')
-  
+
   // Check for other Vercel-specific headers
-  const hasVercelHeader = ['x-vercel-id', 'x-vercel-deployment-url'].some(
-    header => request.headers.get(header)
+  const hasVercelHeader = ['x-vercel-id', 'x-vercel-deployment-url'].some((header) =>
+    request.headers.get(header),
   )
-  
+
   // Check for secret-based authentication
   const url = new URL(request.url)
   const providedSecret = url.searchParams.get('secret') || request.headers.get('x-cron-secret')
   const hasSecret = !!process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET
-  
+
   // Allow Vercel cron, internal requests, or secret-based authentication
   const isAuthorized = isVercelCron || hasVercelHeader || hasSecret
-  const via = isVercelCron ? 'vercel-cron' : 
-              hasVercelHeader ? 'vercel-header' : 
-              hasSecret ? 'secret' : 'unknown'
-  
+  const via = isVercelCron
+    ? 'vercel-cron'
+    : hasVercelHeader
+      ? 'vercel-header'
+      : hasSecret
+        ? 'secret'
+        : 'unknown'
+
   return { authorized: isAuthorized, via }
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { authorized, via } = handleCronAuthorization(request)
-    
+
     if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -441,10 +449,10 @@ export async function GET(request: NextRequest) {
     ensureEmailSupport(payloadInstance)
 
     const outcome = await runReminderJob(payloadInstance)
-    return NextResponse.json({ 
-      success: true, 
-      via, 
-      ...outcome 
+    return NextResponse.json({
+      success: true,
+      via,
+      ...outcome,
     })
   } catch (error) {
     console.error('Failed to process abandoned cart reminders:', error)

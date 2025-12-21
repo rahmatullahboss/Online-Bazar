@@ -4,6 +4,7 @@ import React, { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Download, FileText, Loader2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SITE_NAME } from '@/lib/site-config'
 
 interface OrderActionsProps {
   orders: Array<{
@@ -138,7 +139,7 @@ export function OrderActions({
       </head>
       <body>
         <div class="header">
-          <div class="company-name">Online Bazar</div>
+          <div class="company-name">${SITE_NAME}</div>
           <div class="invoice-title">INVOICE</div>
         </div>
         
@@ -199,7 +200,7 @@ export function OrderActions({
         </div>
 
         <div class="footer">
-          <p>Thank you for shopping with Online Bazar!</p>
+          <p>Thank you for shopping with ${SITE_NAME}!</p>
           <p>For any queries, please contact us.</p>
         </div>
       </body>

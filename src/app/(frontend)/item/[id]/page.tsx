@@ -14,6 +14,7 @@ import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
 import { ReviewStars } from '@/components/review-stars'
 import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+import { SITE_NAME } from '@/lib/site-config'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -79,7 +80,7 @@ export async function generateMetadata({
         title: item.name,
         description: item.shortDescription || item.description,
         url: `${serverURL}/item/${id}`,
-        siteName: 'Online Bazar',
+        siteName: SITE_NAME,
         images: [
           {
             url: imageUrl,

@@ -8,6 +8,7 @@ import { Bell, ArrowLeft, Check, Package, Tag, Megaphone } from 'lucide-react'
 import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import { Badge } from '@/components/ui/badge'
+import { SITE_NAME } from '@/lib/site-config'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,7 @@ export default async function NotificationsPage() {
     {
       id: 3,
       type: 'announcement',
-      title: 'Welcome to Online Bazar!',
+      title: `Welcome to ${SITE_NAME}!`,
       message: 'Thank you for joining. Enjoy shopping!',
       time: '3 days ago',
       read: true,

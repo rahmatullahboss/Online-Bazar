@@ -22,6 +22,7 @@ import Posts from './collections/Posts'
 import ProgramParticipants from './collections/ProgramParticipants'
 import { Coupons } from './collections/Coupons'
 import { PushSubscriptions } from './collections/PushSubscriptions'
+import { Wishlist } from './collections/Wishlist'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -116,6 +117,7 @@ export default buildConfig({
     ProgramParticipants,
     Coupons,
     PushSubscriptions,
+    Wishlist,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

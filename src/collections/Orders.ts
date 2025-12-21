@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { admins, adminsOnly, adminsOrOwner, authenticated } from './access'
 import orderStatusUpdate from './hooks/orderStatusUpdate'
+import inventoryManagement from './hooks/inventoryManagement'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -274,6 +275,7 @@ export const Orders: CollectionConfig = {
   hooks: {
     afterChange: [
       orderStatusUpdate,
+      inventoryManagement,
       async ({ doc, operation, req }) => {
         if (operation !== 'create') return doc
 
@@ -381,14 +383,18 @@ export const Orders: CollectionConfig = {
           ].filter((l) => l && l.length > 0)
 
           const logoUrl = serverURL ? `${serverURL}/icon.png` : ''
-          
+
           const bodyHTML = `
             <div style="font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827;max-width:600px;margin:0 auto;">
-              ${logoUrl ? `
+              ${
+                logoUrl
+                  ? `
               <div style="text-align:center;padding:24px 0;border-bottom:1px solid #e5e7eb;margin-bottom:24px;">
                 <img src="${logoUrl}" alt="${companyName}" width="120" height="120" style="width:120px;height:120px;border-radius:16px;" />
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
               <p>হ্যালো ${customerName || 'গ্রাহক'},</p>
               <p>আপনার অর্ডারের জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং এটি শিপমেন্টের জন্য প্রস্তুত করছি।</p>
               <p><strong>অর্ডার আইডি:</strong> #${orderId}<br/>

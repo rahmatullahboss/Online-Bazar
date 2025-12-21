@@ -7,29 +7,30 @@ import { getPayload } from 'payload'
 import { Post } from '@/payload-types'
 import { SiteHeader } from '@/components/site-header'
 import { BlogImage } from '@/components/blog-image'
+import { SITE_NAME } from '@/lib/site-config'
 
 export const metadata: Metadata = {
-  title: 'Blog | Online Bazar',
-  description: 'Latest news and updates from Online Bazar',
+  title: `Blog | ${SITE_NAME}`,
+  description: `Latest news and updates from ${SITE_NAME}`,
   openGraph: {
-    title: 'Blog | Online Bazar',
-    description: 'Latest news and updates from Online Bazar',
+    title: `Blog | ${SITE_NAME}`,
+    description: `Latest news and updates from ${SITE_NAME}`,
     url: `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'}/blog`,
-    siteName: 'Online Bazar',
+    siteName: SITE_NAME,
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Online Bazar Blog',
+        alt: `${SITE_NAME} Blog`,
       },
     ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog | Online Bazar',
-    description: 'Latest news and updates from Online Bazar',
+    title: `Blog | ${SITE_NAME}`,
+    description: `Latest news and updates from ${SITE_NAME}`,
     images: ['/og-image.png'],
   },
 }
@@ -123,7 +124,7 @@ export default async function BlogPage() {
 
           <h1 className="text-4xl font-bold brand-text relative z-10 py-4 px-6">Blog</h1>
           <p className="text-lg text-gray-600 max-w-xl mx-auto relative z-10">
-            Latest news and updates from Online Bazar
+            Latest news and updates from {SITE_NAME}
           </p>
 
           {/* Interactive underline effect with reduced opacity from default to /80 */}

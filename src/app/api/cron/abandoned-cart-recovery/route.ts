@@ -8,6 +8,7 @@ import {
   getAbandonedCartEmailSubject,
   type AbandonedCartEmailData,
 } from '@/lib/email-templates/abandoned-cart'
+import { SITE_NAME } from '@/lib/site-config'
 
 // Configure email transporter
 const transporter = nodemailer.createTransport({
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
 
         // Send email
         await transporter.sendMail({
-          from: `"Online Bazar" <${process.env.GMAIL_USER}>`,
+          from: `"${SITE_NAME}" <${process.env.GMAIL_USER}>`,
           to: cart.customerEmail as string,
           subject: getAbandonedCartEmailSubject(currentStage),
           html: generateAbandonedCartEmailHTML(emailData),

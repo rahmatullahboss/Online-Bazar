@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
 import { SiteHeader } from '@/components/site-header'
+import { SITE_NAME } from '@/lib/site-config'
 import type { Metadata } from 'next'
 
 export const revalidate = 3600
@@ -22,26 +23,26 @@ export async function generateMetadata(): Promise<Metadata> {
   const serverURL = payload.config.serverURL || 'https://online-bazar.top'
 
   return {
-    title: 'Our Products | Online Bazar',
+    title: `Our Products | ${SITE_NAME}`,
     description: 'Discover our complete collection of premium items',
     openGraph: {
-      title: 'Our Products | Online Bazar',
+      title: `Our Products | ${SITE_NAME}`,
       description: 'Discover our complete collection of premium items',
       url: `${serverURL}/products`,
-      siteName: 'Online Bazar',
+      siteName: SITE_NAME,
       images: [
         {
           url: `${serverURL}/og-image.png`,
           width: 1200,
           height: 630,
-          alt: 'Online Bazar Products',
+          alt: `${SITE_NAME} Products`,
         },
       ],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Our Products | Online Bazar',
+      title: `Our Products | ${SITE_NAME}`,
       description: 'Discover our complete collection of premium items',
       images: [`${serverURL}/og-image.png`],
     },

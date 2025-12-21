@@ -5,9 +5,10 @@ import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import { Package, Truck, CheckCircle, Clock, XCircle, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SITE_NAME } from '@/lib/site-config'
 
 export const metadata = {
-  title: 'Track Your Order | Online Bazar',
+  title: `Track Your Order | ${SITE_NAME}`,
   description: 'Track the status of your order in real-time',
 }
 

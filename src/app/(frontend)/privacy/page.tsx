@@ -2,9 +2,10 @@ import React from 'react'
 
 import { SiteHeader } from '@/components/site-header'
 import { ContactEmailLink } from '@/components/contact-email-link'
+import { SITE_NAME, CONTACT_PHONE, SOCIAL_FACEBOOK } from '@/lib/site-config'
 
 export const metadata = {
-  title: 'Privacy Policy — Online Bazar',
+  title: `Privacy Policy — ${SITE_NAME}`,
   description:
     'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
 }
@@ -28,8 +29,8 @@ export default function PrivacyPage() {
         <p className="text-sm text-gray-500">Last updated: {updated}</p>
 
         <p>
-          At Online Bazar, we respect your privacy. This policy explains what information we
-          collect, how we use it, and the choices you have.
+          At {SITE_NAME}, we respect your privacy. This policy explains what information we collect,
+          how we use it, and the choices you have.
         </p>
 
         <h2>Information We Collect</h2>
@@ -81,12 +82,16 @@ export default function PrivacyPage() {
             <span className="text-gray-600">rahmatullahzisan [at] gmail [dot] com</span>
           </noscript>
           <br />
-          Phone: <a href="tel:01739416661">01739-416661</a>
+          Phone: <a href={`tel:${CONTACT_PHONE.replace(/[^0-9+]/g, '')}`}>{CONTACT_PHONE}</a>
           <br />
-          Facebook:{' '}
-          <a href="https://www.facebook.com/onlinebazarbarguna" target="_blank" rel="noreferrer">
-            @onlinebazarbarguna
-          </a>
+          {SOCIAL_FACEBOOK && (
+            <>
+              Facebook:{' '}
+              <a href={SOCIAL_FACEBOOK} target="_blank" rel="noreferrer">
+                Facebook Page
+              </a>
+            </>
+          )}
         </p>
       </div>
     </div>

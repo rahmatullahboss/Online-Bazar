@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { OrderNowButton } from '@/components/order-now-button'
 import { SiteHeader } from '@/components/site-header'
+import { SITE_NAME } from '@/lib/site-config'
 
 export const revalidate = 3600
 
@@ -108,7 +109,7 @@ export default async function HomePage() {
               <div className="space-y-4">
                 <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
                   <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">
-                    Online Bazar
+                    {SITE_NAME}
                   </span>
                   <br />
                   <span className="text-gray-800">Reimagined</span>

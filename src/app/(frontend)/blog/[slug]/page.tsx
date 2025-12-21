@@ -9,6 +9,7 @@ import { Post } from '@/payload-types'
 import RichText from '@/components/RichText'
 import { SiteHeader } from '@/components/site-header'
 import { BlogImage } from '@/components/blog-image'
+import { SITE_NAME } from '@/lib/site-config'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,13 +70,13 @@ export async function generateMetadata({
   return {
     title: post.title,
     description:
-      post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+      post.excerpt || (post.content ? 'Read more about this topic' : `${SITE_NAME} blog post`),
     openGraph: {
       title: post.title,
       description:
-        post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+        post.excerpt || (post.content ? 'Read more about this topic' : `${SITE_NAME} blog post`),
       url: `${serverURL}/blog/${slug}`,
-      siteName: 'Online Bazar',
+      siteName: SITE_NAME,
       images: [
         {
           url: imageUrl,
@@ -95,7 +96,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: post.title,
       description:
-        post.excerpt || (post.content ? 'Read more about this topic' : 'Online Bazar blog post'),
+        post.excerpt || (post.content ? 'Read more about this topic' : `${SITE_NAME} blog post`),
       images: [imageUrl],
     },
   }

@@ -227,23 +227,23 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-2.5 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                        ৳{item.price.toLocaleString()}
-                      </span>
+                  <CardFooter className="flex items-center justify-between gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                      ৳{item.price.toLocaleString()}
+                    </span>
+                    <div className="flex gap-1.5 sm:gap-2">
                       <AddToCartButton
                         item={item}
                         compact
-                        className="!px-3 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-sm"
+                        className="!px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs sm:!text-sm"
+                      />
+                      <OrderNowButton
+                        item={item}
+                        isLoggedIn={!!user}
+                        deliveryZone={userDeliveryZone}
+                        compact
                       />
                     </div>
-                    <OrderNowButton
-                      item={item}
-                      isLoggedIn={!!user}
-                      deliveryZone={userDeliveryZone}
-                      compact
-                    />
                   </CardFooter>
                 </div>
               </Card>

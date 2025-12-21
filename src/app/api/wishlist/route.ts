@@ -91,7 +91,17 @@ export async function POST(request: NextRequest) {
       })
     } else {
       wishlistDoc = wishlist.docs[0]
-      const currentItems = (wishlistDoc as unknown as { items: { item: unknown }[] }).items || []
+      const currentItems =
+        (
+          wishlistDoc as unknown as {
+            items: Array<{
+              item: number | { id: number }
+              addedAt?: string
+              notifyOnSale?: boolean
+              notifyOnStock?: boolean
+            }>
+          }
+        ).items || []
 
       // Check if item already exists
       const itemExists = currentItems.some((wishlistItem) => {
@@ -112,9 +122,14 @@ export async function POST(request: NextRequest) {
         id: wishlistDoc.id,
         data: {
           items: [
-            ...currentItems,
+            ...currentItems.map((item) => ({
+              item: typeof item.item === 'object' ? (item.item as { id: number }).id : item.item,
+              addedAt: item.addedAt,
+              notifyOnSale: item.notifyOnSale,
+              notifyOnStock: item.notifyOnStock,
+            })),
             {
-              item: itemId,
+              item: Number(itemId),
               addedAt: new Date().toISOString(),
               notifyOnSale: notifyOnSale || false,
               notifyOnStock: notifyOnStock || false,

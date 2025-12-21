@@ -84,9 +84,30 @@ const getItemsCached = unstableCache(
   { revalidate: 300 },
 )
 
+const getCategoriesCached = unstableCache(
+  async () => {
+    try {
+      const payloadConfig = await config
+      const payload = await getPayload({ config: payloadConfig })
+
+      return await payload.find({
+        collection: 'categories',
+        limit: 50,
+        sort: 'name',
+      })
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+      return { docs: [], totalDocs: 0 }
+    }
+  },
+  ['categories:list'],
+  { revalidate: 300 },
+)
+
 type PayloadInstance = Awaited<ReturnType<typeof getPayload>>
 type AuthPromise = ReturnType<PayloadInstance['auth']>
 type ItemsPromise = ReturnType<typeof getItemsCached>
+type CategoriesPromise = ReturnType<typeof getCategoriesCached>
 
 type HeaderSectionProps = {
   authPromise: AuthPromise
@@ -95,6 +116,7 @@ type HeaderSectionProps = {
 type ProductGridSectionProps = {
   authPromise: AuthPromise
   itemsPromise: ItemsPromise
+  categoriesPromise: CategoriesPromise
 }
 
 export default async function ProductsPage() {
@@ -103,6 +125,7 @@ export default async function ProductsPage() {
   const payload = await getPayload({ config: payloadConfig })
 
   const itemsPromise = getItemsCached()
+  const categoriesPromise = getCategoriesCached()
   const authPromise = payload.auth({ headers })
 
   return (
@@ -121,18 +144,18 @@ export default async function ProductsPage() {
       </div>
 
       <div className="relative z-10">
-        <section className="relative py-20">
+        <section className="relative py-16 sm:py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div className="space-y-8 motion-safe:animate-fade-in motion-reduce:fade-in-reset">
+            <div className="space-y-6 motion-safe:animate-fade-in motion-reduce:fade-in-reset">
               <div className="space-y-4">
-                <h2 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter">
                   <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">
-                    Our Products
+                    All Products
                   </span>
-                </h2>
-                <div className="h-1 w-32 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
-                <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed mt-6">
-                  Discover our complete collection of premium items
+                </h1>
+                <div className="h-1 w-24 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
+                <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                  Browse by category or explore our complete collection
                 </p>
               </div>
             </div>
@@ -140,7 +163,11 @@ export default async function ProductsPage() {
         </section>
 
         <Suspense fallback={<ProductGridFallback />}>
-          <ProductGridSection authPromise={authPromise} itemsPromise={itemsPromise} />
+          <ProductGridSection
+            authPromise={authPromise}
+            itemsPromise={itemsPromise}
+            categoriesPromise={categoriesPromise}
+          />
         </Suspense>
       </div>
     </div>
@@ -226,18 +253,21 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-3 border-t border-gray-200/60 bg-gray-50/50 p-3 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <span className="text-2xl font-bold text-green-600 text-center">
-                      ৳{item.price.toFixed(0)}<span className="text-sm font-normal text-gray-500 ml-0.5">/kg</span>
+                  <CardFooter className="flex items-center justify-between gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                      ৳{item.price.toLocaleString()}
                     </span>
-                    <div className="flex gap-2 w-full">
-                      <AddToCartButton item={item} compact className="flex-1" />
+                    <div className="flex gap-1.5 sm:gap-2">
+                      <AddToCartButton
+                        item={item}
+                        compact
+                        className="!px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs sm:!text-sm"
+                      />
                       <OrderNowButton
                         item={item}
                         isLoggedIn={!!user}
                         deliveryZone={userDeliveryZone}
                         compact
-                        className="flex-1"
                       />
                     </div>
                   </CardFooter>

@@ -79,6 +79,7 @@ export interface Config {
     'program-participants': ProgramParticipant;
     coupons: Coupon;
     'push-subscriptions': PushSubscription;
+    wishlists: Wishlist;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -98,6 +99,7 @@ export interface Config {
     'program-participants': ProgramParticipantsSelect<false> | ProgramParticipantsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'push-subscriptions': PushSubscriptionsSelect<false> | PushSubscriptionsSelect<true>;
+    wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -213,6 +215,10 @@ export interface Item {
   id: number;
   name: string;
   /**
+   * Unique product SKU/barcode for inventory tracking
+   */
+  sku?: string | null;
+  /**
    * Shown on product highlights and cards.
    */
   shortDescription?: string | null;
@@ -220,14 +226,160 @@ export interface Item {
    * Main product copy displayed on the item page.
    */
   description: string;
+  /**
+   * Current selling price
+   */
   price: number;
+  /**
+   * Original price (for showing discounts)
+   */
+  compareAtPrice?: number | null;
+  /**
+   * Track and manage product stock levels
+   */
+  inventoryManagement: {
+    /**
+     * Enable stock tracking for this product
+     */
+    trackInventory?: boolean | null;
+    /**
+     * Current stock quantity
+     */
+    stock: number;
+    /**
+     * Alert when stock falls below this
+     */
+    lowStockThreshold?: number | null;
+    /**
+     * Stock reserved for pending orders
+     */
+    reservedStock?: number | null;
+    /**
+     * Allow orders even when out of stock
+     */
+    allowBackorders?: boolean | null;
+  };
+  /**
+   * Primary product image
+   */
   image?: (number | null) | Media;
+  /**
+   * Additional product images
+   */
+  gallery?:
+    | {
+        image: number | Media;
+        /**
+         * Alt text for accessibility
+         */
+        alt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Use this for placeholder images or external image URLs. Either image or imageUrl should be provided.
    */
   imageUrl?: string | null;
+  /**
+   * Enable if product comes in different sizes, colors, etc.
+   */
+  hasVariants?: boolean | null;
+  /**
+   * Add different sizes, colors, or other variations
+   */
+  variants?:
+    | {
+        /**
+         * e.g., "Small - Red", "Large - Blue"
+         */
+        name: string;
+        /**
+         * Variant-specific SKU
+         */
+        sku?: string | null;
+        size?: ('xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' | 'free') | null;
+        /**
+         * e.g., Red, Blue, #FF0000
+         */
+        color?: string | null;
+        /**
+         * e.g., 250g, 500g, 1kg
+         */
+        weight?: string | null;
+        /**
+         * Override base price (optional)
+         */
+        price?: number | null;
+        /**
+         * Stock for this variant
+         */
+        stock: number;
+        available?: boolean | null;
+        /**
+         * Variant-specific image (optional)
+         */
+        image?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Product is available for purchase
+   */
   available?: boolean | null;
+  /**
+   * Show this product in featured sections
+   */
+  featured?: boolean | null;
   category?: (number | null) | Category;
+  /**
+   * Tags for search and filtering (comma-separated)
+   */
+  tags?: string[] | null;
+  /**
+   * Products to show in "You may also like" section
+   */
+  relatedProducts?: (number | Item)[] | null;
+  shipping?: {
+    /**
+     * Weight in grams
+     */
+    weight?: number | null;
+    /**
+     * This product ships free
+     */
+    freeShipping?: boolean | null;
+    dimensions?: {
+      /**
+       * Length in cm
+       */
+      length?: number | null;
+      /**
+       * Width in cm
+       */
+      width?: number | null;
+      /**
+       * Height in cm
+       */
+      height?: number | null;
+    };
+  };
+  /**
+   * Search engine optimization settings
+   */
+  seo?: {
+    /**
+     * SEO title (defaults to product name if empty)
+     */
+    title?: string | null;
+    /**
+     * Meta description for search engines
+     */
+    description?: string | null;
+    /**
+     * URL-friendly slug (auto-generated if empty)
+     */
+    slug?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -511,6 +663,46 @@ export interface PushSubscription {
   createdAt: string;
 }
 /**
+ * User wishlists for saving favorite products
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists".
+ */
+export interface Wishlist {
+  id: number;
+  /**
+   * The user who owns this wishlist
+   */
+  user: number | User;
+  /**
+   * Products saved to wishlist
+   */
+  items?:
+    | {
+        item: number | Item;
+        /**
+         * When this item was added to wishlist
+         */
+        addedAt?: string | null;
+        /**
+         * Notify user when this item goes on sale
+         */
+        notifyOnSale?: boolean | null;
+        /**
+         * Notify user when this item is back in stock
+         */
+        notifyOnStock?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Number of items in wishlist
+   */
+  itemCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -581,6 +773,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'push-subscriptions';
         value: number | PushSubscription;
+      } | null)
+    | ({
+        relationTo: 'wishlists';
+        value: number | Wishlist;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -686,13 +882,69 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface ItemsSelect<T extends boolean = true> {
   name?: T;
+  sku?: T;
   shortDescription?: T;
   description?: T;
   price?: T;
+  compareAtPrice?: T;
+  inventoryManagement?:
+    | T
+    | {
+        trackInventory?: T;
+        stock?: T;
+        lowStockThreshold?: T;
+        reservedStock?: T;
+        allowBackorders?: T;
+      };
   image?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        id?: T;
+      };
   imageUrl?: T;
+  hasVariants?: T;
+  variants?:
+    | T
+    | {
+        name?: T;
+        sku?: T;
+        size?: T;
+        color?: T;
+        weight?: T;
+        price?: T;
+        stock?: T;
+        available?: T;
+        image?: T;
+        id?: T;
+      };
   available?: T;
+  featured?: T;
   category?: T;
+  tags?: T;
+  relatedProducts?: T;
+  shipping?:
+    | T
+    | {
+        weight?: T;
+        freeShipping?: T;
+        dimensions?:
+          | T
+          | {
+              length?: T;
+              width?: T;
+              height?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        slug?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -864,6 +1116,25 @@ export interface PushSubscriptionsSelect<T extends boolean = true> {
       };
   userAgent?: T;
   isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wishlists_select".
+ */
+export interface WishlistsSelect<T extends boolean = true> {
+  user?: T;
+  items?:
+    | T
+    | {
+        item?: T;
+        addedAt?: T;
+        notifyOnSale?: T;
+        notifyOnStock?: T;
+        id?: T;
+      };
+  itemCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }

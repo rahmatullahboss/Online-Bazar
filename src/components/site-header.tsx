@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Menu as MenuIcon } from 'lucide-react'
+import storeConfig from '@/config/store.config'
 
 export interface SiteHeaderProps {
   variant?: 'full' | 'simple'
@@ -37,11 +38,11 @@ export function SiteHeader({
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
-                  🍿
+                  {storeConfig.emoji}
                 </span>
                 <div className="absolute inset-0 rounded-full blur-sm sm:blur-lg opacity-0 group-hover:opacity-30 sm:group-hover:opacity-40 transition-opacity duration-300 brand-glow"></div>
               </div>
-              <h1 className="text-2xl font-bold brand-text tracking-tight">Online Bazar</h1>
+              <h1 className="text-2xl font-bold brand-text tracking-tight">{storeConfig.name}</h1>
             </Link>
 
             {/* Navigation and User Actions */}
@@ -169,7 +170,7 @@ export function SiteHeader({
   return (
     <div className={`text-center ${className}`}>
       <Link href="/" className="text-2xl font-bold brand-text">
-        🍿 Online Bazar
+        {storeConfig.emoji} {storeConfig.name}
       </Link>
       {title && <h2 className="mt-6 text-3xl font-bold text-gray-900">{title}</h2>}
       {subtitle && <div className="mt-2 text-sm text-gray-600">{subtitle}</div>}

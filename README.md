@@ -1,221 +1,180 @@
-# 🛍️ Online Bazar
+# 🚀 Ecommerce White-Label Blueprint
 
-This template comes configured with the bare minimum to get started on anything you need.
-
-## Features
-
-### 🌟 Public Features (No Authentication Required)
-- **Browse Products**: View available items with images, descriptions, prices, and categories
-- **Responsive Design**: Fully responsive interface that works on desktop, tablet, and mobile devices
-- **Instant Hero Streaming**: Homepage hero renders immediately while the product grid loads asynchronously with graceful fallbacks
-
-### 👤 Authenticated User Features
-- **User Registration & Login**: Secure authentication system
-- **Place Orders**: Add snacks to cart and place orders
-- **Order History**: View personal order history with status tracking
-- **Order Tracking**: See order status (Pending, Completed, Cancelled)
-- **Cancel Pending Orders**: Cancel orders while they are still pending
-
-### 🔧 Admin Features
-- **Enhanced Admin Dashboard**: Comprehensive order management with analytics
-- **Interactive Order Management**: Real-time status updates with dropdown interface
-- **Advanced Status System**: 6-status workflow (⏳ Pending → 🔄 Processing → 📦 Shipped → ✅ Completed/❌ Cancelled/🔄 Refunded)
-- **Smart Notifications**: Toast alerts for admin actions with email confirmation
-- **Order Analytics**: Detailed statistics, sales trends, and performance metrics
-- **Inventory Management**: Complete product catalog management through Payload CMS
-- **Delivery Settings**: Configure inside/outside Dhaka delivery charges and the free-delivery threshold directly from Payload.
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Backend**: Payload CMS 3.0
-- **Database**: Neon Database (PostgreSQL)
-- **Authentication**: Built-in Payload auth + Google OAuth
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Media**: Sharp for image processing
-- **PWA**: Installable app with push notifications
-
-## User Roles
-
-### Regular Users (`role: 'user'`)
-- Can view all available snacks
-- Can place orders for snacks
-- Can view their own order history
-- Cannot modify orders once placed
-- Can cancel orders while status is pending
-
-### Admin Users (`role: 'admin'`)
-- All regular user permissions
-- Can access admin dashboard
-- Can view all orders from all customers  
-- Can update order status
-- Can manage snack inventory through CMS admin panel
-
-## Collections
-
-### Users
-- Email, first name, last name
-- Role-based authentication (user/admin)
-- Default role: 'user'
-
-### Snacks
-- Name, description, price, category
-- Image upload with media relation
-- Availability toggle
-- Categories: Chips, Candy, Cookies, Nuts, Crackers, Drinks
-
-### Orders
-- User relationship
-- Array of items (snack + quantity)
-- Total amount calculation
-- Status tracking (pending/completed/cancelled)
-- Order date tracking
-
-
-### Delivery Settings
-- Single-record collection managed by admins.
-- Fields: inside/outside Dhaka delivery charges and the free-delivery threshold.
-- Checkout and quick-order flows use these values to calculate shipping and trigger free delivery automatically.
-### Media
-- Image upload and management
-- Alt text for accessibility
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ or 20+
-- npm 9+
-- PostgreSQL database (Neon recommended)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd dyad-snacks
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-
-3. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Configure your environment variables:
-   ```env
-   PAYLOAD_SECRET=your-secret-key
-   POSTGRES_URL=your-postgres-connection-string
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to `http://localhost:3000`
-
-### First Time Setup
-
-1. **Create Admin User**: Visit `/admin` to create your first admin user
-2. **Add Products**: Use the admin panel to add items with images
-3. **Test Ordering**: Create a regular user account to test the ordering flow
-4. **Review Delivery Settings**: In Payload admin, open “Delivery Settings” to adjust charges for inside/outside Dhaka and the free-delivery threshold.
-
-## API Endpoints
-
-### Orders
-- `POST /api/orders` - Create a new order (authenticated users)
-- `PATCH /api/orders/update-status` - Update order status (admin only)
-- `POST /api/orders/cancel` - Cancel a pending order (authenticated users)
-
-### Built-in Payload Endpoints
-- `/api/users` - User management
-- `/api/snacks` - Snack management  
-- `/api/media` - Media upload/management
-- `/admin` - Admin panel access
-
-## Application Flow
-
-### For Visitors (Unauthenticated)
-1. **Homepage**: Browse all available snacks
-2. **Login Required**: Click "Login to Order" to authenticate
-3. **Registration**: Create account with first name, last name, email, password
-
-### For Regular Users
-1. **Browse & Order**: View snacks and click "Order Now"
-2. **Order Form**: Select quantity and place order
-3. **Order Confirmation**: Redirected to "My Orders" with success message
-4. **Order History**: View all personal orders with status
-
-### For Admin Users
-1. **Admin Dashboard**: Access via navigation or direct link  
-2. **Order Overview**: See statistics and all orders
-3. **Status Management**: Update order status with real-time buttons
-4. **Inventory Management**: Access full CMS admin panel
-
-## Responsive Design
-
-The application is fully responsive with breakpoints:
-- **Desktop**: 1200px+ (full grid layout, side-by-side forms)
-- **Tablet**: 768px-1199px (adapted grid, stacked layouts)
-- **Mobile**: <768px (single column, touch-friendly buttons)
-
-## Streaming & Loading States
-
-- Homepage data fetching for authentication and the product catalog now starts in parallel before any UI rendering.
-- The hero section streams right away, and the product grid resolves inside a `Suspense` boundary with a skeleton layout that prevents layout shift.
-- A matching header skeleton keeps navigation placement stable while user session data resolves.
-
-## Security Features
-
-- **Role-based Access Control**: Proper separation of user and admin permissions
-- **Authentication Required**: Protected routes for ordering and admin functions
-- **Data Validation**: Server-side validation for all order data
-- **Price Verification**: Server validates prices to prevent manipulation
-
-## Deployment
-
-### Using Payload Cloud
-1. Connect your repository to Payload Cloud
-2. Configure environment variables
-3. Deploy automatically with MongoDB and S3 storage
-
-### Using Vercel
-1. Connect repository to Vercel
-2. Configure Vercel Postgres database
-3. Set environment variables
-4. Deploy
-
-## Development Commands
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run generate:types  # Generate TypeScript types
-npm run lint         # Run ESLint
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Support
-
-For questions or issues:
-- Check the [Payload CMS documentation](https://payloadcms.com/docs)
-- Review the Next.js documentation
-- Open an issue in the repository
+A **production-ready, fully customizable** ecommerce platform built with Next.js 15, Payload CMS 3, and modern technologies. Perfect for selling to ecommerce entrepreneurs.
 
 ---
 
-**Built with ❤️ using Payload CMS and Next.js**
+## ✨ Features
+
+### Core Ecommerce
+
+- 🛍️ **Product Catalog** - Categories, variants, gallery images
+- 🛒 **Shopping Cart** - Cross-device sync, guest checkout
+- 📦 **Order Management** - 6-stage status workflow
+- 💳 **Payment Methods** - COD, bKash, Nagad (extensible)
+- 🚚 **Delivery Zones** - Inside/Outside Dhaka pricing
+- 🎟️ **Coupons** - Percentage/fixed discounts, first-order
+
+### Advanced Features
+
+- 📊 **Analytics Dashboard** - Sales, products, customers
+- 📦 **Inventory Management** - Stock tracking, low stock alerts
+- ❤️ **Wishlist** - Save favorites, notify on sale
+- 🔍 **Search & Filtering** - Full-text, category, price range
+- ⭐ **Reviews** - Verified purchase only
+- 📱 **PWA Ready** - Install as app, push notifications
+- 📧 **Email Notifications** - Bangla templates included
+- 🔄 **Abandoned Cart Recovery** - Auto email reminders
+
+### Admin Panel
+
+- 📈 **Payload CMS** - Full admin dashboard
+- 📑 **Order Export** - CSV download
+- 🖨️ **Invoice Printing** - Professional invoices
+- 👥 **Role-based Access** - Admin/User roles
+
+---
+
+## 🛠️ Quick Setup
+
+### 1. Clone & Install
+
+```bash
+git clone <repository-url> my-store
+cd my-store
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your settings (see [Configuration](#configuration)).
+
+### 3. Start Development
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000`
+
+---
+
+## ⚙️ Configuration
+
+All customization is done through environment variables and `src/config/store.config.ts`.
+
+### Essential Variables
+
+| Variable                    | Description                                           |
+| --------------------------- | ----------------------------------------------------- |
+| `NEXT_PUBLIC_STORE_NAME`    | Your store name                                       |
+| `NEXT_PUBLIC_STORE_TAGLINE` | Store tagline/slogan                                  |
+| `POSTGRES_URL`              | Database connection string                            |
+| `PAYLOAD_SECRET`            | Auth secret (generate with `openssl rand -base64 32`) |
+| `GMAIL_USER`                | Email for notifications                               |
+| `GMAIL_APP_PASSWORD`        | Gmail app password                                    |
+
+### Branding
+
+| Variable                    | Description               |
+| --------------------------- | ------------------------- |
+| `NEXT_PUBLIC_LOGO_URL`      | Path to logo image        |
+| `NEXT_PUBLIC_STORE_EMOJI`   | Fallback emoji icon       |
+| `NEXT_PUBLIC_PRIMARY_COLOR` | Primary brand color (hex) |
+
+### Contact & Social
+
+| Variable                    | Description       |
+| --------------------------- | ----------------- |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | Support email     |
+| `NEXT_PUBLIC_CONTACT_PHONE` | Phone number      |
+| `NEXT_PUBLIC_WHATSAPP`      | WhatsApp number   |
+| `NEXT_PUBLIC_FACEBOOK_URL`  | Facebook page URL |
+
+### Payment
+
+| Variable                   | Description           |
+| -------------------------- | --------------------- |
+| `NEXT_PUBLIC_BKASH_NUMBER` | bKash merchant number |
+| `NEXT_PUBLIC_NAGAD_NUMBER` | Nagad merchant number |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── (frontend)/      # Customer-facing pages
+│   ├── admin/           # Payload admin panel
+│   └── api/             # API routes
+├── collections/         # Payload CMS collections
+├── components/          # React components
+├── config/
+│   └── store.config.ts  # 👈 Main configuration
+└── lib/                 # Utilities & context
+```
+
+---
+
+## 🎨 Customization Checklist
+
+- [ ] Update `.env` with store info
+- [ ] Replace `/public/logo.png`
+- [ ] Replace `/public/favicon-round.png`
+- [ ] Replace `/public/og-image.jpg`
+- [ ] Update theme colors in `.env`
+- [ ] Configure payment numbers
+- [ ] Set up email (Gmail)
+- [ ] Configure database (Neon/Vercel Postgres)
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import in Vercel
+3. Add environment variables
+4. Deploy
+
+### Required for Production
+
+- PostgreSQL database (Neon recommended)
+- Vercel Blob storage (for images)
+- Domain configuration
+
+---
+
+## 📊 Tech Stack
+
+| Technology    | Purpose            |
+| ------------- | ------------------ |
+| Next.js 15    | Framework          |
+| React 19      | UI Library         |
+| Payload CMS 3 | Content Management |
+| Tailwind CSS  | Styling            |
+| shadcn/ui     | UI Components      |
+| PostgreSQL    | Database           |
+| Nodemailer    | Email              |
+| web-push      | Push Notifications |
+
+---
+
+## 📄 License
+
+MIT License - Use freely for commercial projects.
+
+---
+
+## 🆘 Support
+
+For setup assistance or customization requests, contact:
+
+- Email: your-support@email.com
+- WhatsApp: +880XXXXXXXXXX

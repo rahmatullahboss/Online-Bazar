@@ -8,13 +8,13 @@ import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
+import storeConfig from '@/config/store.config'
 
 export const metadata: Metadata = {
-  description:
-    'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+  description: storeConfig.description,
   title: {
-    default: 'Online Bazar',
-    template: '%s | Online Bazar',
+    default: storeConfig.name,
+    template: storeConfig.seo.titleTemplate,
   },
   icons: {
     icon: '/favicon-round.png',
@@ -22,27 +22,25 @@ export const metadata: Metadata = {
     apple: '/favicon-round.png',
   },
   openGraph: {
-    title: 'Online Bazar',
-    description:
-      'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
+    title: storeConfig.name,
+    description: storeConfig.description,
     url: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
-    siteName: 'Online Bazar',
+    siteName: storeConfig.name,
     images: [
       {
-        url: '/og-image.png',
+        url: storeConfig.seo.ogImage,
         width: 1200,
         height: 630,
-        alt: 'Online Bazar preview',
+        alt: `${storeConfig.name} preview`,
       },
     ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Online Bazar',
-    description:
-      'Experience the future of shopping with our curated collection of premium items, delivered with precision and passion.',
-    images: ['/og-image.png'],
+    title: storeConfig.name,
+    description: storeConfig.description,
+    images: [storeConfig.seo.ogImage],
   },
   other: {
     'fb:app_id': process.env.FACEBOOK_APP_ID || 'your-facebook-app-id',
@@ -69,16 +67,16 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <head>
         {/* Performance hints for mobile */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        
+
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#dc2626" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Online Bazar" />
+        <meta name="apple-mobile-web-app-title" content={storeConfig.name} />
         <link rel="apple-touch-icon" href="/favicon-192x192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
-        
+
         {/* Preconnects to speed up first requests on mobile */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         {blobHost ? (

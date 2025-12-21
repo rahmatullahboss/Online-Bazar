@@ -56,10 +56,14 @@ export const seed = async ({
             name: seed.name,
             description: seed.description,
             price: seed.price,
-            category: cat ? (cat as any).id : undefined,
+            category: cat ? (cat as { id: number }).id : undefined,
             available: seed.available,
             imageUrl: seed.imageUrl,
+            inventoryManagement: {
+              stock: 100,
+            },
           },
+          draft: false,
           req,
         })
       }),
@@ -111,7 +115,14 @@ export const seed = async ({
         })
 
     // Create sample orders with different statuses
-    const sampleOrderStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded'] as const
+    const sampleOrderStatuses = [
+      'pending',
+      'processing',
+      'shipped',
+      'completed',
+      'cancelled',
+      'refunded',
+    ] as const
 
     const paymentMethods: Array<'cod' | 'bkash' | 'nagad'> = ['cod', 'bkash', 'nagad']
 
@@ -125,7 +136,9 @@ export const seed = async ({
       const totalAmount = subtotal + shippingCharge
       const paymentMethod = paymentMethods[index % paymentMethods.length]
       const paymentSenderNumber =
-        paymentMethod === 'cod' ? undefined : `01739-41${(6661 + index).toString().padStart(4, '0')}`
+        paymentMethod === 'cod'
+          ? undefined
+          : `01739-41${(6661 + index).toString().padStart(4, '0')}`
       const paymentTransactionId = paymentMethod === 'cod' ? undefined : `TXN-SEED-${index + 1}`
 
       return payload.create({

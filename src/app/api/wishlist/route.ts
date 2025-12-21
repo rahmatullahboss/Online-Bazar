@@ -175,16 +175,33 @@ export async function DELETE(request: NextRequest) {
     }
 
     const wishlistDoc = wishlist.docs[0]
-    const currentItems = (wishlistDoc as unknown as { items: { item: unknown }[] }).items || []
+    const currentItems =
+      (
+        wishlistDoc as unknown as {
+          items: Array<{
+            item: number | { id: number }
+            addedAt?: string
+            notifyOnSale?: boolean
+            notifyOnStock?: boolean
+          }>
+        }
+      ).items || []
 
     // Filter out the item to remove
-    const updatedItems = currentItems.filter((wishlistItem) => {
-      const existingItemId =
-        typeof wishlistItem.item === 'object'
-          ? (wishlistItem.item as { id: number }).id
-          : wishlistItem.item
-      return String(existingItemId) !== String(itemId)
-    })
+    const updatedItems = currentItems
+      .filter((wishlistItem) => {
+        const existingItemId =
+          typeof wishlistItem.item === 'object'
+            ? (wishlistItem.item as { id: number }).id
+            : wishlistItem.item
+        return String(existingItemId) !== String(itemId)
+      })
+      .map((item) => ({
+        item: typeof item.item === 'object' ? (item.item as { id: number }).id : item.item,
+        addedAt: item.addedAt,
+        notifyOnSale: item.notifyOnSale,
+        notifyOnStock: item.notifyOnStock,
+      }))
 
     // Update wishlist
     const updatedWishlist = await payload.update({

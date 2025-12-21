@@ -181,102 +181,172 @@ async function HeaderSection({ authPromise }: HeaderSectionProps) {
   return <SiteHeader variant="full" user={user ?? undefined} />
 }
 
-async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSectionProps) {
-  const [authResult, items] = await Promise.all([authPromise, itemsPromise])
+async function ProductGridSection({
+  authPromise,
+  itemsPromise,
+  categoriesPromise,
+}: ProductGridSectionProps) {
+  const [authResult, items, categories] = await Promise.all([
+    authPromise,
+    itemsPromise,
+    categoriesPromise,
+  ])
   const user = authResult?.user ?? null
   const userDeliveryZone =
-    (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
+    (user as { deliveryZone?: string })?.deliveryZone === 'outside_dhaka'
+      ? 'outside_dhaka'
+      : 'inside_dhaka'
+
+  // Group items by category
+  type ItemType = (typeof items.docs)[0]
+  const itemsByCategory = new Map<string, { name: string; items: ItemType[] }>()
+
+  // Initialize categories
+  categories.docs.forEach((cat) => {
+    itemsByCategory.set(String(cat.id), { name: cat.name, items: [] })
+  })
+
+  // Add "Uncategorized" for items without category
+  itemsByCategory.set('uncategorized', { name: 'Other Products', items: [] })
+
+  // Distribute items to categories
+  items.docs.forEach((item) => {
+    const catId =
+      typeof item.category === 'object'
+        ? String((item.category as { id: number }).id)
+        : String(item.category || 'uncategorized')
+
+    if (itemsByCategory.has(catId)) {
+      itemsByCategory.get(catId)!.items.push(item)
+    } else {
+      itemsByCategory.get('uncategorized')!.items.push(item)
+    }
+  })
+
+  // Filter out empty categories
+  const categoriesWithItems = Array.from(itemsByCategory.entries()).filter(
+    ([, data]) => data.items.length > 0,
+  )
+
+  const renderProductCard = (item: ItemType, index: number) => (
+    <Card
+      key={item.id}
+      className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="relative z-10 h-full flex flex-col">
+        <Link href={`/item/${item.id}`} className="block">
+          {((item.image && typeof item.image === 'object') || item.imageUrl) && (
+            <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
+              <Image
+                src={
+                  item.image && typeof item.image === 'object'
+                    ? (item.image as { url: string }).url
+                    : item.imageUrl || ''
+                }
+                alt={
+                  (item.image && typeof item.image === 'object'
+                    ? (item.image as { alt?: string }).alt
+                    : undefined) || item.name
+                }
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
+                priority={index < 4}
+              />
+            </div>
+          )}
+
+          <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+            <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
+              {item.name}
+            </CardTitle>
+            <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
+              {item.shortDescription ?? item.description}
+            </CardDescription>
+          </CardHeader>
+        </Link>
+
+        <CardFooter className="flex items-center justify-between gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
+          <span className="text-xl sm:text-2xl font-bold text-gray-900">
+            ৳{item.price.toLocaleString()}
+          </span>
+          <div className="flex gap-1.5 sm:gap-2">
+            <AddToCartButton
+              item={{
+                id: String(item.id),
+                name: item.name,
+                price: item.price,
+                image:
+                  item.image && typeof item.image === 'object'
+                    ? {
+                        url: (item.image as { url: string }).url,
+                        alt: (item.image as { alt?: string }).alt,
+                      }
+                    : undefined,
+                imageUrl: item.imageUrl || undefined,
+              }}
+              compact
+              className="!px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs sm:!text-sm"
+            />
+            <OrderNowButton
+              item={{
+                id: String(item.id),
+                name: item.name,
+                price: item.price,
+                image:
+                  item.image && typeof item.image === 'object'
+                    ? {
+                        url: (item.image as { url: string }).url,
+                        alt: (item.image as { alt?: string }).alt,
+                      }
+                    : undefined,
+                imageUrl: item.imageUrl || undefined,
+              }}
+              isLoggedIn={!!user}
+              deliveryZone={userDeliveryZone}
+              compact
+            />
+          </div>
+        </CardFooter>
+      </div>
+    </Card>
+  )
 
   return (
-    <div className="container mx-auto px-2 py-8 sm:px-6 sm:py-16 lg:px-8">
-      {/* Online Bazar Grid */}
-      <section className="space-y-6 sm:space-y-12">
-        {items.docs.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="space-y-4">
-              <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
-                <span className="text-3xl">🔄</span>
-              </div>
-              <p className="text-gray-600 text-xl">New experiences loading...</p>
+    <div className="container mx-auto px-2 py-8 sm:px-6 sm:py-12 lg:px-8">
+      {items.docs.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="space-y-4">
+            <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-rose-400 rounded-full mx-auto flex items-center justify-center">
+              <span className="text-3xl">🔄</span>
             </div>
+            <p className="text-gray-600 text-xl">New experiences loading...</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.docs.map((item: any, index: number) => (
-              <Card
-                key={item.id}
-                className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative z-10 h-full flex flex-col">
-                  <Link href={`/item/${item.id}`} className="block">
-                    {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-                      <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
-                        <Image
-                          src={
-                            item.image && typeof item.image === 'object'
-                              ? item.image.url
-                              : item.imageUrl
-                          }
-                          alt={
-                            (item.image && typeof item.image === 'object'
-                              ? item.image.alt
-                              : undefined) || item.name
-                          }
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
-                          priority={index < 2}
-                        />
-
-                        {/* Floating Badge */}
-                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-                          <Badge
-                            variant="secondary"
-                            className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
-                          >
-                            {typeof item.category === 'object'
-                              ? (item.category as any)?.name
-                              : item.category}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-
-                    <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
-                      <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
-                        {item.name}
-                      </CardTitle>
-                      <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
-                        {item.shortDescription ?? item.description}
-                      </CardDescription>
-                    </CardHeader>
-                  </Link>
-
-                  <CardFooter className="flex items-center justify-between gap-2 border-t border-gray-100 bg-white p-3 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                      ৳{item.price.toLocaleString()}
-                    </span>
-                    <div className="flex gap-1.5 sm:gap-2">
-                      <AddToCartButton
-                        item={item}
-                        compact
-                        className="!px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs sm:!text-sm"
-                      />
-                      <OrderNowButton
-                        item={item}
-                        isLoggedIn={!!user}
-                        deliveryZone={userDeliveryZone}
-                        compact
-                      />
-                    </div>
-                  </CardFooter>
+        </div>
+      ) : (
+        <div className="space-y-12 sm:space-y-16">
+          {categoriesWithItems.map(([catId, { name, items: categoryItems }]) => (
+            <section key={catId} className="space-y-4 sm:space-y-6">
+              {/* Category Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 bg-gradient-to-b from-amber-400 to-rose-400 rounded-full"></div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{name}</h2>
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                    {categoryItems.length} items
+                  </Badge>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+              </div>
+
+              {/* Products Grid */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                {categoryItems.map((item, index) => renderProductCard(item, index))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -128,7 +128,11 @@ async function seedDatabase() {
           imageUrl: item.imageUrl,
           category: categories[item.category],
           available: true,
+          inventoryManagement: {
+            stock: 100,
+          },
         },
+        draft: false,
       })
       console.log('✅ Created item:', item.name, `(৳${item.price})`)
     } else {

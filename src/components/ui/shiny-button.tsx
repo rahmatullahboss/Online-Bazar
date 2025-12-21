@@ -10,6 +10,8 @@ const shinyButtonVariants = cva(
       variant: {
         default:
           'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-lg shadow-amber-500/25 hover:from-amber-600 hover:to-rose-600 border-0 transition-colors duration-200 hover:shadow-xl',
+        solid:
+          'bg-amber-500 text-white shadow-md hover:bg-amber-600 border-0 transition-colors duration-200',
         destructive:
           'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700 border-0 transition-colors duration-200 hover:shadow-xl',
         outline:
@@ -34,8 +36,7 @@ const shinyButtonVariants = cva(
 )
 
 interface ShinyButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof shinyButtonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof shinyButtonVariants> {
   asChild?: boolean
 }
 

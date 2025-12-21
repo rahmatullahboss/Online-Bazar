@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { getPayload, Where } from 'payload'
 import config from '@/payload.config'
 
 interface SearchParams {
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause
-    const where: Record<string, unknown> = {}
-    const andConditions: Record<string, unknown>[] = []
+    let where: Where | undefined = undefined
+    const andConditions: Where[] = []
 
     // Text search on name and description
     if (params.q && params.q.trim()) {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     // Combine conditions
     if (andConditions.length > 0) {
-      where.and = andConditions
+      where = { and: andConditions }
     }
 
     // Build sort
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     // Execute search
     const results = await payload.find({
       collection: 'items',
-      where: Object.keys(where).length > 0 ? where : undefined,
+      where,
       sort,
       page: Math.max(1, params.page || 1),
       limit: Math.min(100, Math.max(1, params.limit || 20)),

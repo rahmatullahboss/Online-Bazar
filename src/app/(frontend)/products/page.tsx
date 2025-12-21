@@ -250,10 +250,22 @@ async function ProductGridSection({
                     : undefined) || item.name
                 }
                 fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
                 priority={index < 4}
               />
+
+              {/* Floating Category Badge */}
+              <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
+                >
+                  {typeof item.category === 'object'
+                    ? (item.category as { name: string })?.name
+                    : 'Product'}
+                </Badge>
+              </div>
             </div>
           )}
 
@@ -325,27 +337,49 @@ async function ProductGridSection({
           </div>
         </div>
       ) : (
-        <div className="space-y-12 sm:space-y-16">
-          {categoriesWithItems.map(([catId, { name, items: categoryItems }]) => (
-            <section key={catId} className="space-y-4 sm:space-y-6">
-              {/* Category Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-gradient-to-b from-amber-400 to-rose-400 rounded-full"></div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{name}</h2>
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-600">
-                    {categoryItems.length} items
-                  </Badge>
-                </div>
-              </div>
+        <>
+          {/* Category Quick Navigation */}
+          <div className="sticky top-20 z-30 mb-8 -mx-2 sm:-mx-6 lg:-mx-8 px-2 sm:px-6 lg:px-8 py-3 bg-white/80 backdrop-blur-xl border-b border-gray-200/60">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {categoriesWithItems.map(([catId, { name, items: categoryItems }]) => (
+                <a
+                  key={catId}
+                  href={`#category-${catId}`}
+                  className="flex-shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-rose-50 hover:from-amber-100 hover:to-rose-100 border border-amber-200/60 text-sm font-medium text-gray-700 hover:text-amber-700 transition-all"
+                >
+                  {name}
+                  <span className="ml-1.5 text-gray-400">({categoryItems.length})</span>
+                </a>
+              ))}
+            </div>
+          </div>
 
-              {/* Products Grid */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-                {categoryItems.map((item, index) => renderProductCard(item, index))}
-              </div>
-            </section>
-          ))}
-        </div>
+          <div className="space-y-12 sm:space-y-16">
+            {categoriesWithItems.map(([catId, { name, items: categoryItems }]) => (
+              <section
+                key={catId}
+                id={`category-${catId}`}
+                className="space-y-4 sm:space-y-6 scroll-mt-40"
+              >
+                {/* Category Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-1 bg-gradient-to-b from-amber-400 to-rose-400 rounded-full"></div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{name}</h2>
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                      {categoryItems.length} items
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Products Grid - Same as Homepage */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {categoryItems.map((item, index) => renderProductCard(item, index))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

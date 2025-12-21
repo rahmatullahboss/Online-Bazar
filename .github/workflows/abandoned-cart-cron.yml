@@ -4,8 +4,8 @@ on:
   schedule:
     # Run cleanup every hour at minute 0
     - cron: '0 * * * *'
-    # Run reminders at 2 AM UTC daily
-    - cron: '0 2 * * *'
+    # Run recovery emails every 15 minutes
+    - cron: '*/15 * * * *'
   workflow_dispatch: # Allow manual trigger
     inputs:
       job_type:
@@ -15,7 +15,7 @@ on:
         type: choice
         options:
           - cleanup
-          - reminders
+          - recovery
           - both
 
 env:
@@ -25,7 +25,7 @@ env:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event.inputs.job_type == 'cleanup' || github.event.inputs.job_type == 'both'
+    if: (github.event_name == 'schedule' && github.event.schedule == '0 * * * *') || github.event.inputs.job_type == 'cleanup' || github.event.inputs.job_type == 'both'
     steps:
       - name: Trigger Abandoned Cart Cleanup
         run: |
@@ -34,37 +34,39 @@ jobs:
             "${{ env.SERVER_URL }}/api/abandoned-carts/cleanup?secret=${{ env.CRON_SECRET }}&ttlMinutes=30" \
             -H "Content-Type: application/json" \
             -H "x-cron-secret: ${{ env.CRON_SECRET }}")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "Response: $body"
           echo "Status: $http_code"
-          
+
           if [ "$http_code" != "200" ]; then
             echo "Cleanup failed with status $http_code"
             exit 1
           fi
 
-  reminders:
+  recovery:
     runs-on: ubuntu-latest
-    # Only run reminders job once daily (at 2 AM UTC)
-    if: (github.event_name == 'schedule' && github.event.schedule == '0 2 * * *') || github.event.inputs.job_type == 'reminders' || github.event.inputs.job_type == 'both'
+    # Run recovery every 15 minutes
+    if: (github.event_name == 'schedule' && github.event.schedule == '*/15 * * * *') || github.event.inputs.job_type == 'recovery' || github.event.inputs.job_type == 'both'
     steps:
       - name: Trigger Recovery Email Reminders
         run: |
-          echo "Triggering recovery email reminders..."
+          echo "Triggering abandoned cart recovery emails..."
           response=$(curl -s -w "\n%{http_code}" -X GET \
-            "${{ env.SERVER_URL }}/api/abandoned-carts/reminders?secret=${{ env.CRON_SECRET }}" \
+            "${{ env.SERVER_URL }}/api/cron/abandoned-cart-recovery?secret=${{ env.CRON_SECRET }}" \
             -H "x-cron-secret: ${{ env.CRON_SECRET }}")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "Response: $body"
           echo "Status: $http_code"
-          
+
           if [ "$http_code" != "200" ]; then
-            echo "Reminders failed with status $http_code"
+            echo "Recovery failed with status $http_code"
             exit 1
           fi
+
+          echo "✅ Abandoned cart recovery completed"

@@ -18,7 +18,6 @@ import {
 
 import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
-import ProfileForm from './profile-form'
 import { Badge } from '@/components/ui/badge'
 import { ShinyButton } from '@/components/ui/shiny-button'
 
@@ -245,14 +244,22 @@ export default async function ProfilePage() {
           </div>
         )}
 
-        {/* Profile Form */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-5 flex items-center gap-2">
-            <User className="w-5 h-5 text-amber-500" />
-            Profile Settings
-          </h2>
-          <ProfileForm user={user} />
-        </div>
+        {/* Profile Settings Link */}
+        <Link
+          href="/profile/edit"
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6 flex items-center justify-between hover:shadow-md hover:border-amber-200 transition-all group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center group-hover:from-amber-200 group-hover:to-rose-200 transition-colors">
+              <User className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">Edit Profile</h2>
+              <p className="text-sm text-gray-500">Update your personal information & address</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+        </Link>
 
         {/* Sign Out */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">

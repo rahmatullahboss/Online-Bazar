@@ -6,10 +6,9 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 
 import config from '@/payload.config'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AddToCartButton } from '@/components/add-to-cart-button'
-import { OrderNowButton } from '@/components/order-now-button'
+import { ProductCardFooter } from '@/components/product-card-footer'
 import { SiteHeader } from '@/components/site-header'
 import { SITE_NAME } from '@/lib/site-config'
 
@@ -228,34 +227,11 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                     </CardHeader>
                   </Link>
 
-                  <CardFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 border-t border-gray-100 bg-white p-2.5 sm:p-4 rounded-b-xl sm:rounded-b-3xl mt-auto">
-                    {/* First row on mobile: Price + Add button */}
-                    <div className="flex items-center justify-between w-full sm:w-auto sm:gap-2">
-                      <span className="text-lg sm:text-2xl font-bold text-gray-900">
-                        ৳{item.price.toLocaleString()}
-                      </span>
-                      <AddToCartButton
-                        item={item}
-                        compact
-                        className="sm:hidden !px-3 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs"
-                      />
-                    </div>
-                    {/* Second row on mobile: Full width Order button */}
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <AddToCartButton
-                        item={item}
-                        compact
-                        className="hidden sm:flex !px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-sm"
-                      />
-                      <OrderNowButton
-                        item={item}
-                        isLoggedIn={!!user}
-                        deliveryZone={userDeliveryZone}
-                        compact
-                        wrapperClassName="w-full sm:w-auto"
-                      />
-                    </div>
-                  </CardFooter>
+                  <ProductCardFooter
+                    item={item}
+                    isLoggedIn={!!user}
+                    deliveryZone={userDeliveryZone}
+                  />
                 </div>
               </Card>
             ))}

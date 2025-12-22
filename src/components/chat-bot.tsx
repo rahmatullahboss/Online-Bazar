@@ -30,37 +30,63 @@ function generateSessionId() {
   return `chat_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 }
 
-// Parse products from AI text response
-function parseProductsFromText(text: string): { cleanText: string; products: Product[] } {
-  // Updated regex to handle ৳ symbol and URLs with colons
-  // Format: [PRODUCT:id:name:price:category:inStock:imageUrl]
+// Content segment type for interleaving text and products
+type ContentSegment = { type: 'text'; content: string } | { type: 'product'; product: Product }
+
+// Parse products from AI text response - returns segments in order
+function parseProductsFromText(text: string): ContentSegment[] {
   const productRegex = /\[PRODUCT:([^:]+):([^:]+):৳?(\d+):([^:]+):(true|false):([^\]]*)\]/g
-  const products: Product[] = []
+  const segments: ContentSegment[] = []
+  let lastIndex = 0
   let match
 
   while ((match = productRegex.exec(text)) !== null) {
-    products.push({
-      id: match[1],
-      name: match[2],
-      price: parseInt(match[3], 10),
-      category: match[4],
-      inStock: match[5] === 'true',
-      imageUrl: match[6] || null,
+    // Add text before this product
+    const textBefore = text.slice(lastIndex, match.index)
+    const cleanedText = textBefore
+      .replace(/^\s*\*\s*$/gm, '')
+      .replace(/^\s*[-*]\s*$/gm, '')
+      .replace(/\*{2,}/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+
+    if (cleanedText) {
+      segments.push({ type: 'text', content: cleanedText })
+    }
+
+    // Add the product
+    segments.push({
+      type: 'product',
+      product: {
+        id: match[1],
+        name: match[2],
+        price: parseInt(match[3], 10),
+        category: match[4],
+        inStock: match[5] === 'true',
+        imageUrl: match[6] || null,
+      },
     })
+
+    lastIndex = match.index + match[0].length
   }
 
-  const cleanText = text
-    .replace(productRegex, '') // Remove product tags
-    .replace(/\[PRODUCT:[^\]]+\]/g, '') // Remove any remaining product tags
-    .replace(/^\s*\*\s*$/gm, '') // Remove lines with only asterisk
-    .replace(/^\s*[-*]\s*$/gm, '') // Remove empty bullet points
-    .replace(/\*{2,}/g, '') // Remove multiple asterisks
-    .replace(/\n{3,}/g, '\n\n') // Collapse multiple newlines
-    .replace(/^\n+/, '') // Remove leading newlines
-    .replace(/\n+$/, '') // Remove trailing newlines
+  // Add any remaining text after the last product
+  const remainingText = text.slice(lastIndex)
+  const cleanedRemaining = remainingText
+    .replace(/\[PRODUCT:[^\]]+\]/g, '')
+    .replace(/^\s*\*\s*$/gm, '')
+    .replace(/^\s*[-*]\s*$/gm, '')
+    .replace(/\*{2,}/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/^\n+/, '')
+    .replace(/\n+$/, '')
     .trim()
 
-  return { cleanText, products }
+  if (cleanedRemaining) {
+    segments.push({ type: 'text', content: cleanedRemaining })
+  }
+
+  return segments
 }
 
 // Product Card Component
@@ -266,26 +292,34 @@ export function ChatBot() {
     }
   }
 
-  // Render message content with product cards
+  // Render message content with product cards inline
   const renderMessageContent = (message: (typeof messages)[0]) => {
     const textContent = message.parts
       .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
       .map((part) => part.text)
       .join('')
 
-    const { cleanText, products } = parseProductsFromText(textContent)
+    const segments = parseProductsFromText(textContent)
 
     return (
-      <>
-        {cleanText && <p className="whitespace-pre-wrap">{cleanText}</p>}
-        {products.length > 0 && (
-          <div className="mt-2 space-y-2">
-            {products.map((product, idx) => (
-              <ChatProductCard key={`${product.id}-${idx}`} product={product} />
-            ))}
-          </div>
-        )}
-      </>
+      <div className="space-y-2">
+        {segments.map((segment, idx) => {
+          if (segment.type === 'text') {
+            return (
+              <p key={`text-${idx}`} className="whitespace-pre-wrap">
+                {segment.content}
+              </p>
+            )
+          } else {
+            return (
+              <ChatProductCard
+                key={`product-${segment.product.id}-${idx}`}
+                product={segment.product}
+              />
+            )
+          }
+        })}
+      </div>
     )
   }
 

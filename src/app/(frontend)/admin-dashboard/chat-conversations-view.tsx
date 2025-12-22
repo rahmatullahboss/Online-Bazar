@@ -12,11 +12,13 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -127,19 +129,28 @@ export function ChatConversationsView() {
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-3">
+            <Link href="/admin-dashboard/chat-inbox">
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open Full Inbox
+              </Button>
+            </Link>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search conversations..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent w-64"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent w-40"
               />
             </div>
             <Button variant="outline" size="sm" onClick={fetchConversations} disabled={loading}>
-              <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
-              Refresh
+              <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
             </Button>
           </div>
         </div>

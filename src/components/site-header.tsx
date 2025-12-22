@@ -1,16 +1,29 @@
+'use client'
+
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { CartButton } from '@/components/cart-button'
 import { LogoutButton } from '@/components/logout-button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Menu as MenuIcon } from 'lucide-react'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet'
+import {
+  Menu as MenuIcon,
+  Package,
+  FileText,
+  User,
+  ShoppingBag,
+  Settings,
+  LogIn,
+  UserPlus,
+  ShoppingCart,
+} from 'lucide-react'
 import storeConfig from '@/config/store.config'
 
 export interface SiteHeaderProps {
@@ -72,40 +85,83 @@ export function SiteHeader({
                       </Button>
                     )}
                   </div>
-                  {/* Mobile menu */}
+                  {/* Mobile Sidebar Menu */}
                   <div className="sm:hidden">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                    <Sheet>
+                      <SheetTrigger asChild>
                         <Button variant="outline" size="sm" aria-label="Open menu">
                           <MenuIcon className="h-5 w-5" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        {/* Updated Products link for mobile menu (logged-in users) */}
-                        <DropdownMenuItem asChild>
-                          <Link href="/products">Products</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/blog">Blog</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/profile">Profile</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/my-orders">My Orders</Link>
-                        </DropdownMenuItem>
-                        {user.role === 'admin' && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin-dashboard">Admin</Link>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/checkout">Checkout</Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-[280px] p-0">
+                        <SheetHeader className="border-b border-gray-200 p-4">
+                          <SheetTitle className="flex items-center gap-2">
+                            <span className="text-2xl">{storeConfig.emoji}</span>
+                            <span className="font-bold brand-text">{storeConfig.name}</span>
+                          </SheetTitle>
+                        </SheetHeader>
+                        <nav className="flex flex-col p-4 gap-1">
+                          <SheetClose asChild>
+                            <Link
+                              href="/products"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <Package className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Products</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              href="/blog"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <FileText className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Blog</span>
+                            </Link>
+                          </SheetClose>
+                          <div className="my-2 border-t border-gray-200" />
+                          <SheetClose asChild>
+                            <Link
+                              href="/profile"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <User className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Profile</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              href="/my-orders"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <ShoppingBag className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">My Orders</span>
+                            </Link>
+                          </SheetClose>
+                          {user.role === 'admin' && (
+                            <SheetClose asChild>
+                              <Link
+                                href="/admin-dashboard"
+                                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <Settings className="h-5 w-5 text-gray-500" />
+                                <span className="font-medium">Admin</span>
+                              </Link>
+                            </SheetClose>
+                          )}
+                          <div className="my-2 border-t border-gray-200" />
+                          <SheetClose asChild>
+                            <Link
+                              href="/checkout"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <ShoppingCart className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Checkout</span>
+                            </Link>
+                          </SheetClose>
+                        </nav>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                   <CartButton />
                   <LogoutButton />
@@ -127,32 +183,62 @@ export function SiteHeader({
                       <Link href="/register">Sign Up</Link>
                     </Button>
                   </div>
-                  {/* Mobile menu for guests */}
+                  {/* Mobile Sidebar Menu for guests */}
                   <div className="sm:hidden">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                    <Sheet>
+                      <SheetTrigger asChild>
                         <Button variant="outline" size="sm" aria-label="Open menu">
                           <MenuIcon className="h-5 w-5" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        {/* Updated Products link for mobile menu (guest users) */}
-                        <DropdownMenuItem asChild>
-                          <Link href="/products">Products</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/blog">Blog</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/login">Sign In</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/register">Sign Up</Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-[280px] p-0">
+                        <SheetHeader className="border-b border-gray-200 p-4">
+                          <SheetTitle className="flex items-center gap-2">
+                            <span className="text-2xl">{storeConfig.emoji}</span>
+                            <span className="font-bold brand-text">{storeConfig.name}</span>
+                          </SheetTitle>
+                        </SheetHeader>
+                        <nav className="flex flex-col p-4 gap-1">
+                          <SheetClose asChild>
+                            <Link
+                              href="/products"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <Package className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Products</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              href="/blog"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <FileText className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Blog</span>
+                            </Link>
+                          </SheetClose>
+                          <div className="my-2 border-t border-gray-200" />
+                          <SheetClose asChild>
+                            <Link
+                              href="/login"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <LogIn className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Sign In</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              href="/register"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <UserPlus className="h-5 w-5 text-gray-500" />
+                              <span className="font-medium">Sign Up</span>
+                            </Link>
+                          </SheetClose>
+                        </nav>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                   {/* Cart available for guests too */}
                   <CartButton />

@@ -50,34 +50,36 @@ async function getAllProducts(): Promise<ProductInfo[]> {
   }
 }
 
-// Generate system prompt with product data
+// Generate system prompt with product data including IDs
 function generateSystemPrompt(products: ProductInfo[]) {
   const productList = products
     .slice(0, 30)
-    .map((p) => `- ${p.name}: ৳${p.price} (${p.category}) ${p.inStock ? '✓ In Stock' : '✗ Out'}`)
+    .map(
+      (p) =>
+        `- ID:${p.id} | ${p.name} | ৳${p.price} | ${p.category} | ${p.inStock ? 'In Stock' : 'Out'} | Image:${p.imageUrl || 'none'}`,
+    )
     .join('\n')
 
   return `You are a helpful customer support assistant for "Online Bazar" e-commerce store.
 
-IMPORTANT: When users ask about products, include the product details in your response like this:
+CRITICAL: When showing products, you MUST use the EXACT format with REAL product IDs from the list below:
 [PRODUCT:id:name:price:category:inStock:imageUrl]
 
-For example: [PRODUCT:abc123:Honey:500:Food:true:/images/honey.jpg]
+Example: [PRODUCT:67890:মধু:500:Food:true:/media/honey.jpg]
 
-AVAILABLE PRODUCTS:
+PRODUCT DATABASE (use these EXACT IDs):
 ${productList}
 
 Rules:
-1. Use Bengali when the user writes in Bengali, otherwise use English
-2. Be friendly, helpful, and concise
-3. When showing products, always include the [PRODUCT:...] format
-4. Show up to 3-5 relevant products
+1. Use Bengali when user writes in Bengali, otherwise English
+2. Be friendly and concise
+3. ALWAYS use the [PRODUCT:...] format with EXACT IDs from above
+4. Show 1-5 relevant products
 
 Store Info:
 - Delivery: Inside and outside Dhaka
 - Payment: bKash, Nagad, Cash on Delivery
-- Processing: 1-2 business days
-- Order tracking: "My Orders" section`
+- Processing: 1-2 business days`
 }
 
 export async function POST(req: Request) {

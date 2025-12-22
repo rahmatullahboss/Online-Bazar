@@ -3,12 +3,15 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react'
+import { MessageCircle, X, Send, Bot, User, Loader2, Users, Phone } from 'lucide-react'
+import { FaFacebookMessenger, FaWhatsapp } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
+import { CONTACT_WHATSAPP, SOCIAL_FACEBOOK, CONTACT_PHONE_RAW } from '@/lib/site-config'
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
+  const [showHumanOptions, setShowHumanOptions] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { messages, sendMessage, status } = useChat({
@@ -19,18 +22,26 @@ export function ChatBot() {
 
   const isLoading = status === 'streaming' || status === 'submitted'
 
+  // Listen for custom event to open chatbot
+  useEffect(() => {
+    const handleOpenChatbot = () => setIsOpen(true)
+    window.addEventListener('open-chatbot', handleOpenChatbot)
+    return () => window.removeEventListener('open-chatbot', handleOpenChatbot)
+  }, [])
+
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages])
+  }, [messages, showHumanOptions])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && status === 'ready') {
       sendMessage({ text: input })
       setInput('')
+      setShowHumanOptions(false)
     }
   }
 
@@ -40,6 +51,20 @@ export function ChatBot() {
       .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
       .map((part) => part.text)
       .join('')
+  }
+
+  // Generate WhatsApp link
+  const getWhatsAppLink = () => {
+    const message = encodeURIComponent('হ্যালো, আমি Online Bazar থেকে সাহায্য চাই।')
+    return `https://wa.me/${CONTACT_WHATSAPP.replace(/[^0-9]/g, '')}?text=${message}`
+  }
+
+  // Generate Messenger link
+  const getMessengerLink = () => {
+    // Extract page username from Facebook URL
+    const fbUrl = SOCIAL_FACEBOOK || 'https://www.facebook.com/onlinebazarbarguna'
+    const pageId = fbUrl.split('/').pop() || 'onlinebazarbarguna'
+    return `https://m.me/${pageId}`
   }
 
   return (
@@ -91,7 +116,7 @@ export function ChatBot() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] max-h-[400px]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] max-h-[350px]">
             {messages.length === 0 && (
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-amber-100 to-rose-100 flex items-center justify-center">
@@ -152,7 +177,60 @@ export function ChatBot() {
               </div>
             )}
 
+            {/* Human Handoff Options */}
+            {showHumanOptions && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-blue-600" />
+                  <p className="text-sm font-medium text-blue-800">Connect with Human Agent</p>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <a
+                    href={getMessengerLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-[#0084FF] text-white px-4 py-2.5 rounded-lg hover:bg-[#0073E6] transition-colors text-sm font-medium"
+                  >
+                    <FaFacebookMessenger className="w-4 h-4" />
+                    Facebook Messenger
+                  </a>
+                  <a
+                    href={getWhatsAppLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-[#25D366] text-white px-4 py-2.5 rounded-lg hover:bg-[#1DA851] transition-colors text-sm font-medium"
+                  >
+                    <FaWhatsapp className="w-4 h-4" />
+                    WhatsApp
+                  </a>
+                  <a
+                    href={`tel:${CONTACT_PHONE_RAW}`}
+                    className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Call Us
+                  </a>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
+          </div>
+
+          {/* Talk to Human Button */}
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => setShowHumanOptions(!showHumanOptions)}
+              className={cn(
+                'w-full py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2',
+                showHumanOptions
+                  ? 'bg-gray-100 text-gray-600'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100',
+              )}
+            >
+              <Users className="w-3.5 h-3.5" />
+              {showHumanOptions ? 'Close Options' : 'Talk to Human Agent'}
+            </button>
           </div>
 
           {/* Input */}

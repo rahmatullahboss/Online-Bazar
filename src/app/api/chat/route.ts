@@ -35,7 +35,6 @@ async function testApiKey(apiKey: string): Promise<boolean> {
     await generateText({
       model: google('gemini-2.0-flash'),
       prompt: 'Hi',
-      maxTokens: 5,
     })
     return true
   } catch {
@@ -163,7 +162,7 @@ export async function POST(req: Request) {
   // Use the working key for streaming
   const google = createProvider(workingKey)
   const result = streamText({
-    model: google('gemini-2.5-flash'),
+    model: google('gemini-2.0-flash'),
     system: systemPrompt,
     messages: enhancedMessages,
   })

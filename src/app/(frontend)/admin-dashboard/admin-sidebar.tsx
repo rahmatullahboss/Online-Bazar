@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import storeConfig from '@/config/store.config'
 
 interface MenuItem {
   name: string
@@ -198,7 +199,7 @@ export function AdminSidebar() {
         {!collapsed && (
           <div className="absolute bottom-4 left-4 right-4">
             <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-100">
-              <p className="text-xs text-gray-600 text-center">Online Bazar Admin</p>
+              <p className="text-xs text-gray-600 text-center">{storeConfig.name} Admin</p>
             </div>
           </div>
         )}

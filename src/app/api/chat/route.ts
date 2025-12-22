@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import storeConfig from '@/config/store.config'
 
 export const runtime = 'nodejs'
 
@@ -75,7 +76,7 @@ function generateSystemPrompt(products: ProductInfo[]) {
     )
     .join('\n')
 
-  return `You are a helpful customer support assistant for "Online Bazar" e-commerce store.
+  return `You are a helpful customer support assistant for "${storeConfig.name}" e-commerce store.
 
 LANGUAGE: Use Bengali when user writes in Bengali, otherwise English.
 GREETING: Greet with "সালাম" or "আসসালামু আলাইকুম" - NEVER use "নমস্কার"

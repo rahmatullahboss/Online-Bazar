@@ -58,6 +58,13 @@ export default async function AbandonedCartsPage({
     where: whereClause,
   })
 
+  // Filter carts - only show those with customer info OR items
+  const filteredCarts = carts.docs.filter((cart: any) => {
+    const hasCustomerInfo = cart.customerName || cart.customerEmail || cart.customerNumber
+    const hasItems = cart.items && cart.items.length > 0
+    return hasCustomerInfo || hasItems
+  })
+
   // Get stats for all statuses
   const allCarts = await payload.find({
     collection: 'abandoned-carts',
@@ -65,9 +72,16 @@ export default async function AbandonedCartsPage({
     limit: 500,
   })
 
-  const activeCarts = allCarts.docs.filter((c: any) => c.status === 'active')
-  const abandonedCarts = allCarts.docs.filter((c: any) => c.status === 'abandoned')
-  const recoveredCarts = allCarts.docs.filter((c: any) => c.status === 'recovered')
+  // Filter for stats too
+  const cartsWithInfo = allCarts.docs.filter((c: any) => {
+    const hasCustomerInfo = c.customerName || c.customerEmail || c.customerNumber
+    const hasItems = c.items && c.items.length > 0
+    return hasCustomerInfo || hasItems
+  })
+
+  const activeCarts = cartsWithInfo.filter((c: any) => c.status === 'active')
+  const abandonedCarts = cartsWithInfo.filter((c: any) => c.status === 'abandoned')
+  const recoveredCarts = cartsWithInfo.filter((c: any) => c.status === 'recovered')
 
   // Calculate potential revenue
   const potentialRevenue = abandonedCarts.reduce(
@@ -239,7 +253,7 @@ export default async function AbandonedCartsPage({
         </div>
 
         {/* Carts List */}
-        {carts.docs.length === 0 ? (
+        {filteredCarts.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -248,7 +262,7 @@ export default async function AbandonedCartsPage({
           </Card>
         ) : (
           <div className="space-y-4">
-            {carts.docs.map((cart: any) => (
+            {filteredCarts.map((cart: any) => (
               <Card
                 key={cart.id}
                 className={`overflow-hidden ${
@@ -289,6 +303,35 @@ export default async function AbandonedCartsPage({
                           Last activity: {formatTime(cart.lastActivityAt)}
                         </span>
                       </p>
+                      {/* Customer Details */}
+                      {(cart.customerName || cart.customerEmail || cart.customerNumber) && (
+                        <div className="mt-2 p-2 bg-white/50 rounded-lg border border-gray-100">
+                          <p className="text-xs font-medium text-gray-600 mb-1">Customer Info:</p>
+                          <div className="flex flex-wrap gap-3 text-sm">
+                            {cart.customerName && (
+                              <span className="text-gray-900 font-medium">
+                                👤 {cart.customerName}
+                              </span>
+                            )}
+                            {cart.customerEmail && (
+                              <a
+                                href={`mailto:${cart.customerEmail}`}
+                                className="text-blue-600 hover:underline"
+                              >
+                                ✉️ {cart.customerEmail}
+                              </a>
+                            )}
+                            {cart.customerNumber && (
+                              <a
+                                href={`tel:${cart.customerNumber}`}
+                                className="text-green-600 hover:underline"
+                              >
+                                📞 {cart.customerNumber}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     {cart.status === 'recovered' && cart.recoveredOrder && (
                       <Button asChild variant="outline" size="sm">

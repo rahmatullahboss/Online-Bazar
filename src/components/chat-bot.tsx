@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, X, Send, Bot, User, Loader2, Users, Phone } from 'lucide-react'
+import { X, Send, Bot, User, Loader2, Users, Phone } from 'lucide-react'
 import { FaFacebookMessenger, FaWhatsapp } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
 import { CONTACT_WHATSAPP, SOCIAL_FACEBOOK, CONTACT_PHONE_RAW } from '@/lib/site-config'
@@ -69,22 +69,6 @@ export function ChatBot() {
 
   return (
     <>
-      {/* Floating Chat Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6',
-          'w-14 h-14 rounded-full shadow-lg',
-          'bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600',
-          'flex items-center justify-center',
-          'transition-all duration-300 hover:scale-110',
-          isOpen && 'scale-0 opacity-0',
-        )}
-        aria-label="Open chat"
-      >
-        <MessageCircle className="w-6 h-6 text-white" />
-      </button>
-
       {/* Chat Window */}
       <div
         className={cn(

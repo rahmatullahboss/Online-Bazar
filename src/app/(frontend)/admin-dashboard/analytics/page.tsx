@@ -6,7 +6,6 @@ import config from '@/payload.config'
 import { SiteHeader } from '@/components/site-header'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import AnalyticsDashboard from '../analytics-dashboard'
-import { BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +26,7 @@ export default async function AnalyticsPage() {
       <AdminPageHeader
         title="Analytics Dashboard"
         description="Business insights and performance metrics"
-        icon={BarChart3}
+        iconName="bar-chart"
       />
 
       <div className="container mx-auto px-4 py-6">

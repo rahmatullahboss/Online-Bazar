@@ -83,7 +83,7 @@ export default async function CustomersPage({
       <AdminPageHeader
         title="Customer Management"
         description={`${users.totalDocs} total users`}
-        icon={Users}
+        iconName="users"
         action={
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/collections/users">

@@ -187,7 +187,7 @@ export default async function OrdersPage({
       <AdminPageHeader
         title="Orders Management"
         description={`${orders.totalDocs} orders found`}
-        icon={ShoppingCart}
+        iconName="shopping-cart"
         action={
           <DateFilter
             initialMode={selectedRange ? 'range' : 'single'}

@@ -131,7 +131,7 @@ export default async function AbandonedCartsPage({
       <AdminPageHeader
         title="Abandoned Carts"
         description="Recover lost sales opportunities"
-        icon={ShoppingBag}
+        iconName="shopping-bag"
       />
 
       <div className="container mx-auto px-4 py-6">

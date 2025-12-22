@@ -1,13 +1,30 @@
-'use client'
-
 import Link from 'next/link'
-import { ArrowLeft, LucideIcon } from 'lucide-react'
+import {
+  ArrowLeft,
+  ShoppingCart,
+  BarChart3,
+  TrendingUp,
+  Users,
+  ShoppingBag,
+  MessageCircle,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+// Map of available icons
+const iconMap: Record<string, LucideIcon> = {
+  'shopping-cart': ShoppingCart,
+  'bar-chart': BarChart3,
+  'trending-up': TrendingUp,
+  users: Users,
+  'shopping-bag': ShoppingBag,
+  'message-circle': MessageCircle,
+}
 
 interface AdminPageHeaderProps {
   title: string
   description?: string
-  icon?: LucideIcon
+  iconName?: keyof typeof iconMap
   action?: React.ReactNode
   backLink?: string
 }
@@ -15,10 +32,12 @@ interface AdminPageHeaderProps {
 export function AdminPageHeader({
   title,
   description,
-  icon: Icon,
+  iconName,
   action,
   backLink = '/admin-dashboard',
 }: AdminPageHeaderProps) {
+  const Icon = iconName ? iconMap[iconName] : null
+
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">

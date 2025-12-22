@@ -1,8 +1,7 @@
 import { google } from '@ai-sdk/google'
-import { streamText, convertToModelMessages, UIMessage, tool } from 'ai'
+import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
@@ -30,16 +29,20 @@ async function getAllProducts(): Promise<ProductInfo[]> {
       limit: 100,
     })
 
-    return items.docs.map((item: any) => ({
+    return items.docs.map((item) => ({
       id: String(item.id),
       name: item.name,
       price: item.price,
       description: item.shortDescription || item.description || '',
       category:
-        typeof item.category === 'object' ? item.category?.name : item.category || 'General',
+        typeof item.category === 'object' && item.category !== null
+          ? (item.category as { name?: string }).name || 'General'
+          : 'General',
       inStock: (item.inventoryManagement?.stock ?? 0) > 0,
       imageUrl:
-        item.image && typeof item.image === 'object' ? item.image.url : item.imageUrl || null,
+        item.image && typeof item.image === 'object'
+          ? (item.image as { url?: string }).url || null
+          : item.imageUrl || null,
     }))
   } catch (error) {
     console.error('Error fetching products:', error)
@@ -47,43 +50,34 @@ async function getAllProducts(): Promise<ProductInfo[]> {
   }
 }
 
-// Search products by query
-async function searchProducts(query: string): Promise<ProductInfo[]> {
-  const products = await getAllProducts()
-  const lowerQuery = query.toLowerCase()
-
-  return products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(lowerQuery) ||
-      p.description.toLowerCase().includes(lowerQuery) ||
-      p.category.toLowerCase().includes(lowerQuery),
-  )
-}
-
-// Generate system prompt
+// Generate system prompt with product data
 function generateSystemPrompt(products: ProductInfo[]) {
-  const productSummary = products
-    .slice(0, 20)
-    .map((p) => `- ${p.name}: ৳${p.price} (${p.category})`)
+  const productList = products
+    .slice(0, 30)
+    .map((p) => `- ${p.name}: ৳${p.price} (${p.category}) ${p.inStock ? '✓ In Stock' : '✗ Out'}`)
     .join('\n')
 
   return `You are a helpful customer support assistant for "Online Bazar" e-commerce store.
 
-IMPORTANT RULES:
-1. When a user asks about a product, ALWAYS use the searchProducts tool to find and display products
-2. Use Bengali when the user writes in Bengali, otherwise use English
-3. Be friendly, helpful, and concise
+IMPORTANT: When users ask about products, include the product details in your response like this:
+[PRODUCT:id:name:price:category:inStock:imageUrl]
 
-Available product categories (for reference):
-${productSummary}
+For example: [PRODUCT:abc123:Honey:500:Food:true:/images/honey.jpg]
+
+AVAILABLE PRODUCTS:
+${productList}
+
+Rules:
+1. Use Bengali when the user writes in Bengali, otherwise use English
+2. Be friendly, helpful, and concise
+3. When showing products, always include the [PRODUCT:...] format
+4. Show up to 3-5 relevant products
 
 Store Info:
 - Delivery: Inside and outside Dhaka
 - Payment: bKash, Nagad, Cash on Delivery
 - Processing: 1-2 business days
-- Order tracking: "My Orders" section
-
-Always use the searchProducts tool when users ask about products!`
+- Order tracking: "My Orders" section`
 }
 
 export async function POST(req: Request) {
@@ -93,38 +87,13 @@ export async function POST(req: Request) {
   const products = await getAllProducts()
   const systemPrompt = generateSystemPrompt(products)
 
+  // Also add product data to the first user message for context
+  const enhancedMessages = await convertToModelMessages(messages)
+
   const result = streamText({
-    model: google('gemini-3-flash-preview'),
+    model: google('gemini-2.5-flash'),
     system: systemPrompt,
-    messages: await convertToModelMessages(messages),
-    tools: {
-      searchProducts: tool({
-        description:
-          'Search for products by name, category, or description. Use this when users ask about products.',
-        parameters: z.object({
-          query: z.string().describe('Search query for products'),
-        }),
-        execute: async ({ query }) => {
-          const results = await searchProducts(query)
-          if (results.length === 0) {
-            return { products: [], message: 'No products found matching your search.' }
-          }
-          return {
-            products: results.slice(0, 5).map((p) => ({
-              id: p.id,
-              name: p.name,
-              price: p.price,
-              category: p.category,
-              inStock: p.inStock,
-              imageUrl: p.imageUrl,
-              description: p.description.slice(0, 100),
-            })),
-            message: `Found ${results.length} product(s) matching "${query}"`,
-          }
-        },
-      }),
-    },
-    maxSteps: 3,
+    messages: enhancedMessages,
   })
 
   return result.toUIMessageStreamResponse()

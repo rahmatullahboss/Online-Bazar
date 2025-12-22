@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CONTACT_WHATSAPP, SOCIAL_FACEBOOK, CONTACT_PHONE_RAW } from '@/lib/site-config'
 
-// Product type from tool result
+// Product type parsed from AI response
 interface Product {
   id: string
   name: string
@@ -18,7 +18,30 @@ interface Product {
   category: string
   inStock: boolean
   imageUrl: string | null
-  description: string
+}
+
+// Parse products from AI text response
+// Format: [PRODUCT:id:name:price:category:inStock:imageUrl]
+function parseProductsFromText(text: string): { cleanText: string; products: Product[] } {
+  const productRegex = /\[PRODUCT:([^:]+):([^:]+):(\d+):([^:]+):(true|false):([^\]]*)\]/g
+  const products: Product[] = []
+  let match
+
+  while ((match = productRegex.exec(text)) !== null) {
+    products.push({
+      id: match[1],
+      name: match[2],
+      price: parseInt(match[3], 10),
+      category: match[4],
+      inStock: match[5] === 'true',
+      imageUrl: match[6] || null,
+    })
+  }
+
+  // Remove product tags from text
+  const cleanText = text.replace(productRegex, '').trim()
+
+  return { cleanText, products }
 }
 
 // Product Card Component for Chat
@@ -110,32 +133,29 @@ export function ChatBot() {
     }
   }
 
-  // Render message parts including tool results
-  const renderMessageParts = (message: (typeof messages)[0]) => {
-    return message.parts.map((part, index) => {
-      if (part.type === 'text') {
-        return (
-          <p key={index} className="whitespace-pre-wrap">
-            {part.text}
-          </p>
-        )
-      }
+  // Render message with product cards
+  const renderMessageContent = (message: (typeof messages)[0]) => {
+    // Get text from message parts
+    const textContent = message.parts
+      .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+      .map((part) => part.text)
+      .join('')
 
-      if (part.type === 'tool-invocation' && part.state === 'result') {
-        const result = part.result as { products?: Product[]; message?: string }
-        if (result.products && result.products.length > 0) {
-          return (
-            <div key={index} className="mt-2 space-y-2">
-              {result.products.map((product) => (
-                <ChatProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )
-        }
-      }
+    // Parse products from text
+    const { cleanText, products } = parseProductsFromText(textContent)
 
-      return null
-    })
+    return (
+      <>
+        {cleanText && <p className="whitespace-pre-wrap">{cleanText}</p>}
+        {products.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {products.map((product, idx) => (
+              <ChatProductCard key={`${product.id}-${idx}`} product={product} />
+            ))}
+          </div>
+        )}
+      </>
+    )
   }
 
   // Generate WhatsApp link
@@ -218,7 +238,7 @@ export function ChatBot() {
                       : 'bg-gray-100 text-gray-800 rounded-bl-md',
                   )}
                 >
-                  {renderMessageParts(message)}
+                  {renderMessageContent(message)}
                 </div>
                 {message.role === 'user' && (
                   <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">

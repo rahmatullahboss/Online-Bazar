@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Switch } from '@/components/ui/switch'
 import { StockBadge } from '@/components/admin/stock-badge'
+import { CategoryManager } from '@/components/admin/category-manager'
 import {
   Package,
   Plus,
@@ -63,6 +64,7 @@ interface Product {
 interface Category {
   id: string
   name: string
+  description?: string
 }
 
 export default function ProductsClient() {
@@ -255,6 +257,8 @@ export default function ProductsClient() {
           <RefreshCw className="w-4 h-4" />
           Refresh
         </Button>
+
+        <CategoryManager categories={categories} onUpdate={fetchProducts} />
       </div>
 
       {/* Products Stats */}

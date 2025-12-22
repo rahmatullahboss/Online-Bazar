@@ -23,11 +23,22 @@ export async function GET() {
       return NextResponse.json({ user: null })
     }
 
+    // Get full user data with firstName/lastName
+    const userData = await payload.findByID({
+      collection: 'users',
+      id: user.id,
+    })
+
+    const fullName =
+      userData?.firstName && userData?.lastName
+        ? `${userData.firstName} ${userData.lastName}`.trim()
+        : userData?.firstName || user.email?.split('@')[0] || 'User'
+
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
-        name: user.email?.split('@')[0] || 'User',
+        name: fullName,
       },
     })
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Bot, Phone, Mail, MessageCircle, Clock, Search, ArrowLeft, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,19 @@ export default function ChatMessengerPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to bottom when conversation is selected
+  useEffect(() => {
+    if (selectedId && messagesContainerRef.current) {
+      // Small delay to ensure messages are rendered
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+        }
+      }, 100)
+    }
+  }, [selectedId])
 
   const fetchConversations = async () => {
     setLoading(true)
@@ -280,7 +293,7 @@ export default function ChatMessengerPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {selectedConversation.messages?.map((msg, idx) => (
                   <div
                     key={idx}

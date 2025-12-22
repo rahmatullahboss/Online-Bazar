@@ -29,12 +29,43 @@ export async function POST(req: NextRequest) {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    // Check if conversation exists
-    const existing = await payload.find({
-      collection: 'chat-conversations',
-      where: { sessionId: { equals: sessionId } },
-      limit: 1,
-    })
+    // Find existing conversation by USER ID or GUEST PHONE (not sessionId)
+    // This ensures all messages from same user go to same conversation
+    let existingConversation = null
+
+    if (userId) {
+      // For logged in users - find by userId
+      const userConversations = await payload.find({
+        collection: 'chat-conversations',
+        where: { user: { equals: userId } },
+        limit: 1,
+        sort: '-lastMessageAt',
+      })
+      if (userConversations.docs.length > 0) {
+        existingConversation = userConversations.docs[0]
+      }
+    } else if (guestInfo?.phone) {
+      // For guests - find by phone number
+      const guestConversations = await payload.find({
+        collection: 'chat-conversations',
+        where: { 'guestInfo.phone': { equals: guestInfo.phone } },
+        limit: 1,
+        sort: '-lastMessageAt',
+      })
+      if (guestConversations.docs.length > 0) {
+        existingConversation = guestConversations.docs[0]
+      }
+    } else {
+      // Fallback to sessionId if no user/guest info
+      const sessionConversations = await payload.find({
+        collection: 'chat-conversations',
+        where: { sessionId: { equals: sessionId } },
+        limit: 1,
+      })
+      if (sessionConversations.docs.length > 0) {
+        existingConversation = sessionConversations.docs[0]
+      }
+    }
 
     const newMessage = {
       role: message.role,
@@ -42,17 +73,18 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString(),
     }
 
-    if (existing.docs.length > 0) {
-      // Update existing conversation
-      const conversation = existing.docs[0]
-      const messages = [...(conversation.messages || []), newMessage]
+    if (existingConversation) {
+      // Update existing conversation - add message to existing messages
+      const messages = [...(existingConversation.messages || []), newMessage]
 
       await payload.update({
         collection: 'chat-conversations',
-        id: conversation.id,
+        id: existingConversation.id,
         data: {
           messages,
           lastMessageAt: new Date().toISOString(),
+          // Update sessionId to latest (in case browser changed)
+          sessionId,
         },
       })
     } else {

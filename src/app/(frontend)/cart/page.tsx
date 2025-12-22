@@ -7,6 +7,7 @@ import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
+import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
 
 export default function CartPage() {
   const router = useRouter()
@@ -14,7 +15,9 @@ export default function CartPage() {
   const { items } = state
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryCharge = subtotal > 0 ? 60 : 0
+  const isFreeDelivery = subtotal >= DEFAULT_DELIVERY_SETTINGS.freeDeliveryThreshold
+  const deliveryCharge =
+    subtotal > 0 && !isFreeDelivery ? DEFAULT_DELIVERY_SETTINGS.insideDhakaCharge : 0
   const total = subtotal + deliveryCharge
 
   if (items.length === 0) {
@@ -134,8 +137,23 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery</span>
-                  <span className="font-medium">৳{deliveryCharge}</span>
+                  {isFreeDelivery ? (
+                    <span className="font-medium text-green-600">Free</span>
+                  ) : (
+                    <span className="font-medium">৳{deliveryCharge}</span>
+                  )}
                 </div>
+                {!isFreeDelivery && subtotal > 0 && (
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+                    Add ৳{(DEFAULT_DELIVERY_SETTINGS.freeDeliveryThreshold - subtotal).toFixed(0)}{' '}
+                    more for free delivery!
+                  </p>
+                )}
+                {isFreeDelivery && (
+                  <p className="text-xs text-green-600 bg-green-50 rounded-lg p-2">
+                    🎉 You qualify for free delivery!
+                  </p>
+                )}
                 <div className="border-t pt-3 flex justify-between text-base">
                   <span className="font-semibold">Total</span>
                   <span className="font-bold text-green-600">৳{total.toFixed(0)}</span>

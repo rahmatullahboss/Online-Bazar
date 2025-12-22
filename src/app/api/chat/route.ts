@@ -1,4 +1,4 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createGroq } from '@ai-sdk/groq'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
@@ -116,22 +116,22 @@ export async function POST(req: Request) {
   const systemPrompt = generateSystemPrompt(products)
   const enhancedMessages = await convertToModelMessages(messages)
 
-  // Try OpenRouter first, fallback to Google AI
-  const openrouterKey = process.env.OPENROUTER_API_KEY
+  // Try Groq first (fastest), fallback to Google AI
+  const groqKey = process.env.GROQ_API_KEY
   const googleKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
-  // Try OpenRouter
-  if (openrouterKey) {
+  // Try Groq
+  if (groqKey) {
     try {
-      const openrouter = createOpenRouter({ apiKey: openrouterKey })
+      const groq = createGroq({ apiKey: groqKey })
       const result = streamText({
-        model: openrouter('xiaomi/mimo-v2-flash:free'),
+        model: groq('llama-3.1-8b-instant'),
         system: systemPrompt,
         messages: enhancedMessages,
       })
       return result.toUIMessageStreamResponse()
     } catch (error) {
-      console.log('OpenRouter failed, trying Google AI...', error)
+      console.log('Groq failed, trying Google AI...', error)
     }
   }
 

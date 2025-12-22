@@ -8,6 +8,7 @@ import { FloatingContactButtons } from '@/components/floating-contact-buttons'
 import '../globals.css'
 import { CartSidebar, Analytics, SpeedInsights, Toaster } from '@/components/lazy-client-components'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
+import { ChatBot } from '@/components/chat-bot'
 import storeConfig from '@/config/store.config'
 
 export const metadata: Metadata = {
@@ -117,6 +118,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <CartSidebar />
           {/* Mobile bottom navigation */}
           <MobileBottomNav />
+          <ChatBot />
           <Toaster richColors position="top-center" />
           {enableAnalytics && <Analytics />}
           {enableAnalytics && <SpeedInsights />}

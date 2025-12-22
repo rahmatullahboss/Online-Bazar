@@ -48,8 +48,13 @@ function parseProductsFromText(text: string): { cleanText: string; products: Pro
   }
 
   const cleanText = text
-    .replace(productRegex, '')
-    .replace(/\n{3,}/g, '\n\n')
+    .replace(productRegex, '') // Remove product tags
+    .replace(/^\s*\*\s*$/gm, '') // Remove lines with only asterisk
+    .replace(/^\s*[-*]\s*$/gm, '') // Remove empty bullet points
+    .replace(/\*{2,}/g, '') // Remove multiple asterisks
+    .replace(/\n{3,}/g, '\n\n') // Collapse multiple newlines
+    .replace(/^\n+/, '') // Remove leading newlines
+    .replace(/\n+$/, '') // Remove trailing newlines
     .trim()
 
   return { cleanText, products }

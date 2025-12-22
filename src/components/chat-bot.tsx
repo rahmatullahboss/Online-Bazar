@@ -3,10 +3,75 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useState, useRef, useEffect } from 'react'
-import { X, Send, Bot, User, Loader2, Users, Phone } from 'lucide-react'
+import { X, Send, Bot, User, Loader2, Users, Phone, ShoppingCart, ExternalLink } from 'lucide-react'
 import { FaFacebookMessenger, FaWhatsapp } from 'react-icons/fa'
+import Image from 'next/image'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CONTACT_WHATSAPP, SOCIAL_FACEBOOK, CONTACT_PHONE_RAW } from '@/lib/site-config'
+
+// Product type from tool result
+interface Product {
+  id: string
+  name: string
+  price: number
+  category: string
+  inStock: boolean
+  imageUrl: string | null
+  description: string
+}
+
+// Product Card Component for Chat
+function ChatProductCard({ product }: { product: Product }) {
+  return (
+    <Link
+      href={`/item/${product.id}`}
+      className="block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+    >
+      <div className="flex gap-3 p-2">
+        {/* Product Image */}
+        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <ShoppingCart className="w-6 h-6" />
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-900 text-sm line-clamp-1 group-hover:text-amber-600 transition-colors">
+            {product.name}
+          </h4>
+          <p className="text-xs text-gray-500 mt-0.5">{product.category}</p>
+          <div className="flex items-center justify-between mt-1">
+            <span className="font-bold text-amber-600">৳{product.price.toLocaleString()}</span>
+            <span
+              className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded-full',
+                product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
+              )}
+            >
+              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            </span>
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div className="flex items-center">
+          <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-amber-500 transition-colors" />
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false)
@@ -45,12 +110,32 @@ export function ChatBot() {
     }
   }
 
-  // Get text content from message parts
-  const getMessageText = (message: (typeof messages)[0]) => {
-    return message.parts
-      .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-      .map((part) => part.text)
-      .join('')
+  // Render message parts including tool results
+  const renderMessageParts = (message: (typeof messages)[0]) => {
+    return message.parts.map((part, index) => {
+      if (part.type === 'text') {
+        return (
+          <p key={index} className="whitespace-pre-wrap">
+            {part.text}
+          </p>
+        )
+      }
+
+      if (part.type === 'tool-invocation' && part.state === 'result') {
+        const result = part.result as { products?: Product[]; message?: string }
+        if (result.products && result.products.length > 0) {
+          return (
+            <div key={index} className="mt-2 space-y-2">
+              {result.products.map((product) => (
+                <ChatProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )
+        }
+      }
+
+      return null
+    })
   }
 
   // Generate WhatsApp link
@@ -61,7 +146,6 @@ export function ChatBot() {
 
   // Generate Messenger link
   const getMessengerLink = () => {
-    // Extract page username from Facebook URL
     const fbUrl = SOCIAL_FACEBOOK || 'https://www.facebook.com/onlinebazarbarguna'
     const pageId = fbUrl.split('/').pop() || 'onlinebazarbarguna'
     return `https://m.me/${pageId}`
@@ -128,13 +212,13 @@ export function ChatBot() {
                 )}
                 <div
                   className={cn(
-                    'max-w-[80%] rounded-2xl px-4 py-2 text-sm',
+                    'max-w-[85%] rounded-2xl px-4 py-2 text-sm',
                     message.role === 'user'
                       ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-br-md'
                       : 'bg-gray-100 text-gray-800 rounded-bl-md',
                   )}
                 >
-                  <p className="whitespace-pre-wrap">{getMessageText(message)}</p>
+                  {renderMessageParts(message)}
                 </div>
                 {message.role === 'user' && (
                   <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">

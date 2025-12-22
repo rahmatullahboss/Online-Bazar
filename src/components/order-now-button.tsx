@@ -57,7 +57,7 @@ export function OrderNowButton({
         size="sm"
         className={cn(
           compact
-            ? 'rounded-full h-7 px-2 text-[11px] sm:h-9 sm:px-4 sm:text-xs'
+            ? 'rounded-full h-9 px-4 text-sm w-full sm:w-auto sm:h-9 sm:px-4 sm:text-xs'
             : 'rounded-full h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm md:h-11 md:px-5 md:text-sm',
         )}
       >

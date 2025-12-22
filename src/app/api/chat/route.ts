@@ -1,4 +1,4 @@
-import { gateway, streamText } from 'ai'
+import { gateway, streamText, convertToModelMessages, UIMessage } from 'ai'
 
 export const runtime = 'edge'
 
@@ -20,13 +20,13 @@ Important information:
 Be friendly, professional, and always aim to help customers!`
 
 export async function POST(req: Request) {
-  const { messages } = await req.json()
+  const { messages }: { messages: UIMessage[] } = await req.json()
 
   const result = streamText({
     model: gateway('google/gemini-3-flash'),
     system: systemPrompt,
-    messages,
+    messages: await convertToModelMessages(messages),
   })
 
-  return result.toTextStreamResponse()
+  return result.toUIMessageStreamResponse()
 }

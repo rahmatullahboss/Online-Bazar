@@ -104,6 +104,7 @@ export function ChatBot() {
   const [input, setInput] = useState('')
   const [showHumanOptions, setShowHumanOptions] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -133,6 +134,8 @@ export function ChatBot() {
       sendMessage({ text: input })
       setInput('')
       setShowHumanOptions(false)
+      // Keep focus on input
+      setTimeout(() => inputRef.current?.focus(), 0)
     }
   }
 
@@ -328,6 +331,7 @@ export function ChatBot() {
           <form onSubmit={handleSubmit} className="p-4 border-t border-gray-100">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

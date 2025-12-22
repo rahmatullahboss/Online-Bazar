@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     try {
       const openrouter = createOpenRouter({ apiKey: openrouterKey })
       const result = streamText({
-        model: openrouter('xiaomi/mimo-v2-flash:free'),
+        model: openrouter('google/gemini-2.0-flash-exp:free'),
         system: systemPrompt,
         messages: enhancedMessages,
       })

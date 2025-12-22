@@ -109,7 +109,7 @@ export default async function HomePage() {
             {/* Removed animate-fade-in to improve LCP - the paragraph is the LCP element */}
             <div className="space-y-4 sm:space-y-8">
               <div className="space-y-2 sm:space-y-4">
-                <h2 className="text-4xl sm:text-7xl md:text-8xl font-black tracking-tighter">
+                <h2 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter">
                   <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">
                     {SITE_NAME}
                   </span>

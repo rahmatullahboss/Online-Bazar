@@ -17,17 +17,51 @@ interface ProductInfo {
   imageUrl: string | null
 }
 
-// Fetch all products from database
-async function getAllProducts(): Promise<ProductInfo[]> {
+// Search for relevant products based on user query
+async function searchProducts(query: string): Promise<ProductInfo[]> {
   try {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
+    // Extract keywords from query (remove common words)
+    const keywords = query
+      .toLowerCase()
+      .replace(/[^\w\s\u0980-\u09FF]/g, '') // Keep Bengali + English
+      .split(/\s+/)
+      .filter(
+        (w) =>
+          w.length > 2 &&
+          ![
+            'the',
+            'and',
+            'for',
+            'কি',
+            'আছে',
+            'দেখান',
+            'চাই',
+            'please',
+            'show',
+            'want',
+            'need',
+          ].includes(w),
+      )
+
+    // Build where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let whereClause: any = { available: { equals: true } }
+
+    if (keywords.length > 0) {
+      // Search by first keyword in name (simpler query, faster)
+      whereClause = {
+        and: [{ available: { equals: true } }, { name: { contains: keywords[0] } }],
+      }
+    }
+
     const items = await payload.find({
       collection: 'items',
-      where: { available: { equals: true } },
+      where: whereClause,
       depth: 1,
-      limit: 100,
+      limit: 10, // Only fetch 10 relevant products
     })
 
     return items.docs.map((item) => ({
@@ -46,7 +80,7 @@ async function getAllProducts(): Promise<ProductInfo[]> {
           : item.imageUrl || null,
     }))
   } catch (error) {
-    console.error('Error fetching products:', error)
+    console.error('Error searching products:', error)
     return []
   }
 }
@@ -54,7 +88,6 @@ async function getAllProducts(): Promise<ProductInfo[]> {
 // Generate system prompt with product data
 function generateSystemPrompt(products: ProductInfo[]) {
   const productList = products
-    .slice(0, 30)
     .map(
       (p) =>
         `- ID:${p.id} | ${p.name} | ৳${p.price} | ${p.category} | ${p.inStock ? 'In Stock' : 'Out'} | Image:${p.imageUrl || 'none'}`,
@@ -97,8 +130,17 @@ ${productList}
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
 
-  // Fetch products for context
-  const products = await getAllProducts()
+  // Get last user message for relevant product search
+  const lastUserMessage = messages.filter((m) => m.role === 'user').pop()
+  // Extract text from message parts
+  const userQuery =
+    lastUserMessage?.parts
+      ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+      .map((p) => p.text)
+      .join(' ') || ''
+
+  // Search for relevant products based on user query
+  const products = await searchProducts(userQuery)
   const systemPrompt = generateSystemPrompt(products)
   const enhancedMessages = await convertToModelMessages(messages)
 

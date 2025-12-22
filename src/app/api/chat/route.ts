@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { streamText, convertToModelMessages, UIMessage } from 'ai'
+import { generateText, streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
@@ -26,6 +26,21 @@ function getApiKeys() {
 // Create Google AI provider with specific API key
 function createProvider(apiKey: string) {
   return createGoogleGenerativeAI({ apiKey })
+}
+
+// Test if API key is working by making a minimal request
+async function testApiKey(apiKey: string): Promise<boolean> {
+  try {
+    const google = createProvider(apiKey)
+    await generateText({
+      model: google('gemini-2.0-flash'),
+      prompt: 'Hi',
+      maxTokens: 5,
+    })
+    return true
+  } catch {
+    return false
+  }
 }
 
 // Fetch all products from database
@@ -97,32 +112,6 @@ Store Info:
 - Processing: 1-2 business days`
 }
 
-// Try to stream with a specific API key
-async function tryStreamWithKey(
-  apiKey: string,
-  systemPrompt: string,
-  messages: Awaited<ReturnType<typeof convertToModelMessages>>,
-): Promise<Response | null> {
-  try {
-    const google = createProvider(apiKey)
-    const result = streamText({
-      model: google('gemini-2.5-flash'),
-      system: systemPrompt,
-      messages,
-      maxRetries: 0, // No retries, fail fast
-    })
-
-    // Get the response and check for errors
-    const response = result.toUIMessageStreamResponse()
-    return response
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number; message?: string }
-    console.log('API call failed:', err.message || error)
-    // Return null to indicate failure
-    return null
-  }
-}
-
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
 
@@ -141,49 +130,43 @@ export async function POST(req: Request) {
     })
   }
 
-  // Try each key in order
+  // Find a working API key
+  let workingKey: string | null = null
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
     const keyName = i === 0 ? 'Primary' : 'Fallback'
-    console.log(`Trying ${keyName} API key...`)
+    console.log(`Testing ${keyName} API key...`)
 
-    try {
-      const google = createProvider(key)
-      const result = streamText({
-        model: google('gemini-2.5-flash'),
-        system: systemPrompt,
-        messages: enhancedMessages,
-        maxRetries: 0,
-      })
-
-      console.log(`${keyName} API key working!`)
-      return result.toUIMessageStreamResponse()
-    } catch (error: unknown) {
-      const err = error as { statusCode?: number; message?: string; reason?: string }
-      console.log(`${keyName} API failed:`, err.message || err.reason || 'Unknown error')
-
-      // If this is the last key, throw the error
-      if (i === keys.length - 1) {
-        console.error('All API keys exhausted')
-        return new Response(
-          JSON.stringify({
-            error: 'All API keys exhausted. Please try again later.',
-            details: err.message,
-          }),
-          {
-            status: 429,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-
-      // Otherwise continue to next key
-      console.log('Switching to next API key...')
+    const isWorking = await testApiKey(key)
+    if (isWorking) {
+      console.log(`${keyName} API key is working!`)
+      workingKey = key
+      break
+    } else {
+      console.log(`${keyName} API key failed, trying next...`)
     }
   }
 
-  return new Response(JSON.stringify({ error: 'Unexpected error' }), {
-    status: 500,
-    headers: { 'Content-Type': 'application/json' },
+  if (!workingKey) {
+    console.error('All API keys exhausted')
+    return new Response(
+      JSON.stringify({
+        error: 'সার্ভিস সাময়িকভাবে অনুপলব্ধ। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+      }),
+      {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    )
+  }
+
+  // Use the working key for streaming
+  const google = createProvider(workingKey)
+  const result = streamText({
+    model: google('gemini-2.5-flash'),
+    system: systemPrompt,
+    messages: enhancedMessages,
   })
+
+  return result.toUIMessageStreamResponse()
 }

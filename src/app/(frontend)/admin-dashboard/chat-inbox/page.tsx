@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Bot, Phone, Mail, MessageCircle, Clock, Search, ArrowLeft, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,7 +35,6 @@ export default function ChatMessengerPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const fetchConversations = async () => {
     setLoading(true)
@@ -59,12 +58,6 @@ export default function ChatMessengerPage() {
     const interval = setInterval(fetchConversations, 30000) // Refresh every 30s
     return () => clearInterval(interval)
   }, [])
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [selectedId])
 
   const filteredConversations = conversations.filter((conv) => {
     const searchLower = searchQuery.toLowerCase()
@@ -342,7 +335,6 @@ export default function ChatMessengerPage() {
                     )}
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Footer */}

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         data: {
           sessionId,
           user: userId || null,
-          guestInfo: userId ? null : guestInfo,
+          guestInfo: userId ? undefined : guestInfo || undefined,
           messages: [newMessage],
           lastMessageAt: new Date().toISOString(),
         },

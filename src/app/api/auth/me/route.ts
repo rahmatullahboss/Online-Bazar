@@ -27,7 +27,7 @@ export async function GET() {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name || user.email?.split('@')[0],
+        name: user.email?.split('@')[0] || 'User',
       },
     })
   } catch (error) {

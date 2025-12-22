@@ -28,7 +28,7 @@ export function FloatingContactButtons() {
         className="bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-lg shadow-amber-500/30 transition-transform hover:scale-[1.02] hover:from-amber-600 hover:to-rose-600"
       >
         <Bot className="size-4" />
-        AI Chat
+        Chat
       </Button>
     </div>
   )

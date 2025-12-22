@@ -80,6 +80,7 @@ export interface Config {
     coupons: Coupon;
     'push-subscriptions': PushSubscription;
     wishlists: Wishlist;
+    'chat-conversations': ChatConversation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -100,6 +101,7 @@ export interface Config {
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     'push-subscriptions': PushSubscriptionsSelect<false> | PushSubscriptionsSelect<true>;
     wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
+    'chat-conversations': ChatConversationsSelect<false> | ChatConversationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -708,6 +710,60 @@ export interface Wishlist {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-conversations".
+ */
+export interface ChatConversation {
+  id: number;
+  /**
+   * Unique session identifier for this conversation
+   */
+  sessionId: string;
+  /**
+   * Logged in user (if any)
+   */
+  user?: (number | null) | User;
+  /**
+   * Guest customer info (for non-logged in users)
+   */
+  guestInfo?: {
+    /**
+     * Guest customer name
+     */
+    name?: string | null;
+    /**
+     * Guest customer phone number
+     */
+    phone?: string | null;
+  };
+  /**
+   * Chat messages in this conversation
+   */
+  messages: {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: string;
+    id?: string | null;
+  }[];
+  /**
+   * Total number of messages
+   */
+  messageCount?: number | null;
+  /**
+   * When the last message was sent
+   */
+  lastMessageAt?: string | null;
+  /**
+   * Additional conversation metadata
+   */
+  metadata?: {
+    userAgent?: string | null;
+    ipAddress?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -781,6 +837,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'wishlists';
         value: number | Wishlist;
+      } | null)
+    | ({
+        relationTo: 'chat-conversations';
+        value: number | ChatConversation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1140,6 +1200,38 @@ export interface WishlistsSelect<T extends boolean = true> {
         id?: T;
       };
   itemCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-conversations_select".
+ */
+export interface ChatConversationsSelect<T extends boolean = true> {
+  sessionId?: T;
+  user?: T;
+  guestInfo?:
+    | T
+    | {
+        name?: T;
+        phone?: T;
+      };
+  messages?:
+    | T
+    | {
+        role?: T;
+        content?: T;
+        timestamp?: T;
+        id?: T;
+      };
+  messageCount?: T;
+  lastMessageAt?: T;
+  metadata?:
+    | T
+    | {
+        userAgent?: T;
+        ipAddress?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

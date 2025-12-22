@@ -1,4 +1,4 @@
-import { google } from '@ai-sdk/google'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -14,6 +14,18 @@ interface ProductInfo {
   category: string
   inStock: boolean
   imageUrl: string | null
+}
+
+// Get API keys - primary and fallback
+function getApiKeys() {
+  const primary = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  const fallback = process.env.GOOGLE_GENERATIVE_AI_API_KEY_FALLBACK
+  return { primary, fallback }
+}
+
+// Create Google AI provider with specific API key
+function createProvider(apiKey: string) {
+  return createGoogleGenerativeAI({ apiKey })
 }
 
 // Fetch all products from database
@@ -91,15 +103,52 @@ export async function POST(req: Request) {
   // Fetch products for context
   const products = await getAllProducts()
   const systemPrompt = generateSystemPrompt(products)
-
-  // Also add product data to the first user message for context
   const enhancedMessages = await convertToModelMessages(messages)
 
-  const result = streamText({
-    model: google('gemini-2.5-flash'),
-    system: systemPrompt,
-    messages: enhancedMessages,
-  })
+  const { primary, fallback } = getApiKeys()
 
-  return result.toUIMessageStreamResponse()
+  // Try primary API key first
+  if (primary) {
+    try {
+      const google = createProvider(primary)
+      const result = streamText({
+        model: google('gemini-2.5-flash'),
+        system: systemPrompt,
+        messages: enhancedMessages,
+        maxRetries: 1, // Reduce retries to fail fast and use fallback
+      })
+      return result.toUIMessageStreamResponse()
+    } catch (error: unknown) {
+      const err = error as { statusCode?: number; message?: string }
+      console.log('Primary API failed:', err.message)
+      // If quota exceeded (429) and fallback exists, try fallback
+      if (err.statusCode === 429 && fallback) {
+        console.log('Switching to fallback API key...')
+      } else if (!fallback) {
+        throw error // No fallback, rethrow
+      }
+    }
+  }
+
+  // Try fallback API key
+  if (fallback) {
+    try {
+      const google = createProvider(fallback)
+      const result = streamText({
+        model: google('gemini-2.5-flash'),
+        system: systemPrompt,
+        messages: enhancedMessages,
+      })
+      return result.toUIMessageStreamResponse()
+    } catch (error) {
+      console.error('Fallback API also failed:', error)
+      throw error
+    }
+  }
+
+  // No API keys available
+  return new Response(JSON.stringify({ error: 'No API keys configured' }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

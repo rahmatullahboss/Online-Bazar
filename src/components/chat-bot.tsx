@@ -38,8 +38,11 @@ function parseProductsFromText(text: string): { cleanText: string; products: Pro
     })
   }
 
-  // Remove product tags from text
-  const cleanText = text.replace(productRegex, '').trim()
+  // Remove product tags from text and clean up extra newlines
+  const cleanText = text
+    .replace(productRegex, '')
+    .replace(/\n{3,}/g, '\n\n') // Reduce 3+ newlines to 2
+    .trim()
 
   return { cleanText, products }
 }

@@ -13,6 +13,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  TrendingUp,
+  ShoppingBag,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -23,6 +26,7 @@ interface MenuItem {
   href: string
   icon: React.ReactNode
   badge?: string
+  description?: string
 }
 
 const menuItems: MenuItem[] = [
@@ -30,36 +34,55 @@ const menuItems: MenuItem[] = [
     name: 'Overview',
     href: '/admin-dashboard',
     icon: <LayoutDashboard className="w-5 h-5" />,
+    description: 'Dashboard summary',
   },
   {
     name: 'Orders',
-    href: '/admin-dashboard#orders',
+    href: '/admin-dashboard/orders',
     icon: <ShoppingCart className="w-5 h-5" />,
+    description: 'Manage orders',
+  },
+  {
+    name: 'Analytics',
+    href: '/admin-dashboard/analytics',
+    icon: <BarChart3 className="w-5 h-5" />,
+    description: 'Business insights',
+  },
+  {
+    name: 'Sales Report',
+    href: '/admin-dashboard/sales-report',
+    icon: <TrendingUp className="w-5 h-5" />,
+    description: 'Revenue reports',
+  },
+  {
+    name: 'Customers',
+    href: '/admin-dashboard/customers',
+    icon: <Users className="w-5 h-5" />,
+    description: 'Customer management',
+  },
+  {
+    name: 'Abandoned Carts',
+    href: '/admin-dashboard/abandoned-carts',
+    icon: <ShoppingBag className="w-5 h-5" />,
+    description: 'Cart recovery',
   },
   {
     name: 'Chat Inbox',
     href: '/admin-dashboard/chat-inbox',
     icon: <MessageCircle className="w-5 h-5" />,
-  },
-  {
-    name: 'Analytics',
-    href: '/admin-dashboard#analytics',
-    icon: <BarChart3 className="w-5 h-5" />,
+    description: 'Customer messages',
   },
   {
     name: 'Products',
     href: '/admin/collections/items',
     icon: <Package className="w-5 h-5" />,
+    description: 'Product catalog',
   },
   {
-    name: 'Customers',
-    href: '/admin/collections/users',
-    icon: <Users className="w-5 h-5" />,
-  },
-  {
-    name: 'Settings',
+    name: 'Payload Admin',
     href: '/admin',
     icon: <Settings className="w-5 h-5" />,
+    description: 'CMS settings',
   },
 ]
 
@@ -67,6 +90,13 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const isActive = (href: string) => {
+    if (href === '/admin-dashboard') {
+      return pathname === href
+    }
+    return pathname.startsWith(href)
+  }
 
   return (
     <>
@@ -128,11 +158,9 @@ export function AdminSidebar() {
         </div>
 
         {/* Menu Items */}
-        <nav className="p-2 space-y-1">
+        <nav className="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
           {menuItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/admin-dashboard' && pathname.startsWith(item.href))
+            const active = isActive(item.href)
 
             return (
               <Link
@@ -140,17 +168,24 @@ export function AdminSidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-                  isActive
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group',
+                  active
                     ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                   collapsed && 'justify-center px-2',
                 )}
               >
-                <span className={cn(isActive && 'text-white')}>{item.icon}</span>
-                {!collapsed && <span className="font-medium text-sm">{item.name}</span>}
+                <span className={cn(active && 'text-white')}>{item.icon}</span>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm">{item.name}</span>
+                    {!active && item.description && (
+                      <p className="text-[10px] text-gray-400 truncate">{item.description}</p>
+                    )}
+                  </div>
+                )}
                 {!collapsed && item.badge && (
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 )}

@@ -1,5 +1,5 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { generateText, streamText, convertToModelMessages, UIMessage } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
@@ -16,30 +16,13 @@ interface ProductInfo {
   imageUrl: string | null
 }
 
-// Get API keys - primary and fallback
-function getApiKeys() {
-  const primary = process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  const fallback = process.env.GOOGLE_GENERATIVE_AI_API_KEY_FALLBACK
-  return { primary, fallback }
-}
-
-// Create Google AI provider with specific API key
-function createProvider(apiKey: string) {
-  return createGoogleGenerativeAI({ apiKey })
-}
-
-// Test if API key is working by making a minimal request
-async function testApiKey(apiKey: string): Promise<boolean> {
-  try {
-    const google = createProvider(apiKey)
-    await generateText({
-      model: google('gemini-2.0-flash'),
-      prompt: 'Hi',
-    })
-    return true
-  } catch {
-    return false
+// Create OpenRouter provider
+function getOpenRouter() {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY is not set')
   }
+  return createOpenRouter({ apiKey })
 }
 
 // Fetch all products from database
@@ -119,53 +102,21 @@ export async function POST(req: Request) {
   const systemPrompt = generateSystemPrompt(products)
   const enhancedMessages = await convertToModelMessages(messages)
 
-  const { primary, fallback } = getApiKeys()
-  const keys = [primary, fallback].filter(Boolean) as string[]
+  try {
+    const openrouter = getOpenRouter()
 
-  if (keys.length === 0) {
-    return new Response(JSON.stringify({ error: 'No API keys configured' }), {
+    const result = streamText({
+      model: openrouter('xiaomi/mimo-v2-flash:free'),
+      system: systemPrompt,
+      messages: enhancedMessages,
+    })
+
+    return result.toUIMessageStreamResponse()
+  } catch (error) {
+    console.error('Chat API error:', error)
+    return new Response(JSON.stringify({ error: 'Chat service unavailable. Please try again.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
   }
-
-  // Find a working API key
-  let workingKey: string | null = null
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    const keyName = i === 0 ? 'Primary' : 'Fallback'
-    console.log(`Testing ${keyName} API key...`)
-
-    const isWorking = await testApiKey(key)
-    if (isWorking) {
-      console.log(`${keyName} API key is working!`)
-      workingKey = key
-      break
-    } else {
-      console.log(`${keyName} API key failed, trying next...`)
-    }
-  }
-
-  if (!workingKey) {
-    console.error('All API keys exhausted')
-    return new Response(
-      JSON.stringify({
-        error: 'সার্ভিস সাময়িকভাবে অনুপলব্ধ। কিছুক্ষণ পর আবার চেষ্টা করুন।',
-      }),
-      {
-        status: 429,
-        headers: { 'Content-Type': 'application/json' },
-      },
-    )
-  }
-
-  // Use the working key for streaming
-  const google = createProvider(workingKey)
-  const result = streamText({
-    model: google('gemini-2.0-flash'),
-    system: systemPrompt,
-    messages: enhancedMessages,
-  })
-
-  return result.toUIMessageStreamResponse()
 }

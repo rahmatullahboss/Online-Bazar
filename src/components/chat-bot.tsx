@@ -128,6 +128,13 @@ export function ChatBot() {
     }
   }, [messages, showHumanOptions])
 
+  // Auto-focus input when chat is ready for new message
+  useEffect(() => {
+    if (status === 'ready' && isOpen) {
+      inputRef.current?.focus()
+    }
+  }, [status, isOpen])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && status === 'ready') {

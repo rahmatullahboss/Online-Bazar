@@ -81,6 +81,7 @@ export interface Config {
     'push-subscriptions': PushSubscription;
     wishlists: Wishlist;
     'chat-conversations': ChatConversation;
+    offers: Offer;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -102,6 +103,7 @@ export interface Config {
     'push-subscriptions': PushSubscriptionsSelect<false> | PushSubscriptionsSelect<true>;
     wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
     'chat-conversations': ChatConversationsSelect<false> | ChatConversationsSelect<true>;
+    offers: OffersSelect<false> | OffersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -764,6 +766,117 @@ export interface ChatConversation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  /**
+   * Offer title (e.g., "Flash Sale - 50% Off Electronics")
+   */
+  name: string;
+  /**
+   * Detailed offer description shown to customers
+   */
+  description?: string | null;
+  /**
+   * Type of offer/promotion
+   */
+  type: 'flash_sale' | 'category_sale' | 'buy_x_get_y' | 'bundle' | 'free_shipping' | 'promo_banner';
+  discountType?: ('percent' | 'fixed' | 'free_item') | null;
+  /**
+   * Discount percentage (0-100) or fixed amount in taka
+   */
+  discountValue?: number | null;
+  /**
+   * When the offer starts
+   */
+  startDate: string;
+  /**
+   * When the offer ends
+   */
+  endDate: string;
+  /**
+   * Manually enable/disable this offer
+   */
+  isActive?: boolean | null;
+  /**
+   * Show in homepage offers section
+   */
+  displayOnHomepage?: boolean | null;
+  /**
+   * Higher priority offers take precedence (0-100)
+   */
+  priority?: number | null;
+  /**
+   * What products does this offer apply to?
+   */
+  targetType?: ('all' | 'specific_products' | 'category') | null;
+  /**
+   * Select products this offer applies to
+   */
+  targetProducts?: (number | Item)[] | null;
+  /**
+   * Select category this offer applies to
+   */
+  targetCategory?: (number | null) | Category;
+  /**
+   * Configure buy X get Y free offer
+   */
+  bogoSettings?: {
+    /**
+     * Customer must buy this many
+     */
+    buyQuantity?: number | null;
+    /**
+     * Customer gets this many free/discounted
+     */
+    getQuantity?: number | null;
+  };
+  /**
+   * Products included in this bundle
+   */
+  bundleProducts?: (number | Item)[] | null;
+  /**
+   * Special bundle price (total for all items)
+   */
+  bundlePrice?: number | null;
+  /**
+   * Banner image (recommended: 1200x400px)
+   */
+  bannerImage?: (number | null) | Media;
+  /**
+   * URL to navigate when banner is clicked
+   */
+  bannerLink?: string | null;
+  /**
+   * Text overlay on banner (optional)
+   */
+  bannerText?: string | null;
+  /**
+   * Minimum cart value to apply this offer (0 for no minimum)
+   */
+  minOrderValue?: number | null;
+  /**
+   * Maximum redemptions (0 for unlimited)
+   */
+  usageLimit?: number | null;
+  /**
+   * Number of times used (auto-updated)
+   */
+  usedCount?: number | null;
+  /**
+   * Short badge text shown on products (e.g., "50% OFF", "BOGO")
+   */
+  badge?: string | null;
+  /**
+   * Highlight color for badges and banners
+   */
+  highlightColor?: ('red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -841,6 +954,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'chat-conversations';
         value: number | ChatConversation;
+      } | null)
+    | ({
+        relationTo: 'offers';
+        value: number | Offer;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1232,6 +1349,43 @@ export interface ChatConversationsSelect<T extends boolean = true> {
         userAgent?: T;
         ipAddress?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers_select".
+ */
+export interface OffersSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  type?: T;
+  discountType?: T;
+  discountValue?: T;
+  startDate?: T;
+  endDate?: T;
+  isActive?: T;
+  displayOnHomepage?: T;
+  priority?: T;
+  targetType?: T;
+  targetProducts?: T;
+  targetCategory?: T;
+  bogoSettings?:
+    | T
+    | {
+        buyQuantity?: T;
+        getQuantity?: T;
+      };
+  bundleProducts?: T;
+  bundlePrice?: T;
+  bannerImage?: T;
+  bannerLink?: T;
+  bannerText?: T;
+  minOrderValue?: T;
+  usageLimit?: T;
+  usedCount?: T;
+  badge?: T;
+  highlightColor?: T;
   updatedAt?: T;
   createdAt?: T;
 }

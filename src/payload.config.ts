@@ -24,6 +24,7 @@ import { Coupons } from './collections/Coupons'
 import { PushSubscriptions } from './collections/PushSubscriptions'
 import { Wishlist } from './collections/Wishlist'
 import { ChatConversations } from './collections/ChatConversations'
+import { Offers } from './collections/Offers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -120,6 +121,7 @@ export default buildConfig({
     PushSubscriptions,
     Wishlist,
     ChatConversations,
+    Offers,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

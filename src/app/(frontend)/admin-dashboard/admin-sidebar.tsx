@@ -16,6 +16,7 @@ import {
   TrendingUp,
   ShoppingBag,
   FileText,
+  Gift,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -54,6 +55,12 @@ const menuItems: MenuItem[] = [
     href: '/admin-dashboard/sales-report',
     icon: <TrendingUp className="w-5 h-5" />,
     description: 'Revenue reports',
+  },
+  {
+    name: 'Offers',
+    href: '/admin-dashboard/offers',
+    icon: <Gift className="w-5 h-5" />,
+    description: 'Promotions & deals',
   },
   {
     name: 'Customers',

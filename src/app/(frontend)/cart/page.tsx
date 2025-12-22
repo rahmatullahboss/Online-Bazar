@@ -44,7 +44,7 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SiteHeader variant="full" />
 
-      <div className="container mx-auto px-4 pt-24 pb-40 md:pb-24 max-w-full overflow-hidden">
+      <div className="container mx-auto px-4 pt-20 pb-40 md:pb-24 max-w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-2 sm:gap-4 mb-6 flex-wrap">
           <button

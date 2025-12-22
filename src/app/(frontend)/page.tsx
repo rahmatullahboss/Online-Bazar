@@ -96,7 +96,7 @@ export default async function HomePage() {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <section className="relative pt-32 pb-16 sm:pt-40 sm:pb-24 flex items-center justify-center overflow-hidden">
+        <section className="relative pt-20 pb-8 sm:pt-40 sm:pb-24 flex items-center justify-center overflow-hidden">
           {/* Floating Elements - hidden on mobile for better LCP */}
           <div className="absolute inset-0 pointer-events-none hidden md:block">
             <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-1000"></div>
@@ -107,19 +107,19 @@ export default async function HomePage() {
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             {/* Removed animate-fade-in to improve LCP - the paragraph is the LCP element */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter">
+            <div className="space-y-4 sm:space-y-8">
+              <div className="space-y-2 sm:space-y-4">
+                <h2 className="text-4xl sm:text-7xl md:text-8xl font-black tracking-tighter">
                   <span className="brand-text motion-safe:animate-gradient-x motion-reduce:brand-gradient-static">
                     {SITE_NAME}
                   </span>
                   <br />
                   <span className="text-gray-800">Reimagined</span>
                 </h2>
-                <div className="h-1 w-32 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
+                <div className="h-1 w-24 sm:w-32 bg-gradient-to-r from-amber-400 to-rose-400 mx-auto rounded-full"></div>
               </div>
               {/* LCP Element - no animation to ensure immediate render */}
-              <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Experience the future of shopping with our curated collection of premium items,
                 delivered with precision and passion.
               </p>

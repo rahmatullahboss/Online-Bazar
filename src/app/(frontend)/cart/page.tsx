@@ -24,7 +24,7 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <SiteHeader variant="full" />
-        <div className="container mx-auto px-4 pt-24 pb-24">
+        <div className="container mx-auto px-4 pt-4 pb-24 md:pt-24">
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <ShoppingBag className="w-10 h-10 text-gray-400" />
@@ -44,7 +44,7 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SiteHeader variant="full" />
 
-      <div className="container mx-auto px-4 pt-20 pb-40 md:pb-24 max-w-full overflow-hidden">
+      <div className="container mx-auto px-4 pt-4 pb-40 md:pt-20 md:pb-24 max-w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-2 sm:gap-4 mb-6 flex-wrap">
           <button

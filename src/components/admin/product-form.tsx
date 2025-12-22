@@ -384,12 +384,15 @@ export function ProductForm({ initialData, categories, mode }: ProductFormProps)
             <CardContent className="space-y-4">
               <div>
                 <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select
+                  value={category || 'none'}
+                  onValueChange={(val) => setCategory(val === 'none' ? '' : val)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No category</SelectItem>
+                    <SelectItem value="none">No category</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}

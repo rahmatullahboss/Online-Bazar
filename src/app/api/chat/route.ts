@@ -17,54 +17,32 @@ interface ProductInfo {
   imageUrl: string | null
 }
 
-// Search for relevant products based on user query
-async function searchProducts(query: string): Promise<ProductInfo[]> {
+// Simple in-memory cache for products
+let productsCache: ProductInfo[] | null = null
+let cacheTimestamp = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes cache
+
+// Fetch products from database with caching
+async function getAllProducts(): Promise<ProductInfo[]> {
+  const now = Date.now()
+
+  // Return cached products if still valid
+  if (productsCache && now - cacheTimestamp < CACHE_TTL) {
+    return productsCache
+  }
+
   try {
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    // Extract keywords from query (remove common words)
-    const keywords = query
-      .toLowerCase()
-      .replace(/[^\w\s\u0980-\u09FF]/g, '') // Keep Bengali + English
-      .split(/\s+/)
-      .filter(
-        (w) =>
-          w.length > 2 &&
-          ![
-            'the',
-            'and',
-            'for',
-            'কি',
-            'আছে',
-            'দেখান',
-            'চাই',
-            'please',
-            'show',
-            'want',
-            'need',
-          ].includes(w),
-      )
-
-    // Build where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let whereClause: any = { available: { equals: true } }
-
-    if (keywords.length > 0) {
-      // Search by first keyword in name (simpler query, faster)
-      whereClause = {
-        and: [{ available: { equals: true } }, { name: { contains: keywords[0] } }],
-      }
-    }
-
     const items = await payload.find({
       collection: 'items',
-      where: whereClause,
+      where: { available: { equals: true } },
       depth: 1,
-      limit: 10, // Only fetch 10 relevant products
+      limit: 30, // Fetch 30 products
     })
 
-    return items.docs.map((item) => ({
+    productsCache = items.docs.map((item) => ({
       id: String(item.id),
       name: item.name,
       price: item.price,
@@ -79,9 +57,12 @@ async function searchProducts(query: string): Promise<ProductInfo[]> {
           ? (item.image as { url?: string }).url || null
           : item.imageUrl || null,
     }))
+
+    cacheTimestamp = now
+    return productsCache
   } catch (error) {
-    console.error('Error searching products:', error)
-    return []
+    console.error('Error fetching products:', error)
+    return productsCache || []
   }
 }
 
@@ -130,17 +111,8 @@ ${productList}
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json()
 
-  // Get last user message for relevant product search
-  const lastUserMessage = messages.filter((m) => m.role === 'user').pop()
-  // Extract text from message parts
-  const userQuery =
-    lastUserMessage?.parts
-      ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-      .map((p) => p.text)
-      .join(' ') || ''
-
-  // Search for relevant products based on user query
-  const products = await searchProducts(userQuery)
+  // Fetch products for context (cached)
+  const products = await getAllProducts()
   const systemPrompt = generateSystemPrompt(products)
   const enhancedMessages = await convertToModelMessages(messages)
 

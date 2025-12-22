@@ -83,8 +83,7 @@ export async function POST(req: NextRequest) {
         data: {
           messages,
           lastMessageAt: new Date().toISOString(),
-          // Update sessionId to latest (in case browser changed)
-          sessionId,
+          // Don't update sessionId - it's unique and causes validation errors
         },
       })
     } else {

@@ -51,6 +51,8 @@ interface OrderSummaryCardProps {
   onDiscountCodeChange: (value: string) => void
   onApplyDiscount: () => void
   discountAmount: number
+  offerDiscount: number
+  appliedOfferName: string | null
   subtotal: number
   shippingCharge: number
   total: number
@@ -83,6 +85,8 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   onDiscountCodeChange,
   onApplyDiscount,
   discountAmount,
+  offerDiscount,
+  appliedOfferName,
   subtotal,
   shippingCharge,
   total,
@@ -223,9 +227,15 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         <span>Subtotal</span>
         <span className="font-medium text-stone-900">{formatCurrency(subtotal)}</span>
       </div>
+      {offerDiscount > 0 && (
+        <div className="flex items-center justify-between text-green-600">
+          <span className="flex items-center gap-1">🎁 {appliedOfferName || 'Offer Discount'}</span>
+          <span className="font-medium">-{formatCurrency(offerDiscount)}</span>
+        </div>
+      )}
       {discountAmount > 0 && (
         <div className="flex items-center justify-between">
-          <span>Discount</span>
+          <span>Coupon Discount</span>
           <span className="font-medium text-stone-900">-{formatCurrency(discountAmount)}</span>
         </div>
       )}
@@ -241,6 +251,11 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
         <span>Total</span>
         <span>{formatCurrency(total)}</span>
       </div>
+      {(offerDiscount > 0 || discountAmount > 0) && (
+        <div className="rounded-lg bg-green-50 p-2 text-center text-green-700 text-sm font-medium">
+          🎉 You save {formatCurrency(offerDiscount + discountAmount)} on this order!
+        </div>
+      )}
     </div>
     <Separator className="my-6" />
     <div className="space-y-5">
@@ -377,6 +392,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
   const [discountAmount, setDiscountAmount] = useState<number>(0)
   const [isDiscountValidating, setIsDiscountValidating] = useState<boolean>(false)
   const [discountError, setDiscountError] = useState<string | null>(null)
+  const [offerDiscount, setOfferDiscount] = useState<number>(0)
+  const [appliedOfferName, setAppliedOfferName] = useState<string | null>(null)
   const initialDeliveryZone: 'inside_dhaka' | 'outside_dhaka' =
     user?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
   const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>(
@@ -402,7 +419,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
         ? settings.outsideDhakaCharge
         : settings.insideDhakaCharge
   const total = subtotal + shippingCharge
-  const totalWithDiscount = Math.max(0, total - discountAmount)
+  const totalDiscount = discountAmount + offerDiscount
+  const totalWithDiscount = Math.max(0, total - totalDiscount)
   const formatCurrency = (value: number) => `Tk ${value.toFixed(2)}`
   const router = useRouter()
   const requiresDigitalPaymentDetails = isDigitalPayment
@@ -467,6 +485,91 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
       setAddressCity((prev) => (prev.trim().toLowerCase() === 'dhaka' ? prev : 'Dhaka'))
     }
   }, [deliveryZone])
+
+  // Auto-apply offers based on cart items
+  React.useEffect(() => {
+    const fetchAndApplyOffers = async () => {
+      if (state.items.length === 0) {
+        setOfferDiscount(0)
+        setAppliedOfferName(null)
+        return
+      }
+
+      try {
+        // Fetch active offers
+        const response = await fetch('/api/offers?where[isActive][equals]=true&limit=100&depth=1')
+        if (!response.ok) return
+
+        const { docs: offers } = await response.json()
+        if (!offers || offers.length === 0) return
+
+        const now = new Date()
+        const activeOffers = offers.filter((offer: any) => {
+          const start = new Date(offer.startDate)
+          const end = new Date(offer.endDate)
+          return offer.isActive && start <= now && end > now && offer.type !== 'promo_banner'
+        })
+
+        if (activeOffers.length === 0) return
+
+        // Calculate best offer discount
+        let bestDiscount = 0
+        let bestOfferName = ''
+
+        for (const offer of activeOffers) {
+          let offerTotal = 0
+
+          for (const cartItem of state.items) {
+            let applicable = false
+
+            if (offer.targetType === 'all') {
+              applicable = true
+            } else if (offer.targetType === 'specific_products' && offer.targetProducts) {
+              const targetIds = offer.targetProducts.map((p: any) =>
+                typeof p === 'object' ? p.id : p,
+              )
+              applicable = targetIds.includes(cartItem.id)
+            } else if (offer.targetType === 'category' && offer.targetCategory) {
+              const categoryId =
+                typeof offer.targetCategory === 'object'
+                  ? offer.targetCategory.id
+                  : offer.targetCategory
+              // Use category field from cart item (may be string or object)
+              const itemCategoryId =
+                typeof (cartItem as any).category === 'object'
+                  ? (cartItem as any).category?.id
+                  : (cartItem as any).category
+              applicable = itemCategoryId === categoryId
+            }
+
+            if (applicable && offer.discountType && offer.discountValue) {
+              const itemTotal = cartItem.price * cartItem.quantity
+              if (offer.discountType === 'percent') {
+                offerTotal += (itemTotal * offer.discountValue) / 100
+              } else if (offer.discountType === 'fixed') {
+                offerTotal += Math.min(offer.discountValue * cartItem.quantity, itemTotal)
+              }
+            }
+          }
+
+          if (offerTotal > bestDiscount) {
+            bestDiscount = offerTotal
+            bestOfferName = offer.name
+          }
+        }
+
+        if (bestDiscount > 0) {
+          setOfferDiscount(Math.round(bestDiscount))
+          setAppliedOfferName(bestOfferName)
+        }
+      } catch (error) {
+        // Silently fail - offers are optional
+        console.error('Failed to fetch offers:', error)
+      }
+    }
+
+    fetchAndApplyOffers()
+  }, [state.items])
 
   // Persist guest details for abandoned cart tracking
   React.useEffect(() => {
@@ -1089,6 +1192,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ user, deliverySettin
           onDiscountCodeChange={handleDiscountCodeChange}
           onApplyDiscount={handleApplyDiscount}
           discountAmount={discountAmount}
+          offerDiscount={offerDiscount}
+          appliedOfferName={appliedOfferName}
           subtotal={subtotal}
           shippingCharge={shippingCharge}
           total={totalWithDiscount}

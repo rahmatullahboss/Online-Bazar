@@ -32,7 +32,9 @@ function generateSessionId() {
 
 // Parse products from AI text response
 function parseProductsFromText(text: string): { cleanText: string; products: Product[] } {
-  const productRegex = /\[PRODUCT:([^:]+):([^:]+):(\d+):([^:]+):(true|false):([^\]]*)\]/g
+  // Updated regex to handle ৳ symbol and URLs with colons
+  // Format: [PRODUCT:id:name:price:category:inStock:imageUrl]
+  const productRegex = /\[PRODUCT:([^:]+):([^:]+):৳?(\d+):([^:]+):(true|false):([^\]]*)\]/g
   const products: Product[] = []
   let match
 
@@ -49,6 +51,7 @@ function parseProductsFromText(text: string): { cleanText: string; products: Pro
 
   const cleanText = text
     .replace(productRegex, '') // Remove product tags
+    .replace(/\[PRODUCT:[^\]]+\]/g, '') // Remove any remaining product tags
     .replace(/^\s*\*\s*$/gm, '') // Remove lines with only asterisk
     .replace(/^\s*[-*]\s*$/gm, '') // Remove empty bullet points
     .replace(/\*{2,}/g, '') // Remove multiple asterisks

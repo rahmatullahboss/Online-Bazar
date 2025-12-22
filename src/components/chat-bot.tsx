@@ -177,7 +177,7 @@ export function ChatBot() {
   // Save message to database
   const saveMessage = useCallback(
     async (role: 'user' | 'assistant', content: string) => {
-      if (!sessionId) return
+      if (!sessionId || !content.trim()) return
       try {
         await fetch('/api/save-chat', {
           method: 'POST',
@@ -196,21 +196,48 @@ export function ChatBot() {
     [sessionId, userId, guestInfo],
   )
 
-  // Save messages when they change
-  const prevMessagesLengthRef = useRef(0)
+  // Track saved messages to avoid duplicates
+  const savedMessageIdsRef = useRef<Set<string>>(new Set())
+  const prevStatusRef = useRef(status)
+
+  // Save user messages immediately when sent
   useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current) {
-      const newMessage = messages[messages.length - 1]
-      const textContent = newMessage.parts
-        .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-        .map((part) => part.text)
-        .join('')
-      if (textContent) {
-        saveMessage(newMessage.role as 'user' | 'assistant', textContent)
+    messages.forEach((msg) => {
+      if (msg.role === 'user' && !savedMessageIdsRef.current.has(msg.id)) {
+        const textContent = msg.parts
+          .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+          .map((part) => part.text)
+          .join('')
+        if (textContent) {
+          saveMessage('user', textContent)
+          savedMessageIdsRef.current.add(msg.id)
+        }
+      }
+    })
+  }, [messages, saveMessage])
+
+  // Save AI responses when streaming completes
+  useEffect(() => {
+    // When status changes from streaming to ready, save the last AI message
+    if (prevStatusRef.current === 'streaming' && status === 'ready') {
+      const lastMessage = messages[messages.length - 1]
+      if (
+        lastMessage &&
+        lastMessage.role === 'assistant' &&
+        !savedMessageIdsRef.current.has(lastMessage.id)
+      ) {
+        const textContent = lastMessage.parts
+          .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+          .map((part) => part.text)
+          .join('')
+        if (textContent) {
+          saveMessage('assistant', textContent)
+          savedMessageIdsRef.current.add(lastMessage.id)
+        }
       }
     }
-    prevMessagesLengthRef.current = messages.length
-  }, [messages, saveMessage])
+    prevStatusRef.current = status
+  }, [status, messages, saveMessage])
 
   const handleGuestInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault()

@@ -96,7 +96,7 @@ export default async function HomePage() {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <section className="relative pt-32 pb-16 sm:pt-40 sm:pb-24 flex items-center justify-center overflow-hidden">
           {/* Floating Elements - hidden on mobile for better LCP */}
           <div className="absolute inset-0 pointer-events-none hidden md:block">
             <div className="absolute top-20 left-10 w-4 h-4 bg-amber-300 rounded-full opacity-60 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0 animation-delay-1000"></div>
@@ -123,13 +123,6 @@ export default async function HomePage() {
                 Experience the future of shopping with our curated collection of premium items,
                 delivered with precision and passion.
               </p>
-            </div>
-          </div>
-
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 motion-safe:animate-bounce motion-reduce:animate-none motion-reduce:translate-y-0">
-            <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-gray-500 rounded-full mt-2 motion-safe:animate-pulse motion-reduce:animate-none"></div>
             </div>
           </div>
         </section>

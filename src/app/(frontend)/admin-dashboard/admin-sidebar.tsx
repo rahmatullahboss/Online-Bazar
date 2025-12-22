@@ -74,7 +74,7 @@ const menuItems: MenuItem[] = [
   },
   {
     name: 'Products',
-    href: '/admin/collections/items',
+    href: '/admin-dashboard/products',
     icon: <Package className="w-5 h-5" />,
     description: 'Product catalog',
   },

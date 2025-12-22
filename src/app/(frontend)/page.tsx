@@ -10,6 +10,9 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge'
 import { ProductCardFooter } from '@/components/product-card-footer'
 import { SiteHeader } from '@/components/site-header'
+import { HomepageOffersSection } from '@/components/HomepageOffersSection'
+import { OfferBadge } from '@/components/OfferBadge'
+import { getActiveOffers, getOffersForProduct } from '@/lib/offer-utils'
 import { SITE_NAME } from '@/lib/site-config'
 
 export const revalidate = 3600
@@ -131,6 +134,11 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* Hot Deals Section */}
+        <Suspense fallback={null}>
+          <HomepageOffersSection />
+        </Suspense>
+
         <Suspense fallback={<ProductGridFallback />}>
           <ProductGridSection authPromise={authPromise} itemsPromise={itemsPromise} />
         </Suspense>
@@ -149,7 +157,11 @@ async function HeaderSection({ authPromise }: HeaderSectionProps) {
 }
 
 async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSectionProps) {
-  const [authResult, items] = await Promise.all([authPromise, itemsPromise])
+  const [authResult, items, offers] = await Promise.all([
+    authPromise,
+    itemsPromise,
+    getActiveOffers(),
+  ])
   const user = authResult?.user ?? null
   const userDeliveryZone =
     (user as any)?.deliveryZone === 'outside_dhaka' ? 'outside_dhaka' : 'inside_dhaka'
@@ -176,65 +188,83 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items!.docs.map((item: any, index: number) => (
-              <Card
-                key={item.id}
-                className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative z-10 h-full flex flex-col">
-                  <Link href={`/item/${item.id}`} className="block">
-                    {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-                      <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
-                        <Image
-                          src={
-                            item.image && typeof item.image === 'object'
-                              ? item.image.url
-                              : item.imageUrl
-                          }
-                          alt={
-                            (item.image && typeof item.image === 'object'
-                              ? item.image.alt
-                              : undefined) || item.name
-                          }
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
-                          priority={index < 2}
-                        />
+            {items!.docs.map((item: any, index: number) => {
+              const categoryId =
+                typeof item.category === 'object' ? item.category?.id : item.category
+              const productOffer = getOffersForProduct(offers, item.id, categoryId)
 
-                        {/* Floating Badge */}
-                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-                          <Badge
-                            variant="secondary"
-                            className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
-                          >
-                            {typeof item.category === 'object'
-                              ? (item.category as any)?.name
-                              : item.category}
-                          </Badge>
+              return (
+                <Card
+                  key={item.id}
+                  className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="relative z-10 h-full flex flex-col">
+                    <Link href={`/item/${item.id}`} className="block">
+                      {((item.image && typeof item.image === 'object') || item.imageUrl) && (
+                        <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
+                          <Image
+                            src={
+                              item.image && typeof item.image === 'object'
+                                ? item.image.url
+                                : item.imageUrl
+                            }
+                            alt={
+                              (item.image && typeof item.image === 'object'
+                                ? item.image.alt
+                                : undefined) || item.name
+                            }
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                            className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
+                            priority={index < 2}
+                          />
+
+                          {/* Offer Badge - Top Left */}
+                          {productOffer?.badge && (
+                            <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+                              <OfferBadge
+                                badge={productOffer.badge}
+                                type={productOffer.type}
+                                highlightColor={productOffer.highlightColor}
+                                endDate={productOffer.endDate}
+                              />
+                            </div>
+                          )}
+
+                          {/* Category Badge - Top Right */}
+                          <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+                            <Badge
+                              variant="secondary"
+                              className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
+                            >
+                              {typeof item.category === 'object'
+                                ? (item.category as any)?.name
+                                : item.category}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
-                      <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
-                        {item.name}
-                      </CardTitle>
-                      <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
-                        {item.shortDescription ?? item.description}
-                      </CardDescription>
-                    </CardHeader>
-                  </Link>
+                      <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+                        <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
+                          {item.name}
+                        </CardTitle>
+                        <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
+                          {item.shortDescription ?? item.description}
+                        </CardDescription>
+                      </CardHeader>
+                    </Link>
 
-                  <ProductCardFooter
-                    item={item}
-                    isLoggedIn={!!user}
-                    deliveryZone={userDeliveryZone}
-                  />
-                </div>
-              </Card>
-            ))}
+                    <ProductCardFooter
+                      item={item}
+                      isLoggedIn={!!user}
+                      deliveryZone={userDeliveryZone}
+                    />
+                  </div>
+                </Card>
+              )
+            })}
           </div>
         )}
       </section>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import sharp from 'sharp'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,18 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer
     const buffer = Buffer.from(await file.arrayBuffer())
 
+    // Optimize image using Sharp - resize to max 400x400 and convert to webp
+    const optimizedBuffer = await sharp(buffer)
+      .resize(400, 400, {
+        fit: 'cover',
+        position: 'center',
+      })
+      .webp({ quality: 80 })
+      .toBuffer()
+
+    // Generate optimized filename
+    const optimizedFileName = file.name.replace(/\.[^.]+$/, '') + '.webp'
+
     // Upload to media collection
     const media = await payload.create({
       collection: 'media',
@@ -31,10 +44,10 @@ export async function POST(request: NextRequest) {
         alt: `Profile photo for ${user.email}`,
       },
       file: {
-        data: buffer,
-        mimetype: file.type,
-        name: file.name,
-        size: file.size,
+        data: optimizedBuffer,
+        mimetype: 'image/webp',
+        name: optimizedFileName,
+        size: optimizedBuffer.length,
       },
     })
 

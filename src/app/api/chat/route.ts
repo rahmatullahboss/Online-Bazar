@@ -125,7 +125,7 @@ export async function POST(req: Request) {
     try {
       const groq = createGroq({ apiKey: groqKey })
       const result = streamText({
-        model: groq('llama-3.1-8b-instant'),
+        model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
         system: systemPrompt,
         messages: enhancedMessages,
       })

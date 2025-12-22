@@ -15,6 +15,7 @@ import { OrderStatusUpdate } from '@/components/lazy-client-components'
 import { DateFilter } from './DateFilter'
 import SalesReport from './sales-report'
 import AnalyticsDashboard from './analytics-dashboard'
+import { ChatConversationsView } from './chat-conversations-view'
 import {
   ArrowLeft,
   Clock,
@@ -295,6 +296,11 @@ export default async function AdminDashboardPage({
               <SalesReport />
             </CardContent>
           </Card>
+        </div>
+
+        {/* Chat Conversations Section */}
+        <div className="mb-8">
+          <ChatConversationsView />
         </div>
 
         {/* Enhanced Summary Card */}

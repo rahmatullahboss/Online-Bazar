@@ -1,4 +1,5 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -14,15 +15,6 @@ interface ProductInfo {
   category: string
   inStock: boolean
   imageUrl: string | null
-}
-
-// Create OpenRouter provider
-function getOpenRouter() {
-  const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY is not set')
-  }
-  return createOpenRouter({ apiKey })
 }
 
 // Fetch all products from database
@@ -59,7 +51,7 @@ async function getAllProducts(): Promise<ProductInfo[]> {
   }
 }
 
-// Generate system prompt with product data including IDs
+// Generate system prompt with product data
 function generateSystemPrompt(products: ProductInfo[]) {
   const productList = products
     .slice(0, 30)
@@ -110,21 +102,42 @@ export async function POST(req: Request) {
   const systemPrompt = generateSystemPrompt(products)
   const enhancedMessages = await convertToModelMessages(messages)
 
-  try {
-    const openrouter = getOpenRouter()
+  // Try OpenRouter first, fallback to Google AI
+  const openrouterKey = process.env.OPENROUTER_API_KEY
+  const googleKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
-    const result = streamText({
-      model: openrouter('xiaomi/mimo-v2-flash:free'),
-      system: systemPrompt,
-      messages: enhancedMessages,
-    })
-
-    return result.toUIMessageStreamResponse()
-  } catch (error) {
-    console.error('Chat API error:', error)
-    return new Response(JSON.stringify({ error: 'Chat service unavailable. Please try again.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+  // Try OpenRouter
+  if (openrouterKey) {
+    try {
+      const openrouter = createOpenRouter({ apiKey: openrouterKey })
+      const result = streamText({
+        model: openrouter('xiaomi/mimo-v2-flash:free'),
+        system: systemPrompt,
+        messages: enhancedMessages,
+      })
+      return result.toUIMessageStreamResponse()
+    } catch (error) {
+      console.log('OpenRouter failed, trying Google AI...', error)
+    }
   }
+
+  // Fallback to Google AI
+  if (googleKey) {
+    try {
+      const google = createGoogleGenerativeAI({ apiKey: googleKey })
+      const result = streamText({
+        model: google('gemini-2.0-flash'),
+        system: systemPrompt,
+        messages: enhancedMessages,
+      })
+      return result.toUIMessageStreamResponse()
+    } catch (error) {
+      console.error('Google AI also failed:', error)
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ error: 'Chat service unavailable. Please try again later.' }),
+    { status: 500, headers: { 'Content-Type': 'application/json' } },
+  )
 }

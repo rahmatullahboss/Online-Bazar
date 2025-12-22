@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SiteHeader } from '@/components/site-header'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
+import { CartActions } from '@/components/admin/cart-actions'
 import { Button } from '@/components/ui/button'
 import {
   ShoppingBag,
@@ -18,7 +19,6 @@ import {
   AlertTriangle,
   Clock,
   DollarSign,
-  RefreshCw,
   ExternalLink,
 } from 'lucide-react'
 
@@ -43,6 +43,52 @@ export default async function AbandonedCartsPage({
 
   const BDT = '\u09F3'
   const fmtBDT = (n: number) => `${BDT}${n.toFixed(0)}`
+
+  // HEARTBEAT CLEANUP: Mark old active carts as abandoned (runs on each page visit)
+  const ABANDONMENT_MINUTES = 30 // 30 minutes of inactivity = abandoned
+  const cutoffTime = new Date(Date.now() - ABANDONMENT_MINUTES * 60 * 1000).toISOString()
+
+  const oldActiveCarts = await payload.find({
+    collection: 'abandoned-carts',
+    where: {
+      and: [{ status: { equals: 'active' } }, { lastActivityAt: { less_than: cutoffTime } }],
+    },
+    limit: 20,
+  })
+
+  // Mark them as abandoned (heartbeat cleanup)
+  for (const cart of oldActiveCarts.docs) {
+    await payload.update({
+      collection: 'abandoned-carts',
+      id: cart.id,
+      data: {
+        status: 'abandoned',
+        notes: `Auto-abandoned after ${ABANDONMENT_MINUTES} min inactivity`,
+      },
+    })
+  }
+
+  // Also cleanup carts without customer info AND no items (useless carts) older than 24hrs
+  const cleanupCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const uselessCarts = await payload.find({
+    collection: 'abandoned-carts',
+    where: {
+      and: [
+        { lastActivityAt: { less_than: cleanupCutoff } },
+        { customerEmail: { exists: false } },
+        { customerName: { exists: false } },
+        { customerNumber: { exists: false } },
+      ],
+    },
+    limit: 10,
+  })
+
+  for (const cart of uselessCarts.docs) {
+    const cartItems = (cart as any).items || []
+    if (cartItems.length === 0) {
+      await payload.delete({ collection: 'abandoned-carts', id: cart.id })
+    }
+  }
 
   // Fetch all carts
   const whereClause: any = {}
@@ -333,16 +379,23 @@ export default async function AbandonedCartsPage({
                         </div>
                       )}
                     </div>
-                    {cart.status === 'recovered' && cart.recoveredOrder && (
-                      <Button asChild variant="outline" size="sm">
-                        <Link
-                          href={`/admin-dashboard/orders?search=${cart.recoveredOrder?.id || cart.recoveredOrder}`}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                          View Order
-                        </Link>
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {cart.status === 'recovered' && cart.recoveredOrder && (
+                        <Button asChild variant="outline" size="sm">
+                          <Link
+                            href={`/admin-dashboard/orders?search=${cart.recoveredOrder?.id || cart.recoveredOrder}`}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                            View Order
+                          </Link>
+                        </Button>
+                      )}
+                      <CartActions
+                        cartId={cart.id}
+                        status={cart.status}
+                        customerPhone={cart.customerNumber}
+                      />
+                    </div>
                   </div>
                 </CardHeader>
 

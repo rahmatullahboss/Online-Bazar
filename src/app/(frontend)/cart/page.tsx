@@ -43,12 +43,14 @@ export default function CartPage() {
 
       if (response.ok) {
         const data = await response.json()
-        // Map validated items back with quantities from cart
+        // Map validated items back with quantities and images from original cart
         const validated: ValidatedItem[] = data.items.map((validItem: ValidatedItem) => {
           const cartItem = items.find((i) => String(i.id) === String(validItem.id))
           return {
             ...validItem,
             quantity: cartItem?.quantity || validItem.quantity,
+            // Use API image if available, otherwise fallback to cart item image
+            image: validItem.image || cartItem?.image,
           }
         })
         setValidatedItems(validated)

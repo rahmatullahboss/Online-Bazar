@@ -149,6 +149,19 @@ export async function POST(request: NextRequest) {
 
       const hasOffer = offer && discountedPrice < originalPrice
 
+      // Extract image properly - can be an object with url or just a string
+      let imageData: { url: string; alt?: string } | undefined
+      if (product.image) {
+        if (typeof product.image === 'object' && product.image.url) {
+          imageData = {
+            url: product.image.url,
+            alt: product.image.alt || product.name,
+          }
+        } else if (typeof product.image === 'string') {
+          imageData = { url: product.image }
+        }
+      }
+
       validatedItems.push({
         id: String(product.id),
         name: product.name,
@@ -156,12 +169,7 @@ export async function POST(request: NextRequest) {
         originalPrice: hasOffer ? originalPrice : undefined,
         quantity: cartItem.quantity,
         category: categoryName,
-        image: product.image
-          ? {
-              url: product.image.url,
-              alt: product.image.alt,
-            }
-          : undefined,
+        image: imageData,
         hasOffer: !!hasOffer,
         offerBadge: hasOffer ? offer?.badge : undefined,
       })

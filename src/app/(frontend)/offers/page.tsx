@@ -340,7 +340,14 @@ function OfferCard({ offer }: { offer: Offer }) {
       )}
 
       {/* Discount Display */}
-      {offer.discountValue && offer.discountType && (
+      {offer.type === 'free_shipping' ? (
+        <div className="mb-3">
+          <span className="text-2xl font-bold text-green-600">FREE SHIPPING</span>
+          {(offer as any).minOrderValue > 0 && (
+            <p className="text-sm text-gray-600">On orders above ৳{(offer as any).minOrderValue}</p>
+          )}
+        </div>
+      ) : offer.discountValue && offer.discountType ? (
         <div className="mb-3">
           {offer.discountType === 'percent' && (
             <span className="text-2xl font-bold text-green-600">{offer.discountValue}% OFF</span>
@@ -349,7 +356,7 @@ function OfferCard({ offer }: { offer: Offer }) {
             <span className="text-2xl font-bold text-green-600">৳{offer.discountValue} OFF</span>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Countdown */}
       <div className="flex items-center justify-between">

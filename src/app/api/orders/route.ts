@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
       body = {}
     }
 
-
     const {
       items,
       customerNumber,
@@ -93,7 +92,6 @@ export async function POST(request: NextRequest) {
       paymentTransactionId: paymentTransactionIdInput,
       discountCode: discountCodeInput,
     } = body
-
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Invalid items' }, { status: 400 })
@@ -174,10 +172,14 @@ export async function POST(request: NextRequest) {
     const itemDetails: Array<{
       id: number
       name: string
-      price: number
+      price: number // This will be the discounted price
+      originalPrice: number // Store original for reference
       quantity: number
       category?: string
+      categoryId?: number
     }> = []
+
+    // First, collect all item data
     for (const line of normalizedItems) {
       const itemDoc = await payload.findByID({
         collection: 'items',
@@ -189,7 +191,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Item ${line.item} is not available` }, { status: 400 })
       }
 
-      const price =
+      const originalPrice =
         typeof (itemDoc as any)?.price === 'number'
           ? (itemDoc as any).price
           : Number((itemDoc as any)?.price || 0)
@@ -201,14 +203,98 @@ export async function POST(request: NextRequest) {
         }
         return undefined
       })()
+      const categoryId = (() => {
+        const cat = (itemDoc as any)?.category
+        if (!cat) return undefined
+        if (typeof cat === 'object' && 'id' in cat) {
+          return (cat as any).id as number
+        }
+        if (typeof cat === 'number') return cat
+        return undefined
+      })()
 
       itemDetails.push({
         id: line.item,
         name: (itemDoc as any)?.name || `Item ${line.item}`,
-        price: Number.isFinite(price) ? Number(price) : 0,
+        price: Number.isFinite(originalPrice) ? Number(originalPrice) : 0,
+        originalPrice: Number.isFinite(originalPrice) ? Number(originalPrice) : 0,
         quantity: line.quantity,
         category,
+        categoryId,
       })
+    }
+
+    // SERVER-SIDE OFFER CALCULATION - Apply discounts from active offers
+    const now = new Date().toISOString()
+    try {
+      const offersResult = await payload.find({
+        collection: 'offers',
+        where: {
+          and: [
+            { isActive: { equals: true } },
+            { startDate: { less_than_equal: now } },
+            { endDate: { greater_than: now } },
+            { type: { not_equals: 'promo_banner' } },
+            { type: { not_equals: 'free_shipping' } },
+          ],
+        },
+        sort: '-priority',
+        limit: 100,
+        depth: 1,
+      })
+
+      const offers = offersResult.docs as Array<{
+        targetType?: string
+        targetProducts?: Array<{ id: number } | number>
+        targetCategory?: { id: number } | number
+        discountType?: string
+        discountValue?: number
+        priority?: number
+      }>
+
+      // Helper to find applicable offer for a product
+      const getOfferForProduct = (productId: number, categoryId?: number) => {
+        const applicable = offers.filter((offer) => {
+          if (offer.targetType === 'all') return true
+          if (offer.targetType === 'specific_products') {
+            const targetIds = (offer.targetProducts || []).map((p) =>
+              typeof p === 'object' ? p.id : p,
+            )
+            return targetIds.includes(productId)
+          }
+          if (offer.targetType === 'category' && categoryId) {
+            const targetCatId =
+              typeof offer.targetCategory === 'object'
+                ? offer.targetCategory.id
+                : offer.targetCategory
+            return targetCatId === categoryId
+          }
+          return false
+        })
+
+        if (applicable.length === 0) return null
+        // Priority: specific > category > all
+        return (
+          applicable.find((o) => o.targetType === 'specific_products') ||
+          applicable.find((o) => o.targetType === 'category') ||
+          applicable[0]
+        )
+      }
+
+      // Apply discounts to item prices
+      for (const item of itemDetails) {
+        const offer = getOfferForProduct(item.id, item.categoryId)
+        if (offer && offer.discountType && offer.discountValue) {
+          if (offer.discountType === 'percent') {
+            item.price = item.originalPrice * (1 - offer.discountValue / 100)
+          } else if (offer.discountType === 'fixed') {
+            item.price = Math.max(0, item.originalPrice - offer.discountValue)
+          }
+        }
+      }
+    } catch (offerError) {
+      console.warn('Failed to fetch/apply offers, using original prices:', offerError)
+      // Continue with original prices if offers fail
     }
 
     const subtotal = itemDetails.reduce((sum, item) => sum + item.price * item.quantity, 0)

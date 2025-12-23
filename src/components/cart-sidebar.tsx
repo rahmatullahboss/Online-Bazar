@@ -1,30 +1,86 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { X, Plus, Minus, ShoppingCart } from 'lucide-react'
+import { X, Plus, Minus, ShoppingCart, RefreshCw } from 'lucide-react'
 
-import { useCart } from '@/lib/cart-context'
+import { useCart, CartItem } from '@/lib/cart-context'
 import { markCartAsPotentiallyAbandoned } from '@/lib/cart-abandonment'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+
+interface ValidatedItem extends CartItem {
+  hasOffer?: boolean
+  offerBadge?: string
+}
 
 export const CartSidebar: React.FC = () => {
-  const { state, removeItem, updateQuantity, closeCart, getTotalItems, getTotalPrice, sessionId } =
-    useCart()
+  const { state, removeItem, updateQuantity, closeCart, getTotalItems, sessionId } = useCart()
+
+  const [validatedItems, setValidatedItems] = useState<ValidatedItem[]>([])
+  const [isValidating, setIsValidating] = useState(false)
+  const [hasValidated, setHasValidated] = useState(false)
+
+  // Validate cart prices against current offers
+  const validatePrices = useCallback(async () => {
+    if (state.items.length === 0) {
+      setValidatedItems([])
+      setHasValidated(true)
+      return
+    }
+
+    setIsValidating(true)
+    try {
+      const response = await fetch('/api/cart/validate-prices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: state.items.map((item) => ({ id: item.id, quantity: item.quantity })),
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const validated: ValidatedItem[] = data.items.map((validItem: ValidatedItem) => {
+          const cartItem = state.items.find((i) => String(i.id) === String(validItem.id))
+          return {
+            ...validItem,
+            quantity: cartItem?.quantity || validItem.quantity,
+            image: validItem.image || cartItem?.image,
+          }
+        })
+        setValidatedItems(validated)
+      } else {
+        setValidatedItems(state.items)
+      }
+    } catch (error) {
+      console.error('Failed to validate prices:', error)
+      setValidatedItems(state.items)
+    } finally {
+      setIsValidating(false)
+      setHasValidated(true)
+    }
+  }, [state.items])
+
+  // Validate when cart opens or items change
+  useEffect(() => {
+    if (state.isOpen) {
+      validatePrices()
+    }
+  }, [state.isOpen, validatePrices])
+
+  const displayItems = hasValidated ? validatedItems : state.items
+  const totalPrice = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   // Function to handle cart closing with abandonment tracking
   const handleCloseCart = React.useCallback(() => {
-    // If there are items in the cart, mark it as potentially abandoned
     if (state.items.length > 0) {
-      const total = getTotalPrice()
-      markCartAsPotentiallyAbandoned(state.items, total, sessionId)
+      markCartAsPotentiallyAbandoned(state.items, totalPrice, sessionId)
     }
     closeCart()
-  }, [state.items, getTotalPrice, closeCart, sessionId])
+  }, [state.items, totalPrice, closeCart, sessionId])
 
   if (!state.isOpen) return null
 
@@ -46,6 +102,7 @@ export const CartSidebar: React.FC = () => {
                 <ShoppingCart className="h-5 w-5 text-white" />
               </div>
               Your Cart ({getTotalItems()})
+              {isValidating && <RefreshCw className="w-4 h-4 text-amber-500 animate-spin ml-2" />}
             </h2>
             <Button
               variant="ghost"
@@ -81,7 +138,7 @@ export const CartSidebar: React.FC = () => {
           <>
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {state.items.map((item, index) => (
+              {displayItems.map((item, index) => (
                 <Card
                   key={item.id}
                   className="group relative overflow-hidden rounded-2xl border border-gray-200/60 bg-white/90 backdrop-blur-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-300/50 p-0"
@@ -95,16 +152,26 @@ export const CartSidebar: React.FC = () => {
                   <div className="relative z-10 p-4">
                     <div className="flex gap-4">
                       {/* Item Image */}
-                      {item.image && (
-                        <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+                        {item.image ? (
                           <Image
                             src={item.image.url}
                             alt={item.image.alt || item.name}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
-                        </div>
-                      )}
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                            <ShoppingCart className="w-8 h-8 text-gray-300" />
+                          </div>
+                        )}
+                        {/* Sale badge */}
+                        {(item as ValidatedItem).hasOffer && (
+                          <div className="absolute top-1 left-1 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-medium">
+                            SALE
+                          </div>
+                        )}
+                      </div>
 
                       {/* Item Details */}
                       <div className="flex-1 min-w-0 space-y-2">
@@ -129,9 +196,16 @@ export const CartSidebar: React.FC = () => {
                           {item.category}
                         </Badge>
 
-                        <p className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          ৳{item.price.toFixed(2)} each
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            ৳{item.price.toFixed(0)} each
+                          </p>
+                          {item.originalPrice && item.originalPrice > item.price && (
+                            <p className="text-sm text-gray-400 line-through">
+                              ৳{item.originalPrice.toFixed(0)}
+                            </p>
+                          )}
+                        </div>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-3 pt-2">
@@ -164,7 +238,7 @@ export const CartSidebar: React.FC = () => {
                     <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200/60">
                       <span className="text-sm text-gray-600 font-medium">Subtotal:</span>
                       <span className="text-lg font-bold text-gray-800">
-                        ৳{(item.price * item.quantity).toFixed(2)}
+                        ৳{(item.price * item.quantity).toFixed(0)}
                       </span>
                     </div>
                   </div>
@@ -177,7 +251,7 @@ export const CartSidebar: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-xl font-bold text-gray-800">Total:</span>
                 <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  ৳{getTotalPrice().toFixed(2)}
+                  ৳{totalPrice.toFixed(0)}
                 </span>
               </div>
 

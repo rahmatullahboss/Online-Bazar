@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { X, Plus, Minus, ShoppingCart, RefreshCw } from 'lucide-react'
 
 import { useCart, CartItem } from '@/lib/cart-context'
-import { markCartAsPotentiallyAbandoned } from '@/lib/cart-abandonment'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +16,7 @@ interface ValidatedItem extends CartItem {
 }
 
 export const CartSidebar: React.FC = () => {
-  const { state, removeItem, updateQuantity, closeCart, getTotalItems, sessionId } = useCart()
+  const { state, removeItem, updateQuantity, closeCart, getTotalItems } = useCart()
 
   const [validatedItems, setValidatedItems] = useState<ValidatedItem[]>([])
   const [isValidating, setIsValidating] = useState(false)
@@ -74,13 +73,12 @@ export const CartSidebar: React.FC = () => {
   const displayItems = hasValidated ? validatedItems : state.items
   const totalPrice = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  // Function to handle cart closing with abandonment tracking
+  // Function to handle cart closing
+  // NOTE: Removed markCartAsPotentiallyAbandoned - closing cart sidebar is not abandonment
+  // Real abandonment tracking is done via beforeunload/pagehide events in cart-abandonment.ts
   const handleCloseCart = React.useCallback(() => {
-    if (state.items.length > 0) {
-      markCartAsPotentiallyAbandoned(state.items, totalPrice, sessionId)
-    }
     closeCart()
-  }, [state.items, totalPrice, closeCart, sessionId])
+  }, [closeCart])
 
   if (!state.isOpen) return null
 

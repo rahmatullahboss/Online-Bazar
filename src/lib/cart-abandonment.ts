@@ -37,7 +37,7 @@ export function useCartAbandonmentTracking(items: any[], total: number, sessionI
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           console.warn('Heartbeat failed:', errorData.error || 'Unknown error')
-          
+
           // If the cart is not found or not active, stop sending heartbeats
           if (response.status === 404 || response.status === 400) {
             if (heartbeatIntervalRef.current) {
@@ -133,16 +133,13 @@ export function useCartAbandonmentTracking(items: any[], total: number, sessionI
       sendFinalUpdate()
     }
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        sendFinalUpdate()
-      }
-    }
+    // NOTE: Removed visibilitychange listener because it was triggering
+    // when user just switches tabs, which is not cart abandonment.
+    // Only beforeunload and pagehide indicate actual page close/navigation.
 
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload)
     window.addEventListener('pagehide', handlePageHide)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Cleanup function
     return () => {
@@ -154,7 +151,6 @@ export function useCartAbandonmentTracking(items: any[], total: number, sessionI
 
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handlePageHide)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [items, total, sessionId])
 }

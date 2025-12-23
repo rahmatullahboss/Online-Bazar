@@ -14,6 +14,7 @@ interface AddToCartButtonProps {
     id: string
     name: string
     price: number
+    originalPrice?: number // Original price before discount
     category?: any
     image?: {
       url: string
@@ -40,6 +41,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({ item, classNam
       id: item.id,
       name: item.name,
       price: item.price,
+      originalPrice: item.originalPrice, // Pass original price for cart display
       category:
         typeof (item as any).category === 'object'
           ? ((item as any).category as any)?.name

@@ -17,6 +17,7 @@ export interface CartItem {
   id: string
   name: string
   price: number
+  originalPrice?: number // Original price before offer discount
   image?: {
     url: string
     alt?: string

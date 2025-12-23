@@ -155,7 +155,14 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                 </Badge>
               ) : null}
             </div>
-            <p className="text-xs text-stone-500">{formatCurrency(item.price)} each</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-stone-500">{formatCurrency(item.price)} each</p>
+              {item.originalPrice && item.originalPrice > item.price && (
+                <p className="text-xs text-gray-400 line-through">
+                  {formatCurrency(item.originalPrice)}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex flex-col items-end gap-3 text-right">
             <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-2 py-1 shadow-sm">
@@ -180,9 +187,16 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-sm font-semibold text-stone-900">
-              {formatCurrency(item.price * item.quantity)}
-            </p>
+            <div className="flex flex-col items-end">
+              <p className="text-sm font-semibold text-stone-900">
+                {formatCurrency(item.price * item.quantity)}
+              </p>
+              {item.originalPrice && item.originalPrice > item.price && (
+                <p className="text-xs text-gray-400 line-through">
+                  {formatCurrency(item.originalPrice * item.quantity)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       ))}

@@ -84,9 +84,16 @@ export default function CartPage() {
                   {item.category && (
                     <p className="text-xs sm:text-sm text-gray-500 truncate">{item.category}</p>
                   )}
-                  <p className="text-base sm:text-lg font-bold text-green-600 mt-1">
-                    ৳{item.price.toFixed(0)}
-                  </p>
+                  <div className="mt-1">
+                    <p className="text-base sm:text-lg font-bold text-green-600">
+                      ৳{item.price.toFixed(0)}
+                    </p>
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <p className="text-xs sm:text-sm text-gray-500 line-through">
+                        ৳{item.originalPrice.toFixed(0)}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {/* Quantity Controls */}
                 <div className="flex flex-col items-end justify-between">

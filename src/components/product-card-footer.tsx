@@ -48,7 +48,11 @@ export function ProductCardFooter({
           )}
         </div>
         <AddToCartButton
-          item={{ ...item, price: displayPrice }}
+          item={{
+            ...item,
+            price: displayPrice,
+            originalPrice: hasDiscount ? originalPrice : undefined,
+          }}
           compact
           className="sm:hidden !px-3 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-xs"
         />
@@ -56,7 +60,11 @@ export function ProductCardFooter({
       {/* Second row on mobile: Full width Order button */}
       <div className="flex gap-2 w-full sm:w-auto">
         <AddToCartButton
-          item={{ ...item, price: displayPrice }}
+          item={{
+            ...item,
+            price: displayPrice,
+            originalPrice: hasDiscount ? originalPrice : undefined,
+          }}
           compact
           className="hidden sm:flex !px-2.5 !py-1.5 !rounded-full !border-2 !border-amber-500 !bg-amber-50 hover:!bg-amber-500 !text-amber-600 hover:!text-white transition-all !font-medium !text-sm"
         />

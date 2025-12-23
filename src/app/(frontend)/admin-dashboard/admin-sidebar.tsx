@@ -15,8 +15,8 @@ import {
   Menu,
   TrendingUp,
   ShoppingBag,
-  FileText,
   Gift,
+  Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -85,6 +85,12 @@ const menuItems: MenuItem[] = [
     href: '/admin-dashboard/products',
     icon: <Package className="w-5 h-5" />,
     description: 'Product catalog',
+  },
+  {
+    name: 'Delivery',
+    href: '/admin-dashboard/delivery-settings',
+    icon: <Truck className="w-5 h-5" />,
+    description: 'Shipping charges',
   },
   {
     name: 'Payload Admin',

@@ -3,18 +3,77 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
-import { useCart } from '@/lib/cart-context'
+import { useEffect, useState, useCallback } from 'react'
+import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag, RefreshCw } from 'lucide-react'
+import { useCart, CartItem } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/site-header'
 import { DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+
+interface ValidatedItem extends CartItem {
+  hasOffer?: boolean
+  offerBadge?: string
+}
 
 export default function CartPage() {
   const router = useRouter()
   const { state, removeItem, updateQuantity, clearCart } = useCart()
   const { items } = state
+  const [validatedItems, setValidatedItems] = useState<ValidatedItem[]>([])
+  const [isValidating, setIsValidating] = useState(false)
+  const [hasValidated, setHasValidated] = useState(false)
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  // Validate cart prices against current offers
+  const validatePrices = useCallback(async () => {
+    if (items.length === 0) {
+      setValidatedItems([])
+      setHasValidated(true)
+      return
+    }
+
+    setIsValidating(true)
+    try {
+      const response = await fetch('/api/cart/validate-prices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Map validated items back with quantities from cart
+        const validated: ValidatedItem[] = data.items.map((validItem: ValidatedItem) => {
+          const cartItem = items.find((i) => String(i.id) === String(validItem.id))
+          return {
+            ...validItem,
+            quantity: cartItem?.quantity || validItem.quantity,
+          }
+        })
+        setValidatedItems(validated)
+      } else {
+        // Fallback to original items if validation fails
+        setValidatedItems(items)
+      }
+    } catch (error) {
+      console.error('Failed to validate prices:', error)
+      setValidatedItems(items)
+    } finally {
+      setIsValidating(false)
+      setHasValidated(true)
+    }
+  }, [items])
+
+  // Validate on mount and when items change
+  useEffect(() => {
+    validatePrices()
+  }, [validatePrices])
+
+  // Use validated items if available, otherwise use original cart items
+  const displayItems = hasValidated ? validatedItems : items
+
+  const subtotal = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const isFreeDelivery = subtotal >= DEFAULT_DELIVERY_SETTINGS.freeDeliveryThreshold
   const deliveryCharge =
     subtotal > 0 && !isFreeDelivery ? DEFAULT_DELIVERY_SETTINGS.insideDhakaCharge : 0
@@ -55,12 +114,13 @@ export default function CartPage() {
           </button>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Your Cart</h1>
           <span className="text-gray-500 text-sm sm:text-base">({items.length} items)</span>
+          {isValidating && <RefreshCw className="w-4 h-4 text-amber-500 animate-spin ml-2" />}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4 min-w-0">
-            {items.map((item) => (
+            {displayItems.map((item) => (
               <div
                 key={item.id}
                 className="flex gap-3 sm:gap-4 bg-white rounded-xl p-3 sm:p-4 shadow-sm overflow-hidden"
@@ -72,6 +132,12 @@ export default function CartPage() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <ShoppingBag className="w-8 h-8 text-gray-300" />
+                    </div>
+                  )}
+                  {/* Offer badge */}
+                  {(item as ValidatedItem).hasOffer && (
+                    <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                      SALE
                     </div>
                   )}
                 </div>

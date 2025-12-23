@@ -63,30 +63,46 @@ export const getActiveOffers = unstable_cache(
 )
 
 // Get active offers that apply to a specific product
+// Priority order: specific_products > category > all (within each group, higher priority wins)
 export function getOffersForProduct(
   offers: any[],
   productId: string,
   categoryId?: string,
 ): ActiveOffer | null {
-  // Find the highest priority offer that applies
+  let specificProductOffer: ActiveOffer | null = null
+  let categoryOffer: ActiveOffer | null = null
+  let allProductsOffer: ActiveOffer | null = null
+
+  // Offers are already sorted by priority descending from the query
+  // So the first match in each category is the highest priority for that category
   for (const offer of offers) {
-    // Check if offer targets all products
-    if (offer.targetType === 'all') {
-      return offer
+    // Check if offer targets this specific product (highest priority)
+    if (
+      offer.targetType === 'specific_products' &&
+      offer.targetProducts?.includes(productId) &&
+      !specificProductOffer
+    ) {
+      specificProductOffer = offer
     }
 
-    // Check if offer targets this specific product
-    if (offer.targetType === 'specific_products' && offer.targetProducts?.includes(productId)) {
-      return offer
+    // Check if offer targets this category (second priority)
+    if (
+      offer.targetType === 'category' &&
+      categoryId &&
+      offer.targetCategory === categoryId &&
+      !categoryOffer
+    ) {
+      categoryOffer = offer
     }
 
-    // Check if offer targets this category
-    if (offer.targetType === 'category' && categoryId && offer.targetCategory === categoryId) {
-      return offer
+    // Check if offer targets all products (lowest priority)
+    if (offer.targetType === 'all' && !allProductsOffer) {
+      allProductsOffer = offer
     }
   }
 
-  return null
+  // Return in priority order: specific product > category > all
+  return specificProductOffer || categoryOffer || allProductsOffer
 }
 
 // Calculate discount for a product based on an offer

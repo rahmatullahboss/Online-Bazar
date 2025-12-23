@@ -209,7 +209,7 @@ export const Offers: CollectionConfig = {
       label: 'Buy X Get Y Settings',
       admin: {
         condition: (data) => data?.type === 'buy_x_get_y',
-        description: 'Configure buy X get Y free offer',
+        description: 'Configure buy X get Y free/discounted offer',
       },
       fields: [
         {
@@ -220,7 +220,7 @@ export const Offers: CollectionConfig = {
               type: 'number',
               required: false,
               min: 1,
-              defaultValue: 2,
+              defaultValue: 1,
               admin: {
                 width: '50%',
                 description: 'Customer must buy this many',
@@ -238,6 +238,35 @@ export const Offers: CollectionConfig = {
               },
             },
           ],
+        },
+        {
+          name: 'buyProduct',
+          type: 'relationship',
+          relationTo: 'items',
+          hasMany: false,
+          admin: {
+            description: 'Product customer must buy (leave empty if same as target products)',
+          },
+        },
+        {
+          name: 'getProduct',
+          type: 'relationship',
+          relationTo: 'items',
+          hasMany: false,
+          admin: {
+            description: 'Product customer gets free/discounted (leave empty for same product)',
+          },
+        },
+        {
+          name: 'getDiscountPercent',
+          type: 'number',
+          required: false,
+          min: 0,
+          max: 100,
+          defaultValue: 100,
+          admin: {
+            description: 'Discount on the "get" product (100% = free, 50% = half price)',
+          },
         },
       ],
     },
@@ -372,9 +401,14 @@ export const Offers: CollectionConfig = {
 
         // Auto-set badge for BOGO
         if (data?.type === 'buy_x_get_y' && !data?.badge) {
-          const buy = data.bogoSettings?.buyQuantity || 2
+          const buy = data.bogoSettings?.buyQuantity || 1
           const get = data.bogoSettings?.getQuantity || 1
-          data.badge = `B${buy}G${get}`
+          const discountPercent = data.bogoSettings?.getDiscountPercent ?? 100
+          if (discountPercent === 100) {
+            data.badge = `Buy ${buy} Get ${get} FREE`
+          } else {
+            data.badge = `Buy ${buy} Get ${get} @ ${discountPercent}% OFF`
+          }
         }
 
         // Auto-set badge for free shipping

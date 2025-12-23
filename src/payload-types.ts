@@ -820,7 +820,7 @@ export interface Offer {
    */
   targetCategory?: (number | null) | Category;
   /**
-   * Configure buy X get Y free offer
+   * Configure buy X get Y free/discounted offer
    */
   bogoSettings?: {
     /**
@@ -831,6 +831,18 @@ export interface Offer {
      * Customer gets this many free/discounted
      */
     getQuantity?: number | null;
+    /**
+     * Product customer must buy (leave empty if same as target products)
+     */
+    buyProduct?: (number | null) | Item;
+    /**
+     * Product customer gets free/discounted (leave empty for same product)
+     */
+    getProduct?: (number | null) | Item;
+    /**
+     * Discount on the "get" product (100% = free, 50% = half price)
+     */
+    getDiscountPercent?: number | null;
   };
   /**
    * Products included in this bundle
@@ -1375,6 +1387,9 @@ export interface OffersSelect<T extends boolean = true> {
     | {
         buyQuantity?: T;
         getQuantity?: T;
+        buyProduct?: T;
+        getProduct?: T;
+        getDiscountPercent?: T;
       };
   bundleProducts?: T;
   bundlePrice?: T;

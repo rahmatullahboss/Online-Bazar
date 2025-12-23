@@ -4,9 +4,28 @@ import config from '@/payload.config'
 
 type IncomingItem = { id: string | number; quantity: number }
 
+// Helper to calculate discounted price based on offer
+function calculateDiscountedPrice(
+  offer: { discountType?: string; discountValue?: number } | null,
+  originalPrice: number,
+): number {
+  if (!offer || !offer.discountType || !offer.discountValue) {
+    return originalPrice
+  }
+
+  if (offer.discountType === 'percent') {
+    return originalPrice * (1 - offer.discountValue / 100)
+  } else if (offer.discountType === 'fixed') {
+    return Math.max(0, originalPrice - offer.discountValue)
+  }
+
+  return originalPrice
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const payload = await getPayload({ config: await config })
+    const payloadConfig = await config
+    const payload = await getPayload({ config: payloadConfig })
     const { user } = await payload.auth({ headers: request.headers })
 
     const body = await request.json().catch(() => ({}))
@@ -17,17 +36,15 @@ export async function POST(request: NextRequest) {
     }
 
     const items: IncomingItem[] = Array.isArray(body?.items) ? body.items : []
-    const total = typeof body?.total === 'number' ? Number(body.total) : undefined
+    // Ignore client-sent total for security - we calculate server-side
     const customerEmail = normalizeString(body?.customerEmail)
     const customerName = normalizeString(body?.customerName)
     const customerNumber = normalizeString(body?.customerNumber)
     const isFinalUpdate = Boolean(body?.isFinalUpdate)
     const isPotentialAbandonment = Boolean(body?.isPotentialAbandonment)
 
-    // Cart activity request received
-
-    // Require at least one meaningful field
-    if (!items.length && typeof total !== 'number') {
+    // Require items
+    if (!items.length) {
       return NextResponse.json({ error: 'No cart data' }, { status: 400 })
     }
 
@@ -42,17 +59,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Upsert by sessionId (ignore recovered carts)
-    const existing = await payload.find({
-      collection: 'abandoned-carts',
-      limit: 1,
-      where: {
-        and: [{ sessionId: { equals: String(sid) } }, { status: { not_equals: 'recovered' } }],
-      },
-    })
-
-    const now = new Date().toISOString()
-    // Sanitize cart items: ensure numeric relationship IDs for Payload (default ID type: number)
+    // Sanitize cart items: ensure numeric relationship IDs for Payload
     const sanitizedItems = items
       .filter(
         (it) =>
@@ -70,92 +77,197 @@ export async function POST(request: NextRequest) {
       })
       .filter((row): row is { item: number; quantity: number } => !!row)
 
-    const isZeroCart = (typeof total === 'number' && total <= 0) || sanitizedItems.length === 0
-    if (isZeroCart) {
-      // Zero cart detected, deleting if exists
+    if (sanitizedItems.length === 0) {
+      // No valid items, check if we need to delete existing cart
+      const existing = await payload.find({
+        collection: 'abandoned-carts',
+        limit: 1,
+        where: {
+          and: [{ sessionId: { equals: String(sid) } }, { status: { not_equals: 'recovered' } }],
+        },
+      })
       if (existing?.docs?.[0]) {
         await payload.delete({
           collection: 'abandoned-carts',
-          id: (existing.docs[0] as any).id,
+          id: (existing.docs[0] as { id: number }).id,
         })
       }
       return NextResponse.json({ success: true })
     }
 
+    // SERVER-SIDE PRICE CALCULATION - fetch products and offers, calculate total
+    const now = new Date().toISOString()
+    const itemIds = sanitizedItems.map((it) => it.item)
+
+    // Fetch products
+    const productsResult = await payload.find({
+      collection: 'items',
+      where: { id: { in: itemIds } },
+      depth: 1,
+      limit: 100,
+    })
+
+    const productsMap = new Map<number, { price: number; categoryId?: number }>()
+    for (const product of productsResult.docs) {
+      const categoryId =
+        typeof product.category === 'object'
+          ? (product.category as { id: number })?.id
+          : typeof product.category === 'number'
+            ? product.category
+            : undefined
+      productsMap.set(product.id, {
+        price: product.price,
+        categoryId,
+      })
+    }
+
+    // Fetch active offers
+    let offers: Array<{
+      targetType?: string
+      targetProducts?: Array<{ id: number } | number>
+      targetCategory?: { id: number } | number
+      discountType?: string
+      discountValue?: number
+      priority?: number
+    }> = []
+    try {
+      const offersResult = await payload.find({
+        collection: 'offers',
+        where: {
+          and: [
+            { isActive: { equals: true } },
+            { startDate: { less_than_equal: now } },
+            { endDate: { greater_than: now } },
+            { type: { not_equals: 'promo_banner' } },
+            { type: { not_equals: 'free_shipping' } },
+          ],
+        },
+        sort: '-priority',
+        limit: 100,
+        depth: 1,
+      })
+      offers = offersResult.docs as typeof offers
+    } catch {
+      // Continue without offers
+    }
+
+    // Helper to find applicable offer for a product
+    const getOfferForProduct = (productId: number, categoryId?: number) => {
+      const applicable = offers.filter((offer) => {
+        if (offer.targetType === 'all') return true
+        if (offer.targetType === 'specific_products') {
+          const targetIds = (offer.targetProducts || []).map((p) =>
+            typeof p === 'object' ? p.id : p,
+          )
+          return targetIds.includes(productId)
+        }
+        if (offer.targetType === 'category' && categoryId) {
+          const targetCatId =
+            typeof offer.targetCategory === 'object'
+              ? offer.targetCategory.id
+              : offer.targetCategory
+          return targetCatId === categoryId
+        }
+        return false
+      })
+
+      if (applicable.length === 0) return null
+
+      // Priority: specific > category > all
+      return (
+        applicable.find((o) => o.targetType === 'specific_products') ||
+        applicable.find((o) => o.targetType === 'category') ||
+        applicable[0]
+      )
+    }
+
+    // Calculate total with discounted prices
+    let calculatedTotal = 0
+    for (const item of sanitizedItems) {
+      const product = productsMap.get(item.item)
+      if (product) {
+        const offer = getOfferForProduct(item.item, product.categoryId)
+        const discountedPrice = calculateDiscountedPrice(offer, product.price)
+        calculatedTotal += discountedPrice * item.quantity
+      }
+    }
+
+    // Upsert by sessionId (ignore recovered carts)
+    const existing = await payload.find({
+      collection: 'abandoned-carts',
+      limit: 1,
+      where: {
+        and: [{ sessionId: { equals: String(sid) } }, { status: { not_equals: 'recovered' } }],
+      },
+    })
+
     // Pull profile fallbacks for logged-in users
-    const userEmail = normalizeString(user ? (user as any)?.email : undefined)
+    const userEmail = normalizeString(user ? (user as { email?: string })?.email : undefined)
     const userName = normalizeString(
       user
-        ? `${String((user as any)?.firstName || '')} ${String((user as any)?.lastName || '')}`
+        ? `${String((user as { firstName?: string })?.firstName || '')} ${String((user as { lastName?: string })?.lastName || '')}`
         : undefined,
     )
-    const userNumber = normalizeString(user ? (user as any)?.customerNumber : undefined)
+    const userNumber = normalizeString(
+      user ? (user as { customerNumber?: string })?.customerNumber : undefined,
+    )
 
     const hasContactInfo = Boolean(
       user || customerEmail || customerNumber || userEmail || userNumber,
     )
 
     if (!hasContactInfo) {
-      // No contact info, deleting cart if exists
+      // No contact info, delete cart if exists
       if (existing?.docs?.[0]) {
         await payload.delete({
           collection: 'abandoned-carts',
-          id: (existing.docs[0] as any).id,
+          id: (existing.docs[0] as { id: number }).id,
         })
       }
       return NextResponse.json({ success: true })
     }
 
-    const data: any = {
+    const data: Record<string, unknown> = {
       sessionId: String(sid),
-      ...(user ? { user: (user as any).id } : {}),
-      // Prefer explicit payload; otherwise fall back to user profile
+      ...(user ? { user: (user as { id: number }).id } : {}),
       ...(customerEmail || userEmail ? { customerEmail: customerEmail || userEmail } : {}),
       ...(customerName || userName ? { customerName: customerName || userName } : {}),
       ...(customerNumber || userNumber ? { customerNumber: customerNumber || userNumber } : {}),
       ...(sanitizedItems.length ? { items: sanitizedItems } : {}),
-      ...(typeof total === 'number' ? { cartTotal: total } : {}),
-      // If this is a final update or potential abandonment, mark as abandoned
-      // Otherwise keep as active
-      status: (isFinalUpdate || isPotentialAbandonment) ? 'abandoned' : 'active',
+      // Use server-calculated total (secure)
+      cartTotal: Math.round(calculatedTotal * 100) / 100,
+      status: isFinalUpdate || isPotentialAbandonment ? 'abandoned' : 'active',
       lastActivityAt: now,
       reminderStage: 0,
     }
 
-    // If this is a final update, we might want to mark it as potentially abandoned
-    // depending on how long it's been since the last activity
     if (isFinalUpdate || isPotentialAbandonment) {
-      // Add a note that this was a final update
       const note = isFinalUpdate
         ? 'Final update sent when user left the site'
         : 'Potential abandonment detected'
-
       data.notes = data.notes ? `${data.notes}\n${note}` : note
-      // Marking cart as abandoned
     }
 
     let doc
     if (existing?.docs?.[0]) {
-      // Updating existing cart
       doc = await payload.update({
         collection: 'abandoned-carts',
-        id: (existing.docs[0] as any).id,
-        data,
+        id: (existing.docs[0] as { id: number }).id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: data as any,
       })
     } else {
-      // Creating new cart
-      doc = await payload.create({ collection: 'abandoned-carts', data })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      doc = await payload.create({ collection: 'abandoned-carts', data: data as any })
     }
 
-    // Cart activity saved successfully
-
-    const res = NextResponse.json({ success: true, id: (doc as any)?.id })
+    const res = NextResponse.json({ success: true, id: (doc as { id?: number })?.id })
     if (isNewSID && sid) {
       res.cookies.set('dyad_cart_sid', String(sid), {
         path: '/',
-        httpOnly: true,  // Security: prevent JS access to session cookie
+        httpOnly: true,
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+        maxAge: 60 * 60 * 24 * 30,
       })
     }
     return res

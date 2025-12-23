@@ -584,10 +584,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Send lightweight cart activity to server (for abandoned cart tracking)
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (state.items.length === 0) return
+
     // Debounce to avoid spamming on rapid changes
-    const handle = setTimeout(() => {
+    const handle = setTimeout(async () => {
       try {
-        const total = state.items.reduce((sum, it) => sum + it.price * it.quantity, 0)
+        // First validate prices to get current discounted prices
+        let total = state.items.reduce((sum, it) => sum + it.price * it.quantity, 0)
+
+        try {
+          const validateRes = await fetch('/api/cart/validate-prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              items: state.items.map((i) => ({ id: i.id, quantity: i.quantity })),
+            }),
+          })
+
+          if (validateRes.ok) {
+            const data = await validateRes.json()
+            if (data.items && data.items.length > 0) {
+              // Use validated prices for accurate total
+              total = data.items.reduce(
+                (sum: number, it: { price: number; quantity: number }) =>
+                  sum + it.price * it.quantity,
+                0,
+              )
+            }
+          }
+        } catch {
+          // Ignore validation errors, use cart prices
+        }
+
         // Try to include any known guest details
         let customerEmail: string | undefined
         let customerNumber: string | undefined
@@ -612,7 +640,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           keepalive: true,
         }).catch(() => {})
       } catch {}
-    }, 800)
+    }, 1000) // Increased debounce to reduce API calls
     return () => clearTimeout(handle)
   }, [state.items])
 

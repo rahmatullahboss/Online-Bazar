@@ -210,8 +210,8 @@ export default async function OffersPage() {
           </section>
         )}
 
-        {/* BOGO Deals */}
-        {bogoDeals.length > 0 && (
+        {/* BOGO Deals - Coming Soon */}
+        {/* {bogoDeals.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-purple-500 rounded-lg text-white">
@@ -229,10 +229,10 @@ export default async function OffersPage() {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
-        {/* Category Sales */}
-        {categorySales.length > 0 && (
+        {/* Category Sales - Coming Soon */}
+        {/* {categorySales.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-500 rounded-lg text-white">
@@ -250,10 +250,10 @@ export default async function OffersPage() {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
-        {/* Bundle Deals */}
-        {bundles.length > 0 && (
+        {/* Bundle Deals - Coming Soon */}
+        {/* {bundles.length > 0 && (
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-green-500 rounded-lg text-white">
@@ -271,7 +271,7 @@ export default async function OffersPage() {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
         {/* Free Shipping */}
         {freeShipping.length > 0 && (

@@ -429,11 +429,7 @@ export default async function AbandonedCartsPage({
                             </p>
                             <p className="text-xs text-gray-500">Qty: {line.quantity}</p>
                           </div>
-                          <div className="text-sm font-medium">
-                            {typeof line.item?.price === 'number'
-                              ? fmtBDT(line.item.price * (line.quantity || 1))
-                              : '—'}
-                          </div>
+                          {/* Price removed - offer may have changed, use cartTotal instead */}
                         </div>
                       ))}
                     </div>

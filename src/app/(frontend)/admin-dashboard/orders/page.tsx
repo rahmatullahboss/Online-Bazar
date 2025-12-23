@@ -8,7 +8,7 @@ import config from '@/payload.config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { SiteHeader } from '@/components/site-header'
+
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { OrderStatusUpdate } from '@/components/lazy-client-components'
 import { DateFilter } from '../DateFilter'
@@ -181,9 +181,7 @@ export default async function OrdersPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-
+    <>
       <AdminPageHeader
         title="Orders Management"
         description={`${orders.totalDocs} orders found`}
@@ -409,6 +407,6 @@ export default async function OrdersPage({
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }

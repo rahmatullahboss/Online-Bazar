@@ -6,7 +6,7 @@ import Link from 'next/link'
 import config from '@/payload.config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { SiteHeader } from '@/components/site-header'
+
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { Button } from '@/components/ui/button'
 import { Users, Mail, Phone, Calendar, ShoppingBag, Crown, User, ExternalLink } from 'lucide-react'
@@ -77,9 +77,7 @@ export default async function CustomersPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-
+    <>
       <AdminPageHeader
         title="Customer Management"
         description={`${users.totalDocs} total users`}
@@ -277,6 +275,6 @@ export default async function CustomersPage({
           </Card>
         )}
       </div>
-    </div>
+    </>
   )
 }

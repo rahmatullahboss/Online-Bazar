@@ -12,7 +12,7 @@ import { ProductCardFooter } from '@/components/product-card-footer'
 import { SiteHeader } from '@/components/site-header'
 import { HomepageOffersSection } from '@/components/HomepageOffersSection'
 import { OfferBadge } from '@/components/OfferBadge'
-import { getActiveOffers, getOffersForProduct } from '@/lib/offer-utils'
+import { getActiveOffers, getOffersForProduct, calculateOfferDiscount } from '@/lib/offer-utils'
 import { SITE_NAME } from '@/lib/site-config'
 
 export const revalidate = 3600
@@ -186,6 +186,12 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                 typeof item.category === 'object' ? item.category?.id : item.category
               const productOffer = getOffersForProduct(offers, item.id, categoryId)
 
+              // Calculate discounted price if offer exists
+              const originalPrice = item.price
+              const { discountedPrice } = productOffer
+                ? calculateOfferDiscount(productOffer, originalPrice)
+                : { discountedPrice: originalPrice }
+
               return (
                 <Card
                   key={item.id}
@@ -253,6 +259,8 @@ async function ProductGridSection({ authPromise, itemsPromise }: ProductGridSect
                       item={item}
                       isLoggedIn={!!user}
                       deliveryZone={userDeliveryZone}
+                      originalPrice={productOffer ? originalPrice : undefined}
+                      discountedPrice={productOffer ? discountedPrice : undefined}
                     />
                   </div>
                 </Card>

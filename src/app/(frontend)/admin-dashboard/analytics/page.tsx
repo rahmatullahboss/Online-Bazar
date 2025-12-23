@@ -3,7 +3,6 @@ import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 
 import config from '@/payload.config'
-import { SiteHeader } from '@/components/site-header'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import AnalyticsDashboard from '../analytics-dashboard'
 
@@ -20,9 +19,7 @@ export default async function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-
+    <>
       <AdminPageHeader
         title="Analytics Dashboard"
         description="Business insights and performance metrics"
@@ -32,6 +29,6 @@ export default async function AnalyticsPage() {
       <div className="container mx-auto px-4 py-6">
         <AnalyticsDashboard />
       </div>
-    </div>
+    </>
   )
 }

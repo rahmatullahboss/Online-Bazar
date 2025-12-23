@@ -14,6 +14,8 @@ import { ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
 import ReviewSection from './ReviewSection'
 import { ReviewStars } from '@/components/review-stars'
 import { normalizeDeliverySettings, DEFAULT_DELIVERY_SETTINGS } from '@/lib/delivery-settings'
+import { getActiveOffers, getOffersForProduct, calculateOfferDiscount } from '@/lib/offer-utils'
+import { OfferBadge } from '@/components/OfferBadge'
 import { SITE_NAME } from '@/lib/site-config'
 import type { Metadata } from 'next'
 
@@ -142,6 +144,16 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   if (!item) {
     return notFound()
   }
+
+  // Fetch offers and calculate discount
+  const offers = await getActiveOffers()
+  const categoryId = typeof item.category === 'object' ? (item.category as any)?.id : item.category
+  const productOffer = getOffersForProduct(offers, id, categoryId)
+  const originalPrice = item.price
+  const { discountedPrice, savings } = productOffer
+    ? calculateOfferDiscount(productOffer, originalPrice)
+    : { discountedPrice: originalPrice, savings: 0 }
+  const hasDiscount = savings > 0
 
   const shortDescription = (item as any).shortDescription || item.description
 
@@ -300,21 +312,35 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                   <div className="mt-6 flex items-end justify-between gap-4">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-amber-500">
-                        Starting from
+                        {hasDiscount ? 'Special Offer Price' : 'Starting from'}
                       </p>
                       <p className="text-3xl sm:text-4xl font-bold text-gray-900 lg:text-5xl">
-                        Tk {item.price.toFixed(2)}
+                        Tk {discountedPrice.toFixed(2)}
                       </p>
+                      {hasDiscount && (
+                        <p className="text-lg text-gray-500 line-through mt-1">
+                          Tk {originalPrice.toFixed(2)}
+                        </p>
+                      )}
                     </div>
-                    <span className="rounded-full bg-gradient-to-r from-amber-400 to-rose-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow-lg">
-                      Best Deal
-                    </span>
+                    {productOffer?.badge ? (
+                      <OfferBadge
+                        badge={productOffer.badge}
+                        type={productOffer.type}
+                        highlightColor={productOffer.highlightColor}
+                        endDate={productOffer.endDate}
+                      />
+                    ) : (
+                      <span className="rounded-full bg-gradient-to-r from-amber-400 to-rose-400 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow-lg">
+                        Best Deal
+                      </span>
+                    )}
                   </div>
 
                   <div className="mt-6 sm:mt-8 grid gap-3 grid-cols-2">
-                    <AddToCartButton item={item as any} />
+                    <AddToCartButton item={{ ...item, price: discountedPrice } as any} />
                     <OrderNowButton
-                      item={item as any}
+                      item={{ ...item, price: discountedPrice } as any}
                       isLoggedIn={!!user}
                       deliveryZone={deliveryZone}
                     />

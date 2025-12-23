@@ -3,7 +3,6 @@ import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
 
 import config from '@/payload.config'
-import { SiteHeader } from '@/components/site-header'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { ProductForm } from '@/components/admin/product-form'
 
@@ -26,9 +25,7 @@ export default async function AddProductPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-
+    <>
       <AdminPageHeader
         title="Add Product"
         description="Create a new product"
@@ -41,6 +38,6 @@ export default async function AddProductPage() {
           categories={categories.docs.map((c: any) => ({ id: c.id, name: c.name }))}
         />
       </div>
-    </div>
+    </>
   )
 }

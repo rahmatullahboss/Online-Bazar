@@ -8,7 +8,7 @@ import config from '@/payload.config'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { SiteHeader } from '@/components/site-header'
+
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { CartActions } from '@/components/admin/cart-actions'
 import { Button } from '@/components/ui/button'
@@ -185,9 +185,7 @@ export default async function AbandonedCartsPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SiteHeader variant="full" user={user} />
-
+    <>
       <AdminPageHeader
         title="Abandoned Carts"
         description="Recover lost sales opportunities"
@@ -466,6 +464,6 @@ export default async function AbandonedCartsPage({
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }

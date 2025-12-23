@@ -46,52 +46,63 @@ interface ProductOverviewCardProps {
   item: any
 }
 
-const ProductOverviewCard: React.FC<ProductOverviewCardProps> = ({ item }) => (
-  <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">
-          Product overview
-        </p>
-        <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
-        <p className="text-sm text-stone-500">
-          Review the product details before confirming your order.
-        </p>
+const ProductOverviewCard: React.FC<ProductOverviewCardProps> = ({ item }) => {
+  const hasDiscount = item.originalPrice && item.originalPrice > item.price
+
+  return (
+    <div className="rounded-[26px] border border-amber-100/80 bg-white/90 p-6 shadow-xl shadow-amber-200/50">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">
+            {hasDiscount ? 'Special Offer' : 'Product overview'}
+          </p>
+          <h2 className="text-2xl font-semibold text-stone-900">{item.name}</h2>
+          <p className="text-sm text-stone-500">
+            Review the product details before confirming your order.
+          </p>
+        </div>
+        {typeof (item as any).category === 'object' || (item as any).category ? (
+          <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
+            {typeof (item as any).category === 'object'
+              ? ((item as any).category as any)?.name
+              : (item as any).category}
+          </Badge>
+        ) : null}
       </div>
-      {typeof (item as any).category === 'object' || (item as any).category ? (
-        <Badge className="ml-auto h-7 rounded-full bg-amber-100 px-3 text-xs font-medium text-amber-700">
-          {typeof (item as any).category === 'object'
-            ? ((item as any).category as any)?.name
-            : (item as any).category}
-        </Badge>
+      {item.image && typeof item.image === 'object' && item.image.url ? (
+        <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-amber-100 bg-amber-50">
+          <Image
+            src={item.image.url}
+            alt={item.image.alt || item.name}
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 384px, 100vw"
+          />
+        </div>
       ) : null}
-    </div>
-    {item.image && typeof item.image === 'object' && item.image.url ? (
-      <div className="relative mt-6 h-56 overflow-hidden rounded-3xl border border-amber-100 bg-amber-50">
-        <Image
-          src={item.image.url}
-          alt={item.image.alt || item.name}
-          fill
-          className="object-cover"
-          sizes="(min-width: 1024px) 384px, 100vw"
-        />
-      </div>
-    ) : null}
-    <div className="mt-6 space-y-3 text-sm text-stone-600">
-      {item.shortDescription || item.description ? (
-        <p className="text-base text-stone-600">
-          {(item.shortDescription as string) || (item.description as string)}
-        </p>
-      ) : null}
-      <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
-        <span className="font-medium">Unit price</span>
-        <span className="text-base font-semibold text-rose-600">
-          ৳{Number(item.price).toFixed(2)}
-        </span>
+      <div className="mt-6 space-y-3 text-sm text-stone-600">
+        {item.shortDescription || item.description ? (
+          <p className="text-base text-stone-600">
+            {(item.shortDescription as string) || (item.description as string)}
+          </p>
+        ) : null}
+        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 px-4 py-3 text-sm text-amber-700">
+          <span className="font-medium">{hasDiscount ? 'Offer Price' : 'Unit price'}</span>
+          <div className="flex flex-col items-end">
+            <span className="text-base font-semibold text-rose-600">
+              ৳{Number(item.price).toFixed(2)}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs text-gray-500 line-through">
+                ৳{Number(item.originalPrice).toFixed(2)}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 interface SummaryPanelProps {
   quantity: number
@@ -565,7 +576,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
       if (response.ok) {
         const data = await response.json().catch(() => null)
         const oid = (data as any)?.doc?.id
-        
+
         // Save user details to profile for future orders (only for logged-in users)
         if (user) {
           try {
@@ -589,7 +600,7 @@ export default function OrderForm({ item, user, deliverySettings }: OrderFormPro
             // Don't block order completion if profile update fails
           }
         }
-        
+
         try {
           sessionStorage.setItem(
             'last-order-preview',

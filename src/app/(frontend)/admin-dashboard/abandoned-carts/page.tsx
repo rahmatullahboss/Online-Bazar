@@ -91,6 +91,7 @@ export default async function AbandonedCartsPage({
   }
 
   // Fetch all carts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereClause: any = {}
   if (statusFilter !== 'all') {
     whereClause.status = { equals: statusFilter }
@@ -103,6 +104,73 @@ export default async function AbandonedCartsPage({
     limit: 100,
     where: whereClause,
   })
+
+  // Fetch active offers for price calculation
+  const now = new Date().toISOString()
+  const offersResult = await payload.find({
+    collection: 'offers',
+    where: {
+      and: [
+        { isActive: { equals: true } },
+        { startDate: { less_than_equal: now } },
+        { endDate: { greater_than: now } },
+        { type: { not_equals: 'promo_banner' } },
+        { type: { not_equals: 'free_shipping' } },
+      ],
+    },
+    sort: '-priority',
+    limit: 100,
+    depth: 1,
+  })
+
+  type OfferType = {
+    targetType?: string
+    targetProducts?: Array<{ id: number } | number>
+    targetCategory?: { id: number } | number
+    discountType?: string
+    discountValue?: number
+  }
+  const offers = offersResult.docs as OfferType[]
+
+  // Helper to calculate discounted price for a product
+  const getDiscountedPrice = (
+    productId: number,
+    categoryId: number | undefined,
+    originalPrice: number,
+  ): number => {
+    const applicable = offers.filter((offer) => {
+      if (offer.targetType === 'all') return true
+      if (offer.targetType === 'specific_products') {
+        const targetIds = (offer.targetProducts || []).map((p) =>
+          typeof p === 'object' ? p.id : p,
+        )
+        return targetIds.includes(productId)
+      }
+      if (offer.targetType === 'category' && categoryId) {
+        const targetCatId =
+          typeof offer.targetCategory === 'object' ? offer.targetCategory.id : offer.targetCategory
+        return targetCatId === categoryId
+      }
+      return false
+    })
+
+    if (applicable.length === 0) return originalPrice
+
+    // Priority: specific > category > all
+    const offer =
+      applicable.find((o) => o.targetType === 'specific_products') ||
+      applicable.find((o) => o.targetType === 'category') ||
+      applicable[0]
+
+    if (offer && offer.discountType && offer.discountValue) {
+      if (offer.discountType === 'percent') {
+        return originalPrice * (1 - offer.discountValue / 100)
+      } else if (offer.discountType === 'fixed') {
+        return Math.max(0, originalPrice - offer.discountValue)
+      }
+    }
+    return originalPrice
+  }
 
   // Filter carts - only show those with customer info OR items
   const filteredCarts = carts.docs.filter((cart: any) => {
@@ -429,7 +497,37 @@ export default async function AbandonedCartsPage({
                             </p>
                             <p className="text-xs text-gray-500">Qty: {line.quantity}</p>
                           </div>
-                          {/* Price removed - offer may have changed, use cartTotal instead */}
+                          {/* Show discounted price with server-side offer calculation */}
+                          {typeof line.item?.price === 'number' &&
+                            (() => {
+                              const originalPrice = line.item.price
+                              const categoryId =
+                                typeof line.item?.category === 'object'
+                                  ? (line.item.category as { id?: number })?.id
+                                  : typeof line.item?.category === 'number'
+                                    ? line.item.category
+                                    : undefined
+                              const discountedPrice = getDiscountedPrice(
+                                line.item.id,
+                                categoryId,
+                                originalPrice,
+                              )
+                              const hasDiscount = discountedPrice < originalPrice
+                              const lineTotal = discountedPrice * (line.quantity || 1)
+
+                              return (
+                                <div className="text-right">
+                                  <p className="text-sm font-bold text-green-600">
+                                    {fmtBDT(lineTotal)}
+                                  </p>
+                                  {hasDiscount && (
+                                    <p className="text-xs text-gray-400 line-through">
+                                      {fmtBDT(originalPrice * (line.quantity || 1))}
+                                    </p>
+                                  )}
+                                </div>
+                              )
+                            })()}
                         </div>
                       ))}
                     </div>

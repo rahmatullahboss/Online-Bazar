@@ -10,6 +10,8 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge'
 import { ProductCardFooter } from '@/components/product-card-footer'
 import { SiteHeader } from '@/components/site-header'
+import { OfferBadge } from '@/components/OfferBadge'
+import { getActiveOffers, getOffersForProduct, calculateOfferDiscount } from '@/lib/offer-utils'
 import { SITE_NAME } from '@/lib/site-config'
 import type { Metadata } from 'next'
 
@@ -186,10 +188,11 @@ async function ProductGridSection({
   itemsPromise,
   categoriesPromise,
 }: ProductGridSectionProps) {
-  const [authResult, items, categories] = await Promise.all([
+  const [authResult, items, categories, offers] = await Promise.all([
     authPromise,
     itemsPromise,
     categoriesPromise,
+    getActiveOffers(),
   ])
   const user = authResult?.user ?? null
   const userDeliveryZone =
@@ -228,77 +231,101 @@ async function ProductGridSection({
     ([, data]) => data.items.length > 0,
   )
 
-  const renderProductCard = (item: ItemType, index: number) => (
-    <Card
-      key={item.id}
-      className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      <div className="relative z-10 h-full flex flex-col">
-        <Link href={`/item/${item.id}`} className="block">
-          {((item.image && typeof item.image === 'object') || item.imageUrl) && (
-            <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
-              <Image
-                src={
-                  item.image && typeof item.image === 'object'
-                    ? (item.image as { url: string }).url
-                    : item.imageUrl || ''
-                }
-                alt={
-                  (item.image && typeof item.image === 'object'
-                    ? (item.image as { alt?: string }).alt
-                    : undefined) || item.name
-                }
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
-                priority={index < 4}
-              />
+  const renderProductCard = (item: ItemType, index: number) => {
+    const categoryId =
+      typeof item.category === 'object' ? String((item.category as { id: number }).id) : undefined
+    const productOffer = getOffersForProduct(offers, String(item.id), categoryId)
+    const originalPrice = item.price
+    const { discountedPrice } = productOffer
+      ? calculateOfferDiscount(productOffer, originalPrice)
+      : { discountedPrice: originalPrice }
 
-              {/* Floating Category Badge */}
-              <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-                <Badge
-                  variant="secondary"
-                  className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
-                >
-                  {typeof item.category === 'object'
-                    ? (item.category as { name: string })?.name
-                    : 'Product'}
-                </Badge>
-              </div>
-            </div>
-          )}
-
-          <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
-            <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
-              {item.name}
-            </CardTitle>
-            <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
-              {item.shortDescription ?? item.description}
-            </CardDescription>
-          </CardHeader>
-        </Link>
-
-        <ProductCardFooter
-          item={{
-            id: String(item.id),
-            name: item.name,
-            price: item.price,
-            image:
-              item.image && typeof item.image === 'object'
-                ? {
-                    url: (item.image as { url: string }).url,
-                    alt: (item.image as { alt?: string }).alt,
+    return (
+      <Card
+        key={item.id}
+        className="group relative overflow-hidden rounded-xl sm:rounded-3xl border border-gray-200/60 sm:border-2 bg-white shadow-md sm:shadow-xl transition-all duration-300 sm:duration-700 ease-out hover:shadow-lg sm:hover:scale-[1.02] sm:hover:shadow-2xl sm:hover:shadow-amber-500/20 sm:hover:border-amber-300/60 gap-0 p-0"
+        style={{ animationDelay: `${index * 50}ms` }}
+      >
+        <div className="relative z-10 h-full flex flex-col">
+          <Link href={`/item/${item.id}`} className="block">
+            {((item.image && typeof item.image === 'object') || item.imageUrl) && (
+              <div className="relative aspect-square sm:aspect-[5/4] overflow-hidden rounded-t-xl sm:rounded-t-3xl">
+                <Image
+                  src={
+                    item.image && typeof item.image === 'object'
+                      ? (item.image as { url: string }).url
+                      : item.imageUrl || ''
                   }
-                : undefined,
-            imageUrl: item.imageUrl || undefined,
-          }}
-          isLoggedIn={!!user}
-          deliveryZone={userDeliveryZone}
-        />
-      </div>
-    </Card>
-  )
+                  alt={
+                    (item.image && typeof item.image === 'object'
+                      ? (item.image as { alt?: string }).alt
+                      : undefined) || item.name
+                  }
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-all duration-300 sm:duration-700 ease-out group-hover:scale-105 sm:group-hover:scale-110"
+                  priority={index < 4}
+                />
+
+                {/* Offer Badge - Top Left */}
+                {productOffer?.badge && (
+                  <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+                    <OfferBadge
+                      badge={productOffer.badge}
+                      type={productOffer.type}
+                      highlightColor={productOffer.highlightColor}
+                      endDate={productOffer.endDate}
+                    />
+                  </div>
+                )}
+
+                {/* Floating Category Badge */}
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/90 text-gray-700 border border-gray-200/60 shadow text-[10px] sm:text-xs font-medium px-1.5 py-0.5 sm:px-3 sm:py-1"
+                  >
+                    {typeof item.category === 'object'
+                      ? (item.category as { name: string })?.name
+                      : 'Product'}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            <CardHeader className="p-1.5 sm:p-3 space-y-0.5 sm:space-y-2">
+              <CardTitle className="text-sm sm:text-lg font-semibold sm:font-bold text-gray-800 leading-tight line-clamp-2">
+                {item.name}
+              </CardTitle>
+              <CardDescription className="hidden sm:block text-gray-600 text-sm leading-relaxed line-clamp-2">
+                {item.shortDescription ?? item.description}
+              </CardDescription>
+            </CardHeader>
+          </Link>
+
+          <ProductCardFooter
+            item={{
+              id: String(item.id),
+              name: item.name,
+              price: item.price,
+              image:
+                item.image && typeof item.image === 'object'
+                  ? {
+                      url: (item.image as { url: string }).url,
+                      alt: (item.image as { alt?: string }).alt,
+                    }
+                  : undefined,
+              imageUrl: item.imageUrl || undefined,
+            }}
+            isLoggedIn={!!user}
+            deliveryZone={userDeliveryZone}
+            originalPrice={productOffer ? originalPrice : undefined}
+            discountedPrice={productOffer ? discountedPrice : undefined}
+          />
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <div className="container mx-auto px-2 py-8 sm:px-6 sm:py-12 lg:px-8">

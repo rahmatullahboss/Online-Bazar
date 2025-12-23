@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { FiArrowRight, FiZap, FiGift, FiClock } from 'react-icons/fi'
+import { FiArrowRight, FiZap, FiGift, FiClock, FiTruck } from 'react-icons/fi'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -93,7 +93,8 @@ export async function HomepageOffersSection() {
                   <div className={`p-2 rounded-lg ${colors.iconBg} text-white`}>
                     {offer.type === 'flash_sale' && <FiZap className="w-4 h-4" />}
                     {offer.type === 'buy_x_get_y' && <FiGift className="w-4 h-4" />}
-                    {!['flash_sale', 'buy_x_get_y'].includes(offer.type) && (
+                    {offer.type === 'free_shipping' && <FiTruck className="w-4 h-4" />}
+                    {!['flash_sale', 'buy_x_get_y', 'free_shipping'].includes(offer.type) && (
                       <FiZap className="w-4 h-4" />
                     )}
                   </div>
@@ -106,12 +107,15 @@ export async function HomepageOffersSection() {
 
                 <h3 className="font-bold text-gray-800 mb-1 line-clamp-1">{offer.name}</h3>
 
-                {offer.discountValue && offer.discountType && (
+                {/* Display offer value based on type */}
+                {offer.type === 'free_shipping' ? (
+                  <p className={`text-lg font-bold ${colors.text} mb-2`}>FREE SHIPPING</p>
+                ) : offer.discountValue && offer.discountType ? (
                   <p className={`text-lg font-bold ${colors.text} mb-2`}>
                     {offer.discountType === 'percent' && `${offer.discountValue}% OFF`}
                     {offer.discountType === 'fixed' && `৳${offer.discountValue} OFF`}
                   </p>
-                )}
+                ) : null}
 
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <FiClock className="w-3 h-3" />
